@@ -1,1 +1,4 @@
-/target
+client/target
+client/steam_sdk
+server/target
+.DS_Store
