@@ -19,6 +19,7 @@ use rocket_sync_db_pools::database;
 pub mod model;
 pub mod models;
 pub mod schema;
+pub mod util;
 
 #[database("db")]
 pub struct Database(diesel::PgConnection);
