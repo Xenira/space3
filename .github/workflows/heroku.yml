@@ -24,4 +24,4 @@ jobs:
           justlogin: true
       - run: heroku container:login
       - run: heroku container:push web -a space-cubed
-      - run: heroku container:release web
+      - run: heroku container:release web -a space-cubed
