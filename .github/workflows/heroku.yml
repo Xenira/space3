@@ -31,8 +31,27 @@ jobs:
       - run: docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
       - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
       - run: echo $GITHUB_REPOSITORY
-      - run: docker build . -t space-cubed:web --cache-from=localhost:5000/space-cubed:web --build-arg BUILDKIT_INLINE_CACHE=1
-      - run: docker tag space-cubed:web localhost:5000/space-cubed:web && docker push localhost:5000/space-cubed:web || true
-      - run: docker tag space-cubed:web registry.heroku.com/space-cubed/web
+      - run: docker build . --target chef -t space-cubed:web --cache-from=localhost:5000/space-cubed/chef --build-arg BUILDKIT_INLINE_CACHE=1
+      - run: docker build . --target trunk -t space-cubed:web --cache-from=localhost:5000/space-cubed/trunk --build-arg BUILDKIT_INLINE_CACHE=1
+      - run: docker build . --target planner-client -t space-cubed:web --cache-from=localhost:5000/space-cubed/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
+      - run: docker build . --target builder-client -t space-cubed:web --cache-from=localhost:5000/space-cubed/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
+      - run: docker build . --target planner-server -t space-cubed:web --cache-from=localhost:5000/space-cubed/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
+      - run: docker build . --target builder-server -t space-cubed:web --cache-from=localhost:5000/space-cubed/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
+      - run: docker build . --target server -t space-cubed/web --cache-from=localhost:5000/space-cubed/web --build-arg BUILDKIT_INLINE_CACHE=1
+      - run: docker tag space-cubed/chef localhost:5000/space-cubed/chef && docker push localhost:5000/space-cubed/chef || true
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: docker tag space-cubed/trunk localhost:5000/space-cubed/trunk && docker push localhost:5000/space-cubed/trunk || true
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: docker tag space-cubed/planner-client localhost:5000/space-cubed/planner-client && docker push localhost:5000/space-cubed/planner-client || true
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: docker tag space-cubed/builder-client localhost:5000/space-cubed/builder-client && docker push localhost:5000/space-cubed/builder-client || true
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: docker tag space-cubed/planner-server localhost:5000/space-cubed/planner-server && docker push localhost:5000/space-cubed/planner-server || true
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: docker tag space-cubed/builder-client localhost:5000/space-cubed/builder-server && docker push localhost:5000/space-cubed/builder-server || true
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: docker tag space-cubed/web localhost:5000/space-cubed/web && docker push localhost:5000/space-cubed/web || true
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: docker tag space-cubed/web registry.heroku.com/space-cubed/web
       - run: docker push registry.heroku.com/space-cubed/web
       - run: heroku container:release web -a space-cubed
