@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub enum Protocol {
     // Misc
     STATUS_RESPONSE(Status),
+    EMPTY(String),
 
     // User
     REGISTRATION_REQUEST(Credentials),

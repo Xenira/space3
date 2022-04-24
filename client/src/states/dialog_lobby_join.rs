@@ -167,8 +167,8 @@ fn on_login(
     mut ev_state_change: EventWriter<StateChangeEvent>,
 ) {
     for ev in ev_networking.iter() {
-        if let Protocol::LOGIN_RESPONSE(login) = &ev.0 {
-            commands.insert_resource(login.user.clone());
+        if let Protocol::EMPTY(url) = &ev.0 {
+            debug!("Got response for url {:?}", url);
 
             ev_state_change.send(StateChangeEvent(AppState::LOBBY));
         }
