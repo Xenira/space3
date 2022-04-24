@@ -32,37 +32,37 @@ jobs:
       - run: docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
       
       - name: build chef 
-        run: docker build . --target chef -t space-cubed:web --cache-from=localhost:5000/space-cubed/chef --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target chef -t space-cubed/chef --cache-from=localhost:5000/space-cubed/chef --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache chef 
         run: docker tag space-cubed/chef localhost:5000/space-cubed/chef && docker push localhost:5000/space-cubed/chef || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build trunk 
-        run: docker build . --target trunk -t space-cubed:web --cache-from=localhost:5000/space-cubed/trunk --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target trunk -t space-cubed/trunk --cache-from=localhost:5000/space-cubed/trunk --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache trunk 
         run: docker tag space-cubed/trunk localhost:5000/space-cubed/trunk && docker push localhost:5000/space-cubed/trunk || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build planner-client 
-        run: docker build . --target planner-client -t space-cubed:web --cache-from=localhost:5000/space-cubed/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target planner-client -t space-cubed/planner-client --cache-from=localhost:5000/space-cubed/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache planner-client 
         run: docker tag space-cubed/planner-client localhost:5000/space-cubed/planner-client && docker push localhost:5000/space-cubed/planner-client || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build builder-client 
-        run: docker build . --target builder-client -t space-cubed:web --cache-from=localhost:5000/space-cubed/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target builder-client -t space-cubed/builder-client --cache-from=localhost:5000/space-cubed/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache builder-client 
         run: docker tag space-cubed/builder-client localhost:5000/space-cubed/builder-client && docker push localhost:5000/space-cubed/builder-client || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build planner-server 
-        run: docker build . --target planner-server -t space-cubed:web --cache-from=localhost:5000/space-cubed/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target planner-server -t space-cubed/planner-server --cache-from=localhost:5000/space-cubed/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache planner-server 
         run: docker tag space-cubed/planner-server localhost:5000/space-cubed/planner-server && docker push localhost:5000/space-cubed/planner-server || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build builder-server 
-        run: docker build . --target builder-server -t space-cubed:web --cache-from=localhost:5000/space-cubed/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target builder-server -t space-cubed/builder-server --cache-from=localhost:5000/space-cubed/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache builder-server 
         run: docker tag space-cubed/builder-client localhost:5000/space-cubed/builder-server && docker push localhost:5000/space-cubed/builder-server || true
         if: steps.cache.outputs.cache-hit != 'true'
