@@ -1,10 +1,8 @@
 use bevy::{core::Stopwatch, prelude::*};
+use bevy_forms::button::{self, ButtonClickEvent};
 
 use crate::{
-    cleanup_system,
-    components::timer::StopwatchComponent,
-    ui::button::{self, ButtonClickEvent},
-    AppState, Cleanup, StateChangeEvent,
+    cleanup_system, components::timer::StopwatchComponent, AppState, Cleanup, StateChangeEvent,
 };
 
 const STATE: AppState = AppState::GAME_SEARCH;
@@ -80,7 +78,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             time: Stopwatch::new(),
                         });
                 });
-            button::generate_button("Cancel", "btn_cancel", parent, &asset_server);
+            button::generate_button("Cancel", "btn_cancel", &asset_server, None, parent);
         })
         .insert(Cleanup);
 }

@@ -1,10 +1,7 @@
 use bevy::{app::AppExit, prelude::*};
+use bevy_forms::button::{self, ButtonClickEvent};
 
-use crate::{
-    cleanup_system,
-    ui::button::{self, ButtonClickEvent},
-    AppState, Cleanup, StateChangeEvent,
-};
+use crate::{cleanup_system, AppState, Cleanup, StateChangeEvent};
 
 const STATE: AppState = AppState::MENU_MAIN;
 pub(crate) struct MenuMainPlugin;
@@ -54,8 +51,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         ..Default::default()
                     });
                 });
-            button::generate_button("Play", "btn_play", parent, &asset_server);
-            button::generate_button("Exit", "btn_exit", parent, &asset_server);
+            button::generate_button("Play", "btn_play", &asset_server, None, parent);
+            button::generate_button("Exit", "btn_exit", &asset_server, None, parent);
         })
         .insert(Cleanup);
 }
@@ -67,7 +64,7 @@ fn button_click(
 ) {
     for ev in ev_button_click.iter() {
         match ev.0.as_str() {
-            "btn_play" => ev_state_change.send(StateChangeEvent(AppState::GAME_SEARCH)),
+            "btn_play" => ev_state_change.send(StateChangeEvent(AppState::DIALOG_LOBBY_JOIN)),
             "btn_exit" => ev_exit.send(AppExit),
             _ => (),
         }

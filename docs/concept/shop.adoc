@@ -1,0 +1,10 @@
+= Shop
+:toc2:
+:sectnums:
+:icons: font
+
+== General
+
+== Rarity
+
+== Character pool

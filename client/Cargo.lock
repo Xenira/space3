@@ -516,6 +516,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_forms"
+version = "0.1.0"
+source = "git+https://github.com/Xenira/bevy_forms#f86104226202e55fafde7dcfa637fc67d4a90049"
+dependencies = [
+ "bevy_app",
+ "bevy_asset",
+ "bevy_ecs",
+ "bevy_forms_macros",
+ "bevy_hierarchy",
+ "bevy_input",
+ "bevy_math",
+ "bevy_render",
+ "bevy_text",
+ "bevy_ui",
+ "bevy_window",
+ "tracing",
+ "uuid 1.0.0",
+]
+
+[[package]]
+name = "bevy_forms_macros"
+version = "0.1.0"
+source = "git+https://github.com/Xenira/bevy_forms#f86104226202e55fafde7dcfa637fc67d4a90049"
+
+[[package]]
 name = "bevy_gilrs"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -700,7 +725,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
- "uuid",
+ "uuid 0.8.2",
 ]
 
 [[package]]
@@ -755,7 +780,7 @@ dependencies = [
  "ron",
  "serde",
  "thiserror",
- "uuid",
+ "uuid 0.8.2",
 ]
 
 [[package]]
@@ -876,12 +901,13 @@ dependencies = [
  "hashbrown",
  "instant",
  "tracing",
- "uuid",
+ "uuid 0.8.2",
 ]
 
 [[package]]
 name = "bevy_vox"
 version = "0.3.0"
+source = "git+https://github.com/Xenira/bevy_vox#b2a5386800a345843f7a763bd7dd7ede2d1a5483"
 dependencies = [
  "anyhow",
  "bevy_app",
@@ -1873,7 +1899,7 @@ dependencies = [
  "fnv",
  "gilrs-core",
  "log",
- "uuid",
+ "uuid 0.8.2",
  "vec_map",
 ]
 
@@ -1892,7 +1918,7 @@ dependencies = [
  "nix",
  "rusty-xinput",
  "stdweb 0.4.20",
- "uuid",
+ "uuid 0.8.2",
  "vec_map",
  "web-sys",
  "winapi",
@@ -3504,9 +3530,10 @@ dependencies = [
 name = "space_3"
 version = "0.1.0"
 dependencies = [
+ "async-channel",
  "bevy",
+ "bevy_forms",
  "bevy_vox",
- "futures-lite",
  "protocol",
  "serde",
  "serde_json",
@@ -3924,6 +3951,16 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom 0.2.6",
  "serde",
+]
+
+[[package]]
+name = "uuid"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8cfcd319456c4d6ea10087ed423473267e1a071f3bc0aa89f80d60997843c6f0"
+dependencies = [
+ "getrandom 0.2.6",
+ "rand 0.8.5",
 ]
 
 [[package]]

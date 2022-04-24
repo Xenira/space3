@@ -18,7 +18,11 @@ argon2 = "0.4"
 rand_core = { version = "0.6", features = ["std"] }
 jsonwebtoken = "8"
 protocol = { path = "../protocol" }
+openssl = "0.10"
 
 [dependencies.rocket_sync_db_pools]
 version = "0.1.0-rc.1"
 features = ["diesel_postgres_pool"]
+
+[target.'cfg(target_os = "linux")']
+rustflags = ["-C link-arg=pthread"]

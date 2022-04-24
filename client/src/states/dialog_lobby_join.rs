@@ -1,10 +1,10 @@
-use bevy::{app::AppExit, prelude::*};
+use bevy::prelude::*;
 use bevy_forms::{
     button::{self, ButtonClickEvent},
     form::{self, Form, FormError, FormMapping, FormValue, FromFormMapping, IntoFormMapping},
     text_input,
 };
-use protocol::protocol::{Credentials, Protocol};
+use protocol::protocol::{LobbyJoinRequest, Protocol};
 use surf::http::Method;
 
 use crate::{
@@ -13,52 +13,61 @@ use crate::{
     AppState, Cleanup, StateChangeEvent,
 };
 
-const STATE: AppState = AppState::MENU_LOGIN;
-pub(crate) struct MenuLoginPlugin;
+const STATE: AppState = AppState::DIALOG_LOBBY_JOIN;
+pub(crate) struct DialogLobbyJoinPlugin;
 
-impl Plugin for MenuLoginPlugin {
+impl Plugin for DialogLobbyJoinPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Form<LoginCredentials>>()
+        app.init_resource::<Form<LobbyJoin>>()
             .add_system_set(SystemSet::on_enter(STATE).with_system(setup_ui))
             .add_system_set(text_input::add_to_system_set(
                 SystemSet::on_update(STATE)
                     .with_system(button_click)
                     .with_system(on_login)
-                    .with_system(form::on_change::<LoginCredentials>),
+                    .with_system(form::on_change::<LobbyJoin>),
             ))
             .add_system_set(SystemSet::on_exit(STATE).with_system(cleanup_system::<Cleanup>));
     }
 }
 
 #[derive(Default)]
-struct LoginCredentials(Credentials);
+struct LobbyJoin(LobbyJoinRequest);
 
-impl IntoFormMapping for LoginCredentials {
+impl IntoFormMapping for LobbyJoin {
     fn into_mapping(self) -> FormMapping {
         let mut data: FormMapping = FormMapping::new();
-        data.insert("username".to_string(), FormValue::String(self.0.username));
-        data.insert("password".to_string(), FormValue::String(self.0.password));
+        data.insert("name".to_string(), FormValue::String(self.0.name));
+        data.insert(
+            "passphrase".to_string(),
+            FormValue::String(self.0.passphrase),
+        );
         data
     }
 }
 
-impl FromFormMapping for LoginCredentials {
+impl FromFormMapping for LobbyJoin {
     fn from_mapping(form: &FormMapping) -> Result<Self, FormError> {
-        let username = match form.get("username") {
-            Some(FormValue::String(un)) => un.clone(),
+        let name = match form.get("name") {
+            Some(FormValue::String(name)) => name.clone(),
             Some(actual) => {
                 return Err(FormError::TypeMismatch {
-                    expected: FormValue::String("username".to_string()),
+                    expected: FormValue::String("name".to_string()),
                     got: actual.clone(),
                 })
             }
-            _ => return Err(FormError::FieldsMissing("username".to_string())),
+            _ => return Err(FormError::FieldsMissing("name".to_string())),
         };
-        let password = match form.get("password") {
+        let passphrase = match form.get("passphrase") {
             Some(FormValue::String(pw)) => pw.clone(),
-            _ => return Err(FormError::FieldsMissing("password".to_string())),
+            Some(actual) => {
+                return Err(FormError::TypeMismatch {
+                    expected: FormValue::String("passphrase".to_string()),
+                    got: actual.clone(),
+                })
+            }
+            _ => "".to_string(),
         };
-        Ok(Self(Credentials { username, password }))
+        Ok(Self(LobbyJoinRequest { name, passphrase }))
     }
 }
 
@@ -79,7 +88,7 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
             // bevy logo (flex center)
             parent.spawn_bundle(TextBundle {
                 text: Text::with_section(
-                    "Login:",
+                    "Join Lobby:",
                     TextStyle {
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         font_size: 40.0,
@@ -100,20 +109,20 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 })
                 .with_children(|inputs| {
                     text_input::generate_input(
-                        "username",
+                        "name",
                         0,
                         "",
-                        Some("Username".to_string()),
+                        Some("Lobby-Name".to_string()),
                         None,
                         &asset_server,
                         None,
                         inputs,
                     );
                     text_input::generate_input(
-                        "password",
+                        "passphrase",
                         1,
                         "",
-                        Some("Password".to_string()),
+                        Some("Passphrase".to_string()),
                         Some("#".to_string()),
                         &asset_server,
                         None,
@@ -126,14 +135,8 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..Default::default()
                 })
                 .with_children(|parent| {
-                    button::generate_button("Login", "btn_sign_in", &asset_server, None, parent);
-                    button::generate_button(
-                        "Register",
-                        "btn_register",
-                        &asset_server,
-                        None,
-                        parent,
-                    );
+                    button::generate_button("Cancel", "btn_cancel", &asset_server, None, parent);
+                    button::generate_button("Join", "btn_join", &asset_server, None, parent);
                 });
         })
         .insert(Cleanup);
@@ -141,18 +144,18 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn button_click(
     mut network: ResMut<NetworkingRessource>,
-    form: Res<Form<LoginCredentials>>,
+    form: Res<Form<LobbyJoin>>,
     mut ev_button_click: EventReader<ButtonClickEvent>,
-    mut ev_exit: EventWriter<AppExit>,
+    mut ev_state_change: EventWriter<StateChangeEvent>,
 ) {
     for ev in ev_button_click.iter() {
         debug!("Form mapping: {:?}", form.get_mapping());
         match ev.0.as_str() {
-            "btn_sign_in" => match form.get() {
-                Ok(creds) => network.request_data(Method::Post, "users", &creds.0),
+            "btn_join" => match form.get() {
+                Ok(req) => network.request_data(Method::Put, "lobbys", &req.0),
                 Err(err) => error!("Failed to send login request {:?}", err),
             },
-            "btn_exit" => ev_exit.send(AppExit),
+            "btn_cancel" => ev_state_change.send(StateChangeEvent(AppState::MENU_MAIN)),
             _ => (),
         }
     }
@@ -160,23 +163,14 @@ fn button_click(
 
 fn on_login(
     mut commands: Commands,
-    mut network: ResMut<NetworkingRessource>,
     mut ev_networking: EventReader<NetworkingEvent>,
     mut ev_state_change: EventWriter<StateChangeEvent>,
 ) {
     for ev in ev_networking.iter() {
         if let Protocol::LOGIN_RESPONSE(login) = &ev.0 {
-            network.client = network
-                .client
-                .config()
-                .clone()
-                .add_header("x-api-key", login.key.clone())
-                .unwrap()
-                .try_into()
-                .unwrap();
             commands.insert_resource(login.user.clone());
 
-            ev_state_change.send(StateChangeEvent(AppState::MENU_MAIN));
+            ev_state_change.send(StateChangeEvent(AppState::LOBBY));
         }
     }
 }
