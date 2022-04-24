@@ -23,8 +23,11 @@ jobs:
           heroku_email: "l.sprengel@pm.me"
           justlogin: true
       - run: heroku container:login
+      - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
+      - run: echo $GITHUB_REPOSITORY
       - run: docker pull docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit || true
       - run: docker build . -t space-cubed:web --cache-from=docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit
       - run: docker tag space-cubed:web docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit && docker push docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit || true
-      - run: heroku container:push web -a space-cubed
+      - run: docker tag space-cubed:web registry.heroku.com/space-cubed/web
+      - run: docker push registry.heroku.com/space-cubed/web
       - run: heroku container:release web -a space-cubed
