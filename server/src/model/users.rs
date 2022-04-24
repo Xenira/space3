@@ -7,6 +7,7 @@ use chrono::NaiveDateTime;
 use diesel::{insert_into, QueryDsl};
 
 use protocol::protocol::Credentials;
+use protocol::protocol::LobbyInfo;
 use protocol::protocol::LoginResponse;
 use protocol::protocol::Protocol;
 use protocol::protocol::UserData;
@@ -18,7 +19,9 @@ use rocket::request::Outcome;
 use rocket::serde::json::Json;
 use rocket::Request;
 
-#[derive(Queryable)]
+use super::lobbys::LobbyWithUsers;
+
+#[derive(Queryable, Clone, Debug)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -29,7 +32,7 @@ pub struct User {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum ApiKeyError {
     Missing,
     Invalid,
@@ -37,28 +40,45 @@ pub enum ApiKeyError {
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for User {
+impl<'r> FromRequest<'r> for &'r User {
     type Error = ApiKeyError;
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        match req.headers().get_one("x-api-key") {
-            None => Outcome::Failure((Status::BadRequest, ApiKeyError::Missing)),
-            Some(key) => match jwt::validate(key) {
-                Ok(token) => {
-                    if let Some(db) = req.guard::<Database>().await.succeeded() {
-                        let user = db
-                            .run(move |con| {
-                                users::table
-                                    .filter(users::username.eq(token.claims.sub))
-                                    .first::<User>(con)
-                            })
-                            .await
-                            .expect("Failed to retrieve user from db");
-                        return Outcome::Success(user);
+        let user = req
+            .local_cache_async(async {
+                match req.headers().get_one("x-api-key") {
+                    None => Err(ApiKeyError::Missing),
+                    Some(key) => {
+                        trace!("Authenticating based on jwt");
+                        match jwt::validate(key) {
+                            Ok(token) => {
+                                trace!("Token is valid");
+                                if let Some(db) = req.guard::<Database>().await.succeeded() {
+                                    let user = db
+                                        .run(move |con| {
+                                            users::table
+                                                .filter(users::username.eq(token.claims.sub))
+                                                .first::<User>(con)
+                                        })
+                                        .await
+                                        .expect("Failed to retrieve user from db");
+                                    trace!("Setting user {:?}", user);
+
+                                    return Ok(user);
+                                }
+                                Err(ApiKeyError::Other)
+                            }
+                            Err(err) => {
+                                warn!("Error during login: {}", err);
+                                Err(ApiKeyError::Invalid)
+                            }
+                        }
                     }
-                    Outcome::Failure((Status::ServiceUnavailable, ApiKeyError::Other))
                 }
-                Err(_) => Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid)),
-            },
+            })
+            .await;
+        match user {
+            Ok(user) => Outcome::Success(&user),
+            Err(e) => Outcome::Failure((Status::Unauthorized, e.clone())),
         }
     }
 }
@@ -112,6 +132,7 @@ pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> 
         user: UserData {
             username: creds.username.clone(),
             currency: 0,
+            lobby: None,
         },
     }))
 }
@@ -143,14 +164,21 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
         user: UserData {
             username: user.username,
             currency: user.currency,
+            lobby: None,
         },
     }))
 }
 
 #[get("/users/@me")]
-pub fn me(user: User) -> Json<Protocol> {
+pub fn me(user: &User, lobby: Option<LobbyWithUsers>) -> Json<Protocol> {
     Json(Protocol::USER_RESPONSE(UserData {
-        username: user.username,
+        username: user.username.to_string(),
         currency: user.currency,
+        lobby: lobby.and_then(|l| {
+            Some(LobbyInfo {
+                name: l.lobby.name,
+                users: l.users.into_iter().map(|u| u.into()).collect(),
+            })
+        }),
     }))
 }
