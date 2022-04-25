@@ -518,7 +518,6 @@ dependencies = [
 [[package]]
 name = "bevy_forms"
 version = "0.1.0"
-source = "git+https://github.com/Xenira/bevy_forms#f86104226202e55fafde7dcfa637fc67d4a90049"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -538,7 +537,6 @@ dependencies = [
 [[package]]
 name = "bevy_forms_macros"
 version = "0.1.0"
-source = "git+https://github.com/Xenira/bevy_forms#f86104226202e55fafde7dcfa637fc67d4a90049"
 
 [[package]]
 name = "bevy_gilrs"

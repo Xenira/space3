@@ -16,11 +16,13 @@ RUN rustup target add wasm32-unknown-unknown
 FROM chef AS planner-client
 COPY ./client .
 COPY ./protocol /protocol
+COPY ./bevy_forms /bevy_forms
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM trunk AS builder-client
 COPY --from=planner-client /app/recipe.json recipe.json
 COPY ./protocol /protocol
+COPY ./bevy_forms /bevy_forms
 RUN cargo chef cook --target wasm32-unknown-unknown --recipe-path recipe.json
 COPY ./client .
 RUN ~/.cargo/bin/trunk build
