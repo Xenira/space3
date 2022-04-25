@@ -42,12 +42,19 @@ fn rocket() -> _ {
         size.parse()
             .expect(format!("POOL_SIZE {} can not be cast to u32", size).as_str())
     });
+    let port: u32 = env::var("PORT").map_or(8000, |port| {
+        port.parse()
+            .expect(format!("PORT {} can not be cast to u32", port).as_str())
+    });
+
     let db: Map<_, Value> = map! {
         "url" => database_url.into(),
         "pool_size" => pool_size.into()
     };
 
-    let figment = rocket::Config::figment().merge(("databases", map!["db" => db]));
+    let figment = rocket::Config::figment()
+        .merge(("port", port))
+        .merge(("databases", map!["db" => db]));
 
     rocket::custom(figment)
         .attach(Database::fairing())
