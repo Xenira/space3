@@ -1,5 +1,6 @@
 pub mod lobby_users;
 pub mod lobbys;
+pub mod polling;
 pub mod users;
 
 pub mod model {

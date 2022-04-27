@@ -13,7 +13,7 @@ use crate::{
     AppState, Cleanup, StateChangeEvent,
 };
 
-const STATE: AppState = AppState::DIALOG_LOBBY_JOIN;
+const STATE: AppState = AppState::DialogLobbyJoin;
 pub(crate) struct DialogLobbyJoinPlugin;
 
 impl Plugin for DialogLobbyJoinPlugin {
@@ -155,7 +155,7 @@ fn button_click(
                 Ok(req) => network.request_data(Method::Put, "lobbys", &req.0),
                 Err(err) => error!("Failed to send login request {:?}", err),
             },
-            "btn_cancel" => ev_state_change.send(StateChangeEvent(AppState::MENU_MAIN)),
+            "btn_cancel" => ev_state_change.send(StateChangeEvent(AppState::MenuMain)),
             _ => (),
         }
     }
@@ -170,7 +170,7 @@ fn on_login(
         if let Protocol::EMPTY(url) = &ev.0 {
             debug!("Got response for url {:?}", url);
 
-            ev_state_change.send(StateChangeEvent(AppState::LOBBY));
+            ev_state_change.send(StateChangeEvent(AppState::Lobby));
         }
     }
 }

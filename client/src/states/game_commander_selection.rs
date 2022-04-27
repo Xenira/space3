@@ -7,7 +7,7 @@ use crate::{
     cleanup_system, components::timer::TimerComponent, AppState, Cleanup, StateChangeEvent,
 };
 
-const STATE: AppState = AppState::GAME_COMMANDER_SELECTION;
+const STATE: AppState = AppState::GameCommanderSelection;
 
 pub(crate) struct GameCommanderSelectionPlugin;
 
@@ -121,7 +121,7 @@ fn button_click(
 ) {
     for ev in ev_button_click.iter() {
         match ev.0.as_str() {
-            "btn_select" => ev_state_change.send(StateChangeEvent(AppState::MENU_MAIN)),
+            "btn_select" => ev_state_change.send(StateChangeEvent(AppState::MenuMain)),
             _ => (),
         }
     }
@@ -133,7 +133,7 @@ fn timer(
 ) {
     for (watch, mut text) in timer.iter_mut() {
         if watch.time.finished() {
-            ev_state_change.send(StateChangeEvent(AppState::GAME_SHOP));
+            ev_state_change.send(StateChangeEvent(AppState::GameShop));
         } else if watch.time.percent() >= 0.5 {
             text.sections[0].value = ((watch.time.duration().as_secs_f32()
                 - watch.time.elapsed_secs()) as u32)

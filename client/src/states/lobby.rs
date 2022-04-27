@@ -3,25 +3,21 @@ use bevy_forms::{
     button::{self, ButtonClickEvent},
     list, text_input,
 };
-use protocol::protocol::Protocol;
+
 use surf::http::Method;
 
 use crate::{
-    cleanup_system,
-    networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
-    AppState, Cleanup, StateChangeEvent,
+    cleanup_system, networking::networking_ressource::NetworkingRessource, AppState, Cleanup,
 };
 
-const STATE: AppState = AppState::LOBBY;
+const STATE: AppState = AppState::Lobby;
 pub(crate) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(STATE).with_system(setup_ui))
             .add_system_set(text_input::add_to_system_set(
-                SystemSet::on_update(STATE)
-                    .with_system(button_click)
-                    .with_system(on_login),
+                SystemSet::on_update(STATE).with_system(button_click),
             ))
             .add_system_set(SystemSet::on_exit(STATE).with_system(cleanup_system::<Cleanup>));
     }
@@ -88,29 +84,6 @@ fn button_click(
         match ev.0.as_str() {
             "btn_leave" => network.request(Method::Delete, "lobbys"),
             _ => (),
-        }
-    }
-}
-
-fn on_login(
-    mut commands: Commands,
-    mut network: ResMut<NetworkingRessource>,
-    mut ev_networking: EventReader<NetworkingEvent>,
-    mut ev_state_change: EventWriter<StateChangeEvent>,
-) {
-    for ev in ev_networking.iter() {
-        if let Protocol::LOGIN_RESPONSE(login) = &ev.0 {
-            network.client = network
-                .client
-                .config()
-                .clone()
-                .add_header("x-api-key", login.key.clone())
-                .unwrap()
-                .try_into()
-                .unwrap();
-            commands.insert_resource(login.user.clone());
-
-            ev_state_change.send(StateChangeEvent(AppState::DIALOG_LOBBY_JOIN));
         }
     }
 }

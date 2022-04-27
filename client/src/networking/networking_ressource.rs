@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use bevy::prelude::{FromWorld, World};
-use protocol::protocol::Protocol;
 use serde::Serialize;
 use surf::{http::Method, Client, Config, Request, RequestBuilder, Url};
 
@@ -30,12 +29,12 @@ impl FromWorld for NetworkingRessource {
 
 impl NetworkingRessource {
     pub fn new(base_url: &Url) -> NetworkingRessource {
+        let client = Config::new()
+            .set_timeout(Some(Duration::from_secs(5)))
+            .set_base_url(base_url.clone());
+
         NetworkingRessource {
-            client: Config::new()
-                .set_base_url(base_url.clone())
-                .set_timeout(Some(Duration::from_secs(5)))
-                .try_into()
-                .expect("Failed to construct client"),
+            client: client.try_into().expect("Failed to construct client"),
             requests: vec![],
         }
     }
