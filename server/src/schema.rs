@@ -35,6 +35,27 @@ table! {
 }
 
 table! {
+    lobby_users (lobby_id, user_id) {
+        id -> Int4,
+        lobby_id -> Int4,
+        user_id -> Int4,
+        ready -> Bool,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+table! {
+    lobbys (id) {
+        id -> Int4,
+        name -> Nullable<Varchar>,
+        passphrase -> Nullable<Varchar>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+table! {
     users (id) {
         id -> Int4,
         username -> Varchar,
@@ -47,11 +68,13 @@ table! {
 }
 
 joinable!(game_users -> games (game_id));
-joinable!(game_users -> users (user_id));
+joinable!(lobby_users -> lobbys (lobby_id));
 
 allow_tables_to_appear_in_same_query!(
     game_user_characters,
     game_users,
     games,
+    lobby_users,
+    lobbys,
     users,
 );

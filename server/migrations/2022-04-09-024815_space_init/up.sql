@@ -16,6 +16,24 @@ CREATE TABLE users (
 	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 	updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+CREATE TABLE lobbys (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(255) UNIQUE,
+	passphrase VARCHAR(255),
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE TABLE lobby_users (
+	id SERIAL UNIQUE,
+	lobby_id INT,
+	user_id INT,
+	ready BOOLEAN NOT NULL DEFAULT 'f',
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	PRIMARY KEY(lobby_id, user_id),
+	CONSTRAINT fk_lobby FOREIGN KEY(lobby_id) REFERENCES lobbys(id) ON DELETE CASCADE,
+	CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 CREATE TABLE game_users (
 	id SERIAL UNIQUE,
 	game_id INT,

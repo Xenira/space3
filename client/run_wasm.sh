@@ -13,4 +13,4 @@ fi
 
 export STEAM_SDK_LOCATION="$(pwd)/steam_sdk/sdk"
 echo "Starting build with sdk $STEAM_SDK_LOCATION"
-RUST_BACKTRACE=1 cargo run
+cargo run --target wasm32-unknown-unknown
