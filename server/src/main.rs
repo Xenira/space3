@@ -33,11 +33,18 @@ pub struct Database(diesel::PgConnection);
 
 #[launch]
 fn rocket() -> _ {
-    dotenv();
+    if let Err(err) = dotenv() {
+        warn!("Failed to read dotenv: {}", err);
+    }
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is missing");
+    let pool_size: u32 = env::var("POOL_SIZE").map_or(10, |size| {
+        size.parse()
+            .expect(format!("POOL_SIZE {} can not be cast to u32", size).as_str())
+    });
     let db: Map<_, Value> = map! {
         "url" => database_url.into(),
+        "pool_size" => pool_size.into()
     };
 
     let figment = rocket::Config::figment().merge(("databases", map!["db" => db]));
