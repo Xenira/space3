@@ -5,7 +5,7 @@ use crate::{
     cleanup_system, components::timer::StopwatchComponent, AppState, Cleanup, StateChangeEvent,
 };
 
-const STATE: AppState = AppState::GAME_SEARCH;
+const STATE: AppState = AppState::GameSearch;
 
 pub(crate) struct GameSearchPlugin;
 
@@ -89,7 +89,7 @@ fn button_click(
 ) {
     for ev in ev_button_click.iter() {
         match ev.0.as_str() {
-            "btn_cancel" => ev_state_change.send(StateChangeEvent(AppState::MENU_MAIN)),
+            "btn_cancel" => ev_state_change.send(StateChangeEvent(AppState::MenuMain)),
             _ => (),
         }
     }
@@ -102,7 +102,7 @@ fn timer(
     for (watch, mut text) in timer.iter_mut() {
         text.sections[0].value = (watch.time.elapsed_secs() as u32).to_string();
         if watch.time.elapsed_secs() >= 5.0 {
-            ev_state_change.send(StateChangeEvent(AppState::GAME_COMMANDER_SELECTION));
+            ev_state_change.send(StateChangeEvent(AppState::GameCommanderSelection));
         }
     }
     // let mut text = text_query.get_mut(watch.).unwrap();

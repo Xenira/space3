@@ -1,3 +1,10 @@
+#[cfg(not(target_family = "wasm"))]
+extern crate dotenv;
+#[cfg(not(target_family = "wasm"))]
+use dotenv::dotenv;
+
+use std::env;
+
 use bevy::{
     diagnostic::{EntityCountDiagnosticsPlugin, LogDiagnosticsPlugin},
     hierarchy::DespawnRecursiveExt,
@@ -12,7 +19,7 @@ use bevy_forms::{
     form::FormPluginGroup,
 };
 use bevy_vox::*;
-use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
+use networking::networking_events::NetworkingEvent;
 
 use crate::{components::timer, networking::networking::NetworkingPlugin, states::game_states};
 
@@ -23,16 +30,16 @@ mod util;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
-    STARTUP,
-    MENU_LOGIN,
-    MENU_MAIN,
-    DIALOG_LOBBY_JOIN,
-    LOBBY,
-    GAME_SEARCH,
-    GAME_COMMANDER_SELECTION,
-    GAME_SHOP,
-    GAME_BATTLE,
-    GAME_RESULT,
+    _Startup,
+    MenuLogin,
+    MenuMain,
+    DialogLobbyJoin,
+    Lobby,
+    GameSearch,
+    GameCommanderSelection,
+    GameShop,
+    _GameBattle,
+    _GameResult,
 }
 
 #[derive(Debug)]
@@ -48,7 +55,17 @@ fn main() {
     debug!("Generating app");
     let mut app = App::new();
 
-    app.add_state(AppState::MENU_LOGIN)
+    #[cfg(not(target_family = "wasm"))]
+    if let Err(err) = dotenv() {
+        warn!("Failed to read dotenv: {}", err);
+    }
+
+    #[cfg(not(target_family = "wasm"))]
+    let base_url = env::var("BASE_URL").expect("BASE_URL not supplied");
+    #[cfg(target_family = "wasm")]
+    let base_url = env!("BASE_URL", "BASE_URL needs to be set for wasm builds").to_string();
+
+    app.add_state(AppState::MenuLogin)
         .insert_resource(LogSettings {
             level: Level::DEBUG,
             ..Default::default()
@@ -60,9 +77,7 @@ fn main() {
         .add_plugin(VoxPlugin)
         .add_event::<ButtonClickEvent>()
         .add_event::<StateChangeEvent>()
-        .add_plugin(NetworkingPlugin(
-            "http://localhost:8000/api/v1/".to_string(),
-        ))
+        .add_plugin(NetworkingPlugin(format!("{}/api/v1/", base_url)))
         .add_startup_system(setup)
         .add_system(button::button_system)
         .add_system(state_change_handler)
@@ -105,10 +120,12 @@ fn state_change_handler(
 ) {
     for ev in ev_state_change.iter() {
         debug!("State change {:?}", ev);
-        match ev.0 {
-            AppState::DIALOG_LOBBY_JOIN => app_state.push(AppState::DIALOG_LOBBY_JOIN),
+        if let Err(err) = match ev.0 {
+            AppState::DialogLobbyJoin => app_state.push(AppState::DialogLobbyJoin),
             _ => app_state.overwrite_set(ev.0.clone()),
-        };
+        } {
+            error!("Failed to change state {:?}", err);
+        }
     }
 }
 

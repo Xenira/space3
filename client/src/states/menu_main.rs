@@ -3,7 +3,7 @@ use bevy_forms::button::{self, ButtonClickEvent};
 
 use crate::{cleanup_system, AppState, Cleanup, StateChangeEvent};
 
-const STATE: AppState = AppState::MENU_MAIN;
+const STATE: AppState = AppState::MenuMain;
 pub(crate) struct MenuMainPlugin;
 
 impl Plugin for MenuMainPlugin {
@@ -64,7 +64,7 @@ fn button_click(
 ) {
     for ev in ev_button_click.iter() {
         match ev.0.as_str() {
-            "btn_play" => ev_state_change.send(StateChangeEvent(AppState::DIALOG_LOBBY_JOIN)),
+            "btn_play" => ev_state_change.send(StateChangeEvent(AppState::DialogLobbyJoin)),
             "btn_exit" => ev_exit.send(AppExit),
             _ => (),
         }

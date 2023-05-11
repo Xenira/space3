@@ -13,7 +13,7 @@ use crate::{
     AppState, Cleanup, StateChangeEvent,
 };
 
-const STATE: AppState = AppState::MENU_LOGIN;
+const STATE: AppState = AppState::MenuLogin;
 pub(crate) struct MenuLoginPlugin;
 
 impl Plugin for MenuLoginPlugin {
@@ -180,7 +180,7 @@ fn on_login(
                 .unwrap();
             commands.insert_resource(login.user.clone());
 
-            ev_state_change.send(StateChangeEvent(AppState::MENU_MAIN));
+            ev_state_change.send(StateChangeEvent(AppState::MenuMain));
         }
     }
 }
