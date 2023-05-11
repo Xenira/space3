@@ -1,5 +1,8 @@
+pub(crate) mod game;
+pub(crate) mod game_user_avatar_choices;
+pub(crate) mod game_users;
+pub mod lobbies;
 pub mod lobby_users;
-pub mod lobbys;
 pub mod polling;
 pub mod users;
 
@@ -7,11 +10,11 @@ pub mod model {
     use protocol::protocol::{Protocol, Status};
     use rocket::{serde::json::Json, Route};
 
-    use super::{lobbys, users};
+    use super::{lobbies, polling, users};
 
     #[get("/status")]
     fn status() -> Json<Protocol> {
-        Json(Protocol::STATUS_RESPONSE(Status {
+        Json(Protocol::StatusResponse(Status {
             version: "v0.1".to_string(),
         }))
     }
@@ -22,8 +25,14 @@ pub mod model {
             users::register,
             users::login,
             users::me,
-            lobbys::get_current_loby_info,
-            lobbys::join_lobby
+            lobbies::get_current_loby_info,
+            lobbies::join_lobby,
+            lobbies::leave_lobby,
+            lobbies::toggle_ready_state,
+            lobbies::start_lobby_timer,
+            lobbies::stop_lobby_timer,
+            polling::poll,
+            polling::notify
         ]
     }
 }

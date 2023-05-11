@@ -3,4 +3,7 @@
 
 WARNING: WIP - DO NOT USE
 
-[ ]³ ["Space cubed" / "Cubed space"] will be a voxel based auto battler set in space (duh!).
+[ ]³ ["Space cubed" / "Cubed space"] will be a +++<del>+++voxel+++</del>+++ pixel art auto battler set in space (duh!).
+
+- https://opengameart.org/content/searching
+- https://opengameart.org/content/gui-sound-effects

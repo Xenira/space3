@@ -79,3 +79,40 @@
 |Role     4+|<tbd>
 |===
 ////
+
+Zeus - Greek pantheon - King of the gods, god of thunder and lightning, and ruler of the sky.
+Poseidon - Greek pantheon - God of the sea, earthquakes, and horses.
+Athena - Greek pantheon - Goddess of wisdom, warfare, and crafts.
+Apollo - Greek pantheon - God of music, poetry, prophecy, and healing.
+Hera - Greek pantheon - Queen of the gods, goddess of marriage and childbirth.
+Demeter - Greek pantheon - Goddess of agriculture, fertility, and the harvest.
+Hades - Greek pantheon - God of the underworld and the dead.
+Dionysus - Greek pantheon - God of wine, parties, and ecstasy.
+Amun - Egyptian pantheon - King of the gods, god of the air, and creator god.
+
+Ra - Egyptian pantheon - God of the sun, creator god, and king of the gods.
+Osiris - Egyptian pantheon - God of the dead and the afterlife, and the judge of souls.
+Isis - Egyptian pantheon - Goddess of magic, fertility, and motherhood.
+Horus - Egyptian pantheon - God of the sky, the pharaohs, and warfare.
+Anubis - Egyptian pantheon - God of embalming, mummification, and the dead.
+Thoth - Egyptian pantheon - God of writing, knowledge, and wisdom.
+
+Shiva - Hindu pantheon - God of destruction and creation, and lord of the dance.
+Vishnu - Hindu pantheon - God of preservation and protection, and one of the three main gods in Hinduism.
+Brahma - Hindu pantheon - God of creation and one of the three main gods in Hinduism.
+Ganesha - Hindu pantheon - God of wisdom, knowledge, and new beginnings, and the remover of obstacles.
+Kali - Hindu pantheon - Goddess of time, change, and destruction.
+Lakshmi - Hindu pantheon - Goddess of wealth, prosperity, and fortune.
+
+Odin - Norse pantheon - King of the gods, god of wisdom, war, and death.
+Thor - Norse pantheon - God of thunder, strength, and agriculture.
+Loki - Norse pantheon - God of mischief, trickery, and chaos.
+Freya - Norse pantheon - Goddess of love, fertility, and war.
+Hel - Norse pantheon - Goddess of the underworld and the dead.
+Tyr - Norse pantheon - God of law, justice, and courage.
+
+Amaterasu - Japanese pantheon - Goddess of the sun and the universe.
+Susanoo - Japanese pantheon - God of storms and the sea.
+Tsukuyomi - Japanese pantheon - God of the moon and the night.
+Izanagi - Japanese pantheon - Creator god and god of fire.
+Inari - Japanese pantheon - God of agriculture, fertility, and foxes.

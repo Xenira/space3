@@ -1,8 +1,26 @@
 
+== Level 8
+.Replicate
+Cost:: 10
+Description:: Destroy a unit and at the start of your next turn, get two copies of its base.
+
+.Frankenstein
+Cost:: 10
+Description:: Merge two units into one unit with the combined health and attack of both units. A ability of the new unit is chosen randomly.
+
 ....
     ⬡ ⬡
  ⬡ ⬡ # ⬡
 ⬡ # ⬡ ⬡ 
  ⬡ ⬡ # ⬡
     ⬡ ⬡
+....
+
+....
+    ⬡ ⬡
+ ⬡ ⬡ # ⬡
+⬡ # ⬡ ⬡ 
+ ⬡ ⬡
+⬡ # ⬡
+ ⬡ ⬡
 ....

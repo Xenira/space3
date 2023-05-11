@@ -1,0 +1,5 @@
+== Game Modes
+- Two Headed Giant (8 teams of 2)
+- Fleet Engagement (Team 1v1)
+- Chaos (Unit lvl is random)
+- Campaign? (Not sure if this is possible)

@@ -1,9 +1,10 @@
 use std::time::Duration;
 
-use bevy::prelude::{FromWorld, World};
+use bevy::prelude::{FromWorld, Resource, World};
 use serde::Serialize;
 use surf::{http::Method, Client, Config, Request, RequestBuilder, Url};
 
+#[derive(Resource)]
 pub struct ServerUrl(pub Url);
 
 impl From<&str> for ServerUrl {
@@ -12,8 +13,10 @@ impl From<&str> for ServerUrl {
     }
 }
 
+#[derive(Resource)]
 pub struct NetworkingRessource {
     pub client: Client,
+    pub polling_client: Client,
     pub requests: Vec<Request>,
 }
 
@@ -33,8 +36,15 @@ impl NetworkingRessource {
             .set_timeout(Some(Duration::from_secs(5)))
             .set_base_url(base_url.clone());
 
+        let polling_client = Config::new()
+            .set_timeout(Some(Duration::from_secs(60)))
+            .set_base_url(base_url.clone());
+
         NetworkingRessource {
             client: client.try_into().expect("Failed to construct client"),
+            polling_client: polling_client
+                .try_into()
+                .expect("Failed to construct polling client"),
             requests: vec![],
         }
     }
@@ -52,7 +62,7 @@ impl NetworkingRessource {
         )
     }
 
-    fn get_request(&self, method: Method, url: &str) -> RequestBuilder {
+    pub fn get_request(&self, method: Method, url: &str) -> RequestBuilder {
         self.client.request(method, url)
     }
 }

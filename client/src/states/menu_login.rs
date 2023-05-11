@@ -1,15 +1,24 @@
-use bevy::{app::AppExit, prelude::*};
-use bevy_forms::{
-    button::{self, ButtonClickEvent},
-    form::{self, Form, FormError, FormMapping, FormValue, FromFormMapping, IntoFormMapping},
-    text_input,
+use bevy::{
+    app::AppExit,
+    prelude::{shape::Quad, *},
+    utils::tracing::field::debug,
 };
-use protocol::protocol::{Credentials, Protocol};
+use bevy_egui::{egui, EguiContexts};
+use protocol::protocol::{Credentials, Protocol, UserData};
+use protocol::protocol_types::heros;
 use surf::http::Method;
 
 use crate::{
     cleanup_system,
-    networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
+    components::{
+        animation::{AnimationIndices, AnimationTimer, TransformAnimation},
+        hover::{BoundingBox, ClickEvent, Hoverable, Hovered},
+    },
+    networking::{
+        networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
+        polling::PollingStatus,
+    },
+    prefabs::animation,
     AppState, Cleanup, StateChangeEvent,
 };
 
@@ -18,158 +27,328 @@ pub(crate) struct MenuLoginPlugin;
 
 impl Plugin for MenuLoginPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Form<LoginCredentials>>()
-            .add_system_set(SystemSet::on_enter(STATE).with_system(setup_ui))
-            .add_system_set(text_input::add_to_system_set(
-                SystemSet::on_update(STATE)
-                    .with_system(button_click)
-                    .with_system(on_login)
-                    .with_system(form::on_change::<LoginCredentials>),
-            ))
-            .add_system_set(SystemSet::on_exit(STATE).with_system(cleanup_system::<Cleanup>));
+        app.init_resource::<LoginCredentials>()
+            .add_system(logout.in_schedule(OnEnter(STATE)))
+            .add_systems((ui_login, on_login, god_hover, god_click).in_set(OnUpdate(STATE)))
+            .add_system(cleanup_system::<Cleanup>.in_schedule(OnExit(STATE)));
     }
 }
 
-#[derive(Default)]
+#[derive(Resource, Default)]
 struct LoginCredentials(Credentials);
 
-impl IntoFormMapping for LoginCredentials {
-    fn into_mapping(self) -> FormMapping {
-        let mut data: FormMapping = FormMapping::new();
-        data.insert("username".to_string(), FormValue::String(self.0.username));
-        data.insert("password".to_string(), FormValue::String(self.0.password));
-        data
-    }
-}
+#[derive(Resource)]
+struct User(UserData);
 
-impl FromFormMapping for LoginCredentials {
-    fn from_mapping(form: &FormMapping) -> Result<Self, FormError> {
-        let username = match form.get("username") {
-            Some(FormValue::String(un)) => un.clone(),
-            Some(actual) => {
-                return Err(FormError::TypeMismatch {
-                    expected: FormValue::String("username".to_string()),
-                    got: actual.clone(),
-                })
-            }
-            _ => return Err(FormError::FieldsMissing("username".to_string())),
-        };
-        let password = match form.get("password") {
-            Some(FormValue::String(pw)) => pw.clone(),
-            _ => return Err(FormError::FieldsMissing("password".to_string())),
-        };
-        Ok(Self(Credentials { username, password }))
-    }
-}
+fn logout(
+    mut commands: Commands,
+    mut ev_polling_status: EventWriter<PollingStatus>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    debug!("Logout start");
+    commands.remove_resource::<User>();
+    ev_polling_status.send(PollingStatus::Stop);
 
-fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let god_frame = asset_server.load("textures/ui/god_frame2.png");
+    let god_frame_atlas =
+        TextureAtlas::from_grid(god_frame, Vec2::new(64.0, 64.0), 18, 1, None, None);
+    let god_frame_atlas_handle = texture_atlases.add(god_frame_atlas);
+
+    let mut frame_animation = animation::simple(0, 0);
+    animation::add_hover_state(&mut frame_animation, 0, 17);
+
+    let god_fallback = asset_server.load("textures/ui/god_fallback.png");
+
     commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                flex_grow: 1.0,
-                flex_direction: FlexDirection::ColumnReverse,
-                justify_content: JustifyContent::SpaceAround,
-                align_items: AlignItems::Center,
-                ..Default::default()
-            },
-            color: Color::NONE.into(),
+        .spawn(SpatialBundle {
+            transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 0.0)),
             ..Default::default()
         })
         .with_children(|parent| {
-            // bevy logo (flex center)
-            parent.spawn_bundle(TextBundle {
-                text: Text::with_section(
-                    "Login:",
-                    TextStyle {
-                        font: asset_server.load("fonts/monogram-extended.ttf"),
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
-                    },
-                    Default::default(),
-                ),
-                ..Default::default()
-            });
             parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        flex_direction: FlexDirection::ColumnReverse,
+                .spawn((
+                    SpriteSheetBundle {
+                        texture_atlas: god_frame_atlas_handle.clone(),
+                        sprite: TextureAtlasSprite::new(0),
+                        transform: Transform::from_scale(Vec3::splat(4.0))
+                            .with_translation(Vec3::new(0.0, 33.0 * 4.0, 1.0)),
                         ..Default::default()
                     },
-                    color: Color::NONE.into(),
-                    ..Default::default()
-                })
-                .with_children(|inputs| {
-                    text_input::generate_input(
-                        "username",
-                        0,
-                        "",
-                        Some("Username".to_string()),
-                        None,
-                        &asset_server,
-                        None,
-                        inputs,
-                    );
-                    text_input::generate_input(
-                        "password",
-                        1,
-                        "",
-                        Some("Password".to_string()),
-                        Some("#".to_string()),
-                        &asset_server,
-                        None,
-                        inputs,
-                    );
+                    Hoverable("hover".to_string(), "leave".to_string()),
+                    BoundingBox(
+                        Vec3::new(48.0, 48.0, 0.0),
+                        Quat::from_rotation_z(45.0f32.to_radians()),
+                    ),
+                    frame_animation.clone(),
+                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    God(protocol::gods::GODS[0].clone()),
+                ))
+                .with_children(|parent| {
+                    parent.spawn(SpriteBundle {
+                        texture: god_fallback.clone(),
+                        ..Default::default()
+                    });
                 });
             parent
-                .spawn_bundle(NodeBundle {
-                    color: Color::NONE.into(),
-                    ..Default::default()
-                })
+                .spawn((
+                    SpriteSheetBundle {
+                        texture_atlas: god_frame_atlas_handle.clone(),
+                        sprite: TextureAtlasSprite::new(0),
+                        transform: Transform::from_scale(Vec3::splat(4.0))
+                            .with_rotation(Quat::from_rotation_z(-90.0f32.to_radians()))
+                            .with_translation(Vec3::new(33.0 * 4.0, 0.0, 1.0)),
+                        ..Default::default()
+                    },
+                    Hoverable("hover".to_string(), "leave".to_string()),
+                    BoundingBox(
+                        Vec3::new(48.0, 48.0, 0.0),
+                        Quat::from_rotation_z(45.0f32.to_radians()),
+                    ),
+                    frame_animation.clone(),
+                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    God(protocol::gods::GODS[1].clone()),
+                ))
                 .with_children(|parent| {
-                    button::generate_button("Login", "btn_sign_in", &asset_server, None, parent);
-                    button::generate_button(
-                        "Register",
-                        "btn_register",
-                        &asset_server,
-                        None,
-                        parent,
-                    );
+                    parent.spawn(SpriteBundle {
+                        texture: god_fallback.clone(),
+                        transform: Transform::from_rotation(Quat::from_rotation_z(
+                            90.0f32.to_radians(),
+                        )),
+                        ..Default::default()
+                    });
                 });
+            parent
+                .spawn((
+                    SpriteSheetBundle {
+                        texture_atlas: god_frame_atlas_handle.clone(),
+                        sprite: TextureAtlasSprite::new(0),
+                        transform: Transform::from_scale(Vec3::splat(4.0))
+                            .with_rotation(Quat::from_rotation_z(90.0f32.to_radians()))
+                            .with_translation(Vec3::new(-33.0 * 4.0, 0.0, 1.0)),
+                        ..Default::default()
+                    },
+                    Hoverable("hover".to_string(), "leave".to_string()),
+                    BoundingBox(
+                        Vec3::new(48.0, 48.0, 0.0),
+                        Quat::from_rotation_z(45.0f32.to_radians()),
+                    ),
+                    frame_animation.clone(),
+                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    God(protocol::gods::GODS[2].clone()),
+                ))
+                .with_children(|parent| {
+                    parent.spawn(SpriteBundle {
+                        texture: god_fallback.clone(),
+                        transform: Transform::from_rotation(Quat::from_rotation_z(
+                            -90.0f32.to_radians(),
+                        )),
+                        ..Default::default()
+                    });
+                });
+            parent
+                .spawn((
+                    SpriteSheetBundle {
+                        texture_atlas: god_frame_atlas_handle.clone(),
+                        sprite: TextureAtlasSprite::new(0),
+                        transform: Transform::from_scale(Vec3::splat(4.0))
+                            .with_rotation(Quat::from_rotation_z(180.0f32.to_radians()))
+                            .with_translation(Vec3::new(0.0, -33.0 * 4.0, 1.0)),
+                        ..Default::default()
+                    },
+                    Hoverable("hover".to_string(), "leave".to_string()),
+                    BoundingBox(
+                        Vec3::new(48.0, 48.0, 0.0),
+                        Quat::from_rotation_z(45.0f32.to_radians()),
+                    ),
+                    frame_animation,
+                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    God(protocol::gods::GODS[3].clone()),
+                ))
+                .with_children(|parent| {
+                    parent.spawn(SpriteBundle {
+                        texture: god_fallback.clone(),
+                        transform: Transform::from_rotation(Quat::from_rotation_z(
+                            180.0f32.to_radians(),
+                        )),
+                        ..Default::default()
+                    });
+                });
+        });
+
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::End,
+                ..Default::default()
+            },
+            ..Default::default()
         })
-        .insert(Cleanup);
+        .with_children(|parent| {
+            parent
+                .spawn((NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(40.0), Val::Percent(100.0)),
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        gap: Size::height(Val::Px(24.0)),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },))
+                .with_children(|parent| {
+                    parent.spawn((
+                        TextBundle::from_section(
+                            "Select your deity",
+                            TextStyle {
+                                font: asset_server.load("fonts/monogram-extended.ttf"),
+                                font_size: 50.0,
+                                color: Color::WHITE,
+                            },
+                        ),
+                        GodTitle,
+                    ));
+                    parent.spawn((
+                        TextBundle::from_sections([TextSection::from_style(TextStyle {
+                            font: asset_server.load("fonts/monogram-extended.ttf"),
+                            font_size: 28.0,
+                            color: Color::WHITE,
+                        })]),
+                        GodDescription,
+                    ));
+                    parent.spawn((
+                        TextBundle::from_sections([TextSection::from_style(TextStyle {
+                            font: asset_server.load("fonts/monogram-extended.ttf"),
+                            font_size: 32.0,
+                            color: Color::WHITE,
+                        })]),
+                        GodPantheon,
+                    ));
+                });
+        });
+
+    debug!("Logout end")
 }
 
-fn button_click(
+#[derive(Component, Debug)]
+pub struct GodTitle;
+
+#[derive(Component, Debug)]
+pub struct GodDescription;
+
+#[derive(Component, Debug)]
+pub struct GodPantheon;
+
+#[derive(Component, Debug)]
+pub struct God(heros::God);
+
+fn god_hover(
+    q_hovered: Query<&God, Added<Hovered>>,
+    mut q_title: Query<&mut Text, With<GodTitle>>,
+    mut q_desc: Query<&mut Text, (With<GodDescription>, Without<GodTitle>)>,
+    mut q_pantheon: Query<
+        &mut Text,
+        (
+            With<GodPantheon>,
+            Without<GodTitle>,
+            Without<GodDescription>,
+        ),
+    >,
+) {
+    if let Some(god) = q_hovered.iter().next() {
+        q_title.get_single_mut().unwrap().sections[0].value = god.0.name.clone();
+        q_desc.get_single_mut().unwrap().sections[0].value =
+            break_text(god.0.description.clone(), 36, true);
+        q_pantheon.get_single_mut().unwrap().sections[0].value = god.0.pantheon.clone();
+    }
+}
+
+fn god_click(
+    mut commands: Commands,
+    mut ev_clicked: EventReader<ClickEvent>,
+    q_god: Query<(Entity, &Transform), With<God>>,
+) {
+    for ev in ev_clicked.iter() {
+        q_god.get(ev.0).ok().map(|(god, transform)| {
+            commands.entity(god).insert(TransformAnimation {
+                target: transform.with_translation(Vec3::ZERO),
+                speed: 1.0,
+            });
+        });
+    }
+}
+
+fn break_text(text: String, width: usize, center: bool) -> String {
+    text.split(" ")
+        .fold(vec!["".to_string()], |mut acc: Vec<String>, word| {
+            let current_line = acc.last_mut().unwrap();
+            if current_line.len() + word.len() > width {
+                acc.push(word.to_string());
+            } else {
+                if current_line.len() > 0 {
+                    current_line.push_str(" ");
+                }
+                current_line.push_str(word);
+            }
+            acc
+        })
+        .iter()
+        .map(|line| {
+            format!(
+                "{}{}",
+                " ".repeat(if center { (width - line.len()) / 2 } else { 0 }),
+                line
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn ui_login(
+    mut contexts: EguiContexts,
     mut network: ResMut<NetworkingRessource>,
-    form: Res<Form<LoginCredentials>>,
-    mut ev_button_click: EventReader<ButtonClickEvent>,
+    mut credentials: ResMut<LoginCredentials>,
     mut ev_exit: EventWriter<AppExit>,
 ) {
-    for ev in ev_button_click.iter() {
-        debug!("Form mapping: {:?}", form.get_mapping());
-        match ev.0.as_str() {
-            "btn_sign_in" => match form.get() {
-                Ok(creds) => network.request_data(Method::Post, "users", &creds.0),
-                Err(err) => error!("Failed to send login request {:?}", err),
-            },
-            "btn_register" => match form.get() {
-                Ok(creds) => network.request_data(Method::Put, "users", &creds.0),
-                Err(err) => error!("Failed to send registration request {:?}", err),
-            },
-            "btn_exit" => ev_exit.send(AppExit),
-            _ => (),
+    let ctx = contexts.ctx_mut();
+    egui::CentralPanel::default().show(ctx, |ui| {
+        ui.heading("Login");
+        ui.separator();
+        ui.horizontal(|ui| {
+            ui.label("Username:");
+            ui.text_edit_singleline(&mut credentials.0.username);
+        });
+        ui.horizontal(|ui| {
+            ui.label("Password:");
+            ui.add(egui::TextEdit::singleline(&mut credentials.0.password).password(true));
+        });
+        ui.separator();
+        ui.horizontal(|ui| {
+            if ui.button("Login").clicked() {
+                network.request_data(Method::Post, "users", &credentials.0);
+            }
+            if ui.button("Register").clicked() {
+                network.request_data(Method::Put, "users", &credentials.0);
+            }
+        });
+        if ui.button("Exit").clicked() {
+            ev_exit.send(AppExit);
         }
-    }
+    });
 }
 
 fn on_login(
     mut commands: Commands,
     mut network: ResMut<NetworkingRessource>,
     mut ev_networking: EventReader<NetworkingEvent>,
+    mut ev_polling_status: EventWriter<PollingStatus>,
     mut ev_state_change: EventWriter<StateChangeEvent>,
 ) {
     for ev in ev_networking.iter() {
-        if let Protocol::LOGIN_RESPONSE(login) = &ev.0 {
+        if let Protocol::LoginResponse(login) = &ev.0 {
             network.client = network
                 .client
                 .config()
@@ -178,8 +357,18 @@ fn on_login(
                 .unwrap()
                 .try_into()
                 .unwrap();
-            commands.insert_resource(login.user.clone());
+            network.polling_client = network
+                .polling_client
+                .config()
+                .clone()
+                .add_header("x-api-key", login.key.clone())
+                .unwrap()
+                .try_into()
+                .unwrap();
+            commands.insert_resource(User(login.user.clone()));
+            debug!("Logged in as {}", login.user.username);
 
+            ev_polling_status.send(PollingStatus::Start);
             ev_state_change.send(StateChangeEvent(AppState::MenuMain));
         }
     }

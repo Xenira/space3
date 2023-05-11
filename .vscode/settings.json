@@ -1,7 +1,11 @@
 {
-    "workbench.colorCustomizations": {
-        "activityBar.background": "#510E52",
-        "titleBar.activeBackground": "#721373",
-        "titleBar.activeForeground": "#FEFBFE"
-    }
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#510E52",
+    "titleBar.activeBackground": "#721373",
+    "titleBar.activeForeground": "#FEFBFE"
+  },
+  "rust-analyzer.linkedProjects": [
+    "./protocol/protocol_types/Cargo.toml",
+    "./server/Cargo.toml"
+  ]
 }

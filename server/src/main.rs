@@ -4,14 +4,16 @@ extern crate openssl;
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
-#[macro_use]
-extern crate diesel_migrations;
-embed_migrations!("./migrations");
 
-use std::env;
+use diesel::{pg::Pg, PgConnection};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use scheduler::long_running_task;
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
+
+use std::{env, error::Error, sync::Mutex};
 
 use dotenv::dotenv;
-use model::model::get_api;
+use model::{model::get_api, polling::ActivePolls};
 use rocket::{
     fairing::AdHoc,
     figment::{
@@ -19,20 +21,22 @@ use rocket::{
         value::{Map, Value},
     },
     fs::FileServer,
-    Build, Rocket,
+    tokio, Build, Rocket,
 };
 use rocket_sync_db_pools::database;
 
 pub mod model;
 pub mod models;
+pub(crate) mod scheduler;
 pub mod schema;
+pub(crate) mod service;
 pub mod util;
 
 #[database("db")]
 pub struct Database(diesel::PgConnection);
 
-#[launch]
-fn rocket() -> _ {
+#[rocket::main]
+async fn main() -> Result<(), rocket::Error> {
     if let Err(err) = dotenv() {
         warn!("Failed to read dotenv: {}", err);
     }
@@ -56,7 +60,7 @@ fn rocket() -> _ {
         .merge(("port", port))
         .merge(("databases", map!["db" => db]));
 
-    rocket::custom(figment)
+    let r = rocket::custom(figment)
         .attach(Database::fairing())
         .attach(AdHoc::try_on_ignite(
             "Database Migrations",
@@ -64,13 +68,24 @@ fn rocket() -> _ {
         ))
         .mount("/api/v1", get_api())
         .mount("/", FileServer::from("./static"))
+        .ignite()
+        .await?;
+
+    let conn = Database::get_one(&r).await.unwrap();
+
+    tokio::spawn(async move { long_running_task(conn).await });
+
+    r.launch().await?;
+
+    Ok(())
 }
 
 async fn run_db_migrations(rocket: Rocket<Build>) -> Result<Rocket<Build>, Rocket<Build>> {
     let db = Database::get_one(&rocket)
         .await
         .expect("Unable to open database connection for migration");
-    db.run(|conn| match embedded_migrations::run(&*conn) {
+
+    db.run(|conn| match run_migrations(conn) {
         Ok(()) => Ok(rocket),
         Err(e) => {
             error!("Failed to run database migrations: {:?}", e);
@@ -78,4 +93,17 @@ async fn run_db_migrations(rocket: Rocket<Build>) -> Result<Rocket<Build>, Rocke
         }
     })
     .await
+}
+
+fn run_migrations(
+    connection: &mut impl MigrationHarness<Pg>,
+) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+    // This will run the necessary migrations.
+    //
+    // See the documentation for `MigrationHarness` for
+    // all available methods.
+    debug!("Running migrations");
+    connection.run_pending_migrations(MIGRATIONS)?;
+
+    Ok(())
 }

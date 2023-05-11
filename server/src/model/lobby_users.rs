@@ -2,18 +2,18 @@ use crate::schema::lobby_users;
 use chrono::NaiveDateTime;
 use protocol::protocol;
 
-use super::{lobbys::Lobby, users::User};
+use super::{lobbies::Lobby, users::User};
 
-#[derive(Identifiable, Queryable, Associations)]
+#[derive(Identifiable, Queryable, Associations, Clone)]
 #[belongs_to(Lobby)]
 #[belongs_to(User)]
 #[table_name = "lobby_users"]
 pub struct LobbyUser {
-    id: i32,
-    lobby_id: i32,
-    user_id: i32,
+    pub id: i32,
+    pub lobby_id: i32,
+    pub user_id: i32,
     username: String,
-    ready: bool,
+    pub ready: bool,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
 }
@@ -21,6 +21,7 @@ pub struct LobbyUser {
 impl Into<protocol::LobbyUser> for LobbyUser {
     fn into(self) -> protocol::LobbyUser {
         protocol::LobbyUser {
+            id: self.id,
             name: self.username,
             ready: self.ready,
         }

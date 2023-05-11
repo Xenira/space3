@@ -6,22 +6,26 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = { version = "0.5.0-rc.1", features = ["json"] }
-diesel = { version = "1.4", features = ["postgres", "uuidv07", "chrono"] }
-diesel_migrations = "1.4"
+rocket = { version = "0.5.0-rc.3", features = ["json"] }
+diesel = { version = "2.0", features = ["postgres", "uuid", "chrono"] }
+diesel_migrations = "2.0"
 dotenv = "0.15.0"
-chrono = "0.4.0"
-uuid = "0.8"
+chrono = "0.4"
+uuid = "0.7"
 serde = {version="1.0", features=["derive"]}
 serde_json = "1.0"
-argon2 = "0.4"
+argon2 = "0.5"
 rand_core = { version = "0.6", features = ["std"] }
 jsonwebtoken = "8"
 protocol = { path = "../protocol" }
 openssl = "0.10"
+async-std = "1.12"
+async-channel = "1.8"
+static_init = "1"
+rand = "0.8"
 
 [dependencies.rocket_sync_db_pools]
-version = "0.1.0-rc.1"
+version = "0.1.0-rc.3"
 features = ["diesel_postgres_pool"]
 
 [target.'cfg(target_os = "linux")']

@@ -1,4 +1,15 @@
 table! {
+    game_user_avatar_choices (id) {
+        id -> Int4,
+        game_id -> Int4,
+        game_user_id -> Int4,
+        avatar_id -> Int4,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+table! {
     game_user_characters (game_user_id) {
         game_user_id -> Int4,
         character_id -> Int4,
@@ -12,11 +23,10 @@ table! {
 }
 
 table! {
-    game_users (game_id, user_id) {
+    game_users (id) {
         id -> Int4,
         game_id -> Int4,
         user_id -> Int4,
-        username -> Varchar,
         health -> Int4,
         credits -> Int4,
         created_at -> Timestamp,
@@ -31,27 +41,28 @@ table! {
         current_round -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,
-        published -> Bool,
     }
 }
 
 table! {
-    lobby_users (lobby_id, user_id) {
+    lobbies (id) {
         id -> Int4,
-        lobby_id -> Int4,
-        user_id -> Int4,
-        username -> Varchar,
-        ready -> Bool,
+        name -> Varchar,
+        passphrase -> Nullable<Varchar>,
+        master_id -> Int4,
+        start_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
 }
 
 table! {
-    lobbys (id) {
+    lobby_users (id) {
         id -> Int4,
-        name -> Varchar,
-        passphrase -> Nullable<Varchar>,
+        lobby_id -> Int4,
+        user_id -> Int4,
+        username -> Varchar,
+        ready -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -64,19 +75,21 @@ table! {
         password -> Varchar,
         salt -> Varchar,
         currency -> Int4,
+        tutorial -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
 }
 
-joinable!(game_users -> games (game_id));
-joinable!(lobby_users -> lobbys (lobby_id));
+joinable!(lobbies -> users (master_id));
+joinable!(lobby_users -> lobbies (lobby_id));
 
 allow_tables_to_appear_in_same_query!(
+    game_user_avatar_choices,
     game_user_characters,
     game_users,
     games,
+    lobbies,
     lobby_users,
-    lobbys,
     users,
 );

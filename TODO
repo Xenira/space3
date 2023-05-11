@@ -1,0 +1,79 @@
+Service:
+	Lobby:
+		✔ Delete Lobby @started(23-04-29 19:33) @done(23-04-29 21:32) @lasted(1h59m20s)
+		✔ Notyfy about Change @started(23-04-29 19:40) @done(23-04-29 21:32) @lasted(1h52m5s)
+		✔ Join / Leave @started(23-04-30 09:44) @done(23-04-30 11:49) @lasted(2h5m23s)
+		✔ Toggle Ready @started(23-04-30 11:50) @done(23-04-30 12:03) @lasted(13m51s)
+		✔ Start Game @started(23-04-30 12:03) @done(23-04-30 16:48) @lasted(4h45m41s)
+		☐ Kick Player
+		☐ Promote Player
+		☐ Invite Player
+		✔ Auto Promote on Leave @done(23-05-04 06:40)
+		☐ Do not disclose master user id
+	Character Selection:
+		✔ Select Character choices @done(23-05-06 18:27)
+		☐ Add endopint for selecting character @started(23-05-07 11:10)
+		☐ Select random Character when time runs out
+		☐ Start main game if all players have selected
+	Matchmaking:
+		☐ Join Queue
+		☐ Leave Queue
+	Game:
+		✔ Create Game @started(23-04-30 16:48) @done(23-05-02 17:53) @lasted(2d1h5m25s)
+		✔ Transition to Pilot selection @started(23-05-02 17:53) @done(23-05-04 06:39) @lasted(1d12h46m36s)
+		☐ Determine next opponent (round robin)
+		☐ Transition to Shop phase
+		☐ Transition to Combat phase
+		☐ Calculate Combat
+		☐ Transition to End phase
+	Bot Games:
+		☐ Add fill with bots option to lobby
+		☐ Simple Bots
+		☐ Add option to suspend timer when only bots are left
+	Tutorial:
+		☐ Write Dialogs
+		☐ Write script for first 3 rounds
+	Polling:
+		☐ Join channels on login
+	Geteral:
+		✔ Create periodic task to execute timed events @started(23-04-30 13:18) @done(23-04-30 14:29) @lasted(1h11m)
+		☐ Add version check
+
+Client:
+	Networking:
+		☐ Change to global response handler
+		☐ Add rate limit to polling
+	UI:
+		☐ Timer UI
+		☐ Add on screen notifications
+		✔ Add on screen logs @done(23-05-04 06:39)
+		Main:
+			☐ Add settings menu
+			☐ Add logout button
+			☐ Add credits button
+	God Selection:
+		✔ Add frame for gods @done(23-05-06 18:27)
+		✔ Add Animation and State handling @done(23-05-06 18:28)
+		✔ Add hover detection @done(23-05-06 18:28)
+		✔ Add click detection @started(23-05-07 00:03) @done(23-05-07 00:38) @lasted(35m4s)
+		✔ God component @started(23-05-07 00:38) @done(23-05-07 03:45) @lasted(3h7m42s)
+		☐ God presets
+		✔ Fallback god @done(23-05-07 00:38)
+		☐ Add selection
+		☐ Add random selection
+		☐ Add ready button
+	Settings:
+		Dev:
+			☐ Log Settings
+		Privacy:
+			☐ Crash Reports
+	Animation:
+		☐ Add transform animations
+		☐ Text animation
+	Misc:
+		☐ Add version check
+		☐ Add bug report button
+
+
+Misc:
+	☐ Intro video

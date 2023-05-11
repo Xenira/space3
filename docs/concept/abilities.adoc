@@ -1,0 +1,20 @@
+.Stealth
+Can not be targeted while stealthed. Attacks from stealth deal 50% more damage and reduce stealth by 1.
+
+.Shield
+Shields block all damage and reduce by 1.
+
+.Support
+Apply a buff to a friendly unit.
+
+.Surviver
+Effect applies at the end of the turn if the unit is alive.
+
+.Counter
+Perform an action when the unit is attacked and survives.
+
+.Last Breath
+Perform an action when the unit dies.
+
+.Guard
+When a adjacent unit is attacked, this unit takes the damage instead. 

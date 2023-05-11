@@ -1,10 +1,13 @@
 use crate::diesel::ExpressionMethods;
 use crate::diesel::RunQueryDsl;
+use crate::model::polling::Channel;
+use crate::schema::game_users;
+use crate::schema::lobby_users;
 use crate::util::jwt;
 use crate::{schema::users, Database};
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use chrono::NaiveDateTime;
-use diesel::{insert_into, QueryDsl};
+use diesel::{insert_into, prelude::*, QueryDsl};
 
 use protocol::protocol::Credentials;
 use protocol::protocol::LobbyInfo;
@@ -18,16 +21,19 @@ use rocket::request::FromRequest;
 use rocket::request::Outcome;
 use rocket::serde::json::Json;
 use rocket::Request;
+use uuid::Uuid;
 
-use super::lobbys::LobbyWithUsers;
+use super::lobbies::LobbyWithUsers;
+use super::polling::ActivePolls;
 
-#[derive(Queryable, Clone, Debug)]
+#[derive(Identifiable, Queryable, Clone, Debug)]
 pub struct User {
     pub id: i32,
     pub username: String,
     pub password: String,
     pub salt: String,
     pub currency: i32,
+    pub tutorial: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -111,7 +117,7 @@ impl NewUser {
 fn hash_password(cred: &Credentials, salt: &SaltString) -> Result<String, ()> {
     // Argon2 with default params (Argon2id v19)
     // Hash password to PHC string ($argon2id$v=19$...)
-    if let Ok(hash) = Argon2::default().hash_password(cred.password.as_bytes(), &salt) {
+    if let Ok(hash) = Argon2::default().hash_password(cred.password.as_bytes(), salt) {
         return Ok(hash.to_string());
     }
 
@@ -127,7 +133,7 @@ pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> 
         .await
         .expect("Failed to create user");
 
-    Json(Protocol::LOGIN_RESPONSE(LoginResponse {
+    Json(Protocol::LoginResponse(LoginResponse {
         key: jwt::generate(&creds.username),
         user: UserData {
             username: creds.username.clone(),
@@ -159,7 +165,35 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
         user.password
     );
 
-    Json(Protocol::LOGIN_RESPONSE(LoginResponse {
+    let channels = db
+        .run(move |con| {
+            let lobby = lobby_users::table
+                .filter(lobby_users::user_id.eq(user.id))
+                .select(lobby_users::lobby_id)
+                .first::<i32>(con)
+                .map(|id| Channel::Lobby(id))
+                .ok();
+            let game = game_users::table
+                .filter(
+                    game_users::user_id
+                        .eq(user.id)
+                        .and(game_users::health.gt(0)),
+                )
+                .select(game_users::game_id)
+                .first::<i32>(con)
+                .map(|id| Channel::Game(id))
+                .ok();
+            vec![lobby, game]
+        })
+        .await;
+
+    for channel in channels {
+        if let Some(channel) = channel {
+            ActivePolls::join_user(channel, user.id);
+        }
+    }
+
+    Json(Protocol::LoginResponse(LoginResponse {
         key: jwt::generate(&user.username),
         user: UserData {
             username: user.username,
@@ -171,14 +205,9 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
 
 #[get("/users/@me")]
 pub fn me(user: &User, lobby: Option<LobbyWithUsers>) -> Json<Protocol> {
-    Json(Protocol::USER_RESPONSE(UserData {
+    Json(Protocol::UserResponse(UserData {
         username: user.username.to_string(),
         currency: user.currency,
-        lobby: lobby.and_then(|l| {
-            Some(LobbyInfo {
-                name: l.lobby.name,
-                users: l.users.into_iter().map(|u| u.into()).collect(),
-            })
-        }),
+        lobby: lobby.map(|l| l.into()),
     }))
 }

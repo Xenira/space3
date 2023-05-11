@@ -1,0 +1,194 @@
+[
+	{
+		"id": 1,
+		"name": "Zeus",
+		"description": "King of the gods and god of thunder, lightning, and the sky.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 2,
+		"name": "Poseidon",
+		"description": "God of the sea, earthquakes, and horses.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 3,
+		"name": "Athena",
+		"description": "Goddess of wisdom, war, and crafts.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 4,
+		"name": "Apollo",
+		"description": "God of music, poetry, prophecy, and the sun.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 5,
+		"name": "Hera",
+		"description": "Queen of the gods, goddess of marriage and childbirth.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 6,
+		"name": "Artemis",
+		"description": "Goddess of the hunt, wilderness, childbirth, and virginity.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 7,
+		"name": "Demeter",
+		"description": "Goddess of agriculture, fertility, and the harvest.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 8,
+		"name": "Hermes",
+		"description": "God of commerce, thieves, travelers, and messenger of the gods.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 9,
+		"name": "Hestia",
+		"description": "Goddess of the hearth, home, and family.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 10,
+		"name": "Hades",
+		"description": "God of the underworld and the dead.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 11,
+		"name": "Dionysus",
+		"description": "God of wine, parties, ecstasy.",
+		"pantheon": "Greek"
+	},
+	{
+		"id": 12,
+		"name": "Ra",
+		"description": "God of the sun, creator of the world, and father of all gods.",
+		"pantheon": "Egyptian"
+	},
+	{
+		"id": 13,
+		"name": "Osiris",
+		"description": "God of the afterlife, resurrection, and fertility.",
+		"pantheon": "Egyptian"
+	},
+	{
+		"id": 14,
+		"name": "Isis",
+		"description": "Goddess of magic, fertility, motherhood, and rebirth.",
+		"pantheon": "Egyptian"
+	},
+	{
+		"id": 15,
+		"name": "Horus",
+		"description": "God of the sky, war, and protection, son of Isis and Osiris.",
+		"pantheon": "Egyptian"
+	},
+	{
+		"id": 16,
+		"name": "Anubis",
+		"description": "God of embalming, mummification, and the afterlife.",
+		"pantheon": "Egyptian"
+	},
+	{
+		"id": 17,
+		"name": "Thoth",
+		"description": "God of wisdom, writing, and the moon.",
+		"pantheon": "Egyptian"
+	},
+	{
+		"id": 18,
+		"name": "Bastet",
+		"description": "Goddess of cats, fertility, and pleasure.",
+		"pantheon": "Egyptian"
+	},
+	{
+		"id": 19,
+		"name": "Shiva",
+		"description": "God of destruction and creation, and lord of the dance.",
+		"pantheon": "Hindu"
+	},
+	{
+		"id": 20,
+		"name": "Vishnu",
+		"description": "God of preservation and protection, and one of the three main gods in Hinduism.",
+		"pantheon": "Hindu"
+	},
+	{
+		"id": 21,
+		"name": "Brahma",
+		"description": "God of creation and one of the three main gods in Hinduism.",
+		"pantheon": "Hindu"
+	},
+	{
+		"id": 22,
+		"name": "Ganesha",
+		"description": "God of wisdom, knowledge, and new beginnings, and the remover of obstacles.",
+		"pantheon": "Hindu"
+	},
+	{
+		"id": 23,
+		"name": "Kali",
+		"description": "Goddess of time, change, and destruction.",
+		"pantheon": "Hindu"
+	},
+	{
+		"id": 24,
+		"name": "Lakshmi",
+		"description": "Goddess of wealth, prosperity, and fortune.",
+		"pantheon": "Hindu"
+	},
+	{
+		"id": 25,
+		"name": "Odin",
+		"description": "Chief god of the Aesir, god of wisdom, war, and death.",
+		"pantheon": "Norse"
+	},
+	{
+		"id": 26,
+		"name": "Thor",
+		"description": "God of thunder, strength, and protection.",
+		"pantheon": "Norse"
+	},
+	{
+		"id": 27,
+		"name": "Loki",
+		"description": "God of mischief, trickery, and chaos.",
+		"pantheon": "Norse"
+	},
+	{
+		"id": 28,
+		"name": "Freya",
+		"description": "Goddess of love, fertility, and war.",
+		"pantheon": "Norse"
+	},
+	{
+		"id": 29,
+		"name": "Hel",
+		"description": "Goddess of the underworld and the dead.",
+		"pantheon": "Norse"
+	},
+	{
+		"id": 30,
+		"name": "Tyr",
+		"description": "God of law and justice, and patron of warriors.",
+		"pantheon": "Norse"
+	},
+	{
+		"id": 31,
+		"name": "Baldr",
+		"description": "God of light, beauty, and purity.",
+		"pantheon": "Norse"
+	},
+	{
+		"id": 32,
+		"name": "Heimdall",
+		"description": "God of light, the senses, and vigilance.",
+		"pantheon": "Norse"
+	}
+]

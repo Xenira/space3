@@ -1,0 +1,8 @@
+[workspace]
+members = [ "protocol", "protocol/protocol_types"]
+exclude = [ "server", "client"]
+
+[workspace.package]
+version = "0.1.0"
+authors = [ "Xenira" ]
+license = "GPL-3.0"

@@ -1,33 +1,43 @@
+use chrono::{DateTime, Utc};
+use protocol_types::heros::God;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Protocol {
     // Misc
-    STATUS_RESPONSE(Status),
+    StatusResponse(Status),
     EMPTY(String),
 
     // User
-    REGISTRATION_REQUEST(Credentials),
-    LOGIN_REQUEST(Credentials),
-    LOGIN_RESPONSE(LoginResponse),
-    USER_RESPONSE(UserData),
+    RegistrationRequest(Credentials),
+    LoginRequest(Credentials),
+    LoginResponse(LoginResponse),
+    UserResponse(UserData),
 
     // Lobby
-    LOBBY_JOIN_REQUEST(LobbyJoinRequest),
-    LOBBY_STATUS_RESPONSE(LobbyInfo),
-    SET_HEADER_RESPONSE(Header),
+    LobbyJoinRequest(LobbyJoinRequest),
+    LobbyStatusResponse(LobbyInfo),
+    LobbyLeaveResponse,
+    LobbyStartResponse,
+    LobbyKickResponse,
+
+    // Game
+    GameStartResponse(Vec<God>),
+
+    // Polling
+    PollingTimeout,
 
     // Error
-    NETWORKING_ERROR(Error),
+    NetworkingError(Error),
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Credentials {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Status {
     pub version: String,
 }
@@ -39,7 +49,7 @@ pub struct UserData {
     pub lobby: Option<LobbyInfo>,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct LobbyJoinRequest {
     pub name: String,
     pub passphrase: String,
@@ -49,27 +59,24 @@ pub struct LobbyJoinRequest {
 pub struct LobbyInfo {
     pub name: String,
     pub users: Vec<LobbyUser>,
+    pub master: i32,
+    pub start_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct LobbyUser {
+    pub id: i32,
     pub name: String,
     pub ready: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LoginResponse {
     pub key: String,
     pub user: UserData,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Header {
-    pub name: String,
-    pub value: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Error {
     pub message: String,
     pub status: u16,
@@ -81,6 +88,6 @@ impl Error {
     }
 
     pub fn new_protocol(status: u16, message: String) -> Protocol {
-        Protocol::NETWORKING_ERROR(Error::new(status, message))
+        Protocol::NetworkingError(Error::new(status, message))
     }
 }
