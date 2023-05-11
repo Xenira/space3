@@ -6,7 +6,7 @@ use dotenv::dotenv;
 
 use crate::{
     components::{
-        animation::AnimationPlugin, hover::HoverPlugin, on_screen_log::OnScreenLogPlugin, timer,
+        timer::{TimerPlugin, TimerUi},
         ComponentsPlugin,
     },
     networking::networking::NetworkingPlugin,
@@ -20,15 +20,16 @@ use bevy::{
     pbr::PointLightBundle,
     prelude::*,
     render::camera::ScalingMode,
-    DefaultPlugins,
 };
 use bevy_egui::{
     egui::{self, Color32},
     EguiContexts, EguiPlugin,
 };
+use chrono::{DateTime, Local, Utc};
 use networking::networking_events::NetworkingEvent;
 use protocol::protocol::Protocol;
 use std::env;
+
 mod components;
 mod networking;
 mod prefabs;
@@ -136,10 +137,17 @@ fn networking_handler(
             Protocol::LobbyLeaveResponse => {
                 ev_state_change.send(StateChangeEvent(AppState::MenuMain))
             }
-            Protocol::LobbyStatusResponse(_) => {
+            Protocol::LobbyStatusResponse(lobby) => {
+                if let Some(timer) = lobby.start_at {
+                    commands.insert_resource(TimerUi(Some(Timer::from_seconds(
+                        timer.signed_duration_since(Utc::now()).num_seconds() as f32,
+                        TimerMode::Once,
+                    ))));
+                }
                 ev_state_change.send(StateChangeEvent(AppState::Lobby))
             }
             Protocol::GameStartResponse(gods) => {
+                commands.insert_resource(TimerUi(Some(Timer::from_seconds(30.0, TimerMode::Once))));
                 commands.insert_resource(GameCommanderSelection(gods.clone()));
                 ev_state_change.send(StateChangeEvent(AppState::GameCommanderSelection));
             }

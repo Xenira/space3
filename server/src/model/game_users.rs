@@ -14,6 +14,7 @@ pub struct GameUser {
     pub id: i32,
     pub game_id: i32,
     pub user_id: i32,
+    pub avatar_id: Option<i32>,
     pub health: i32,
     pub credits: i32,
     created_at: NaiveDateTime,

@@ -12,7 +12,7 @@ Service:
 		☐ Do not disclose master user id
 	Character Selection:
 		✔ Select Character choices @done(23-05-06 18:27)
-		☐ Add endopint for selecting character @started(23-05-07 11:10)
+		✔ Add endopint for selecting character @started(23-05-07 11:10) @done(23-05-10 21:10) @lasted(3d10h51s)
 		☐ Select random Character when time runs out
 		☐ Start main game if all players have selected
 	Matchmaking:
@@ -21,6 +21,7 @@ Service:
 	Game:
 		✔ Create Game @started(23-04-30 16:48) @done(23-05-02 17:53) @lasted(2d1h5m25s)
 		✔ Transition to Pilot selection @started(23-05-02 17:53) @done(23-05-04 06:39) @lasted(1d12h46m36s)
+		☐ Add game state update service (polling) + timer info
 		☐ Determine next opponent (round robin)
 		☐ Transition to Shop phase
 		☐ Transition to Combat phase
@@ -38,13 +39,15 @@ Service:
 	Geteral:
 		✔ Create periodic task to execute timed events @started(23-04-30 13:18) @done(23-04-30 14:29) @lasted(1h11m)
 		☐ Add version check
+		☐ Mask sensitive data
 
 Client:
 	Networking:
 		☐ Change to global response handler
 		☐ Add rate limit to polling
 	UI:
-		☐ Timer UI
+		✔ Timer UI @started(23-05-10 22:02) @done(23-05-10 23:41) @lasted(1h39m19s)
+		☐ Add timer animation
 		☐ Add on screen notifications
 		✔ Add on screen logs @done(23-05-04 06:39)
 		Main:
@@ -59,9 +62,10 @@ Client:
 		✔ God component @started(23-05-07 00:38) @done(23-05-07 03:45) @lasted(3h7m42s)
 		☐ God presets
 		✔ Fallback god @done(23-05-07 00:38)
-		☐ Add selection
+		✔ Add selection @done(23-05-10 21:59)
 		☐ Add random selection
 		☐ Add ready button
+		☐ Add confirmation button
 	Settings:
 		Dev:
 			☐ Log Settings

@@ -56,6 +56,7 @@ CREATE TABLE game_users (
 	id SERIAL PRIMARY KEY,
 	game_id INT NOT NULL,
 	user_id INT NOT NULL UNIQUE,
+	avatar_id INT,
 	health INT NOT NULL,
 	credits INT NOT NULL,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

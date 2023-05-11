@@ -1,4 +1,6 @@
-table! {
+// @generated automatically by Diesel CLI.
+
+diesel::table! {
     game_user_avatar_choices (id) {
         id -> Int4,
         game_id -> Int4,
@@ -9,7 +11,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     game_user_characters (game_user_id) {
         game_user_id -> Int4,
         character_id -> Int4,
@@ -22,11 +24,12 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     game_users (id) {
         id -> Int4,
         game_id -> Int4,
         user_id -> Int4,
+        avatar_id -> Nullable<Int4>,
         health -> Int4,
         credits -> Int4,
         created_at -> Timestamp,
@@ -34,7 +37,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     games (id) {
         id -> Int4,
         next_battle -> Nullable<Timestamp>,
@@ -44,7 +47,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     lobbies (id) {
         id -> Int4,
         name -> Varchar,
@@ -56,7 +59,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     lobby_users (id) {
         id -> Int4,
         lobby_id -> Int4,
@@ -68,7 +71,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     users (id) {
         id -> Int4,
         username -> Varchar,
@@ -81,10 +84,10 @@ table! {
     }
 }
 
-joinable!(lobbies -> users (master_id));
-joinable!(lobby_users -> lobbies (lobby_id));
+diesel::joinable!(lobbies -> users (master_id));
+diesel::joinable!(lobby_users -> lobbies (lobby_id));
 
-allow_tables_to_appear_in_same_query!(
+diesel::allow_tables_to_appear_in_same_query!(
     game_user_avatar_choices,
     game_user_characters,
     game_users,

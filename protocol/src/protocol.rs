@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use protocol_types::heros::God;
+use protocol_types::{character::Character, heros::God};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -22,7 +22,12 @@ pub enum Protocol {
     LobbyKickResponse,
 
     // Game
+    // TODO: Change to [God; 4]
     GameStartResponse(Vec<God>),
+    AvatarSelectResponse(God),
+    GameShopResponse(Vec<Character>),
+    GameBattleResponse(BattleResponse),
+    GameBattleResultResponse(BattleResult),
 
     // Polling
     PollingTimeout,
@@ -74,6 +79,23 @@ pub struct LobbyUser {
 pub struct LoginResponse {
     pub key: String,
     pub user: UserData,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct BattleResponse {
+    pub opponent: Character,
+    pub actions: Vec<BattleAction>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct BattleAction {
+    pub action: String,
+    pub target: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct BattleResult {
+    pub dmg: i32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

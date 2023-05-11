@@ -32,6 +32,12 @@ pub struct AnimationIndices {
     pub last: usize,
 }
 
+impl AnimationIndices {
+    pub fn new(first: usize, last: usize) -> Self {
+        Self { first, last }
+    }
+}
+
 #[derive(Debug, Component, Clone)]
 pub struct Animation {
     pub states: HashMap<String, AnimationState>,

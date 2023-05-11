@@ -1,5 +1,6 @@
 use bevy::{
-    prelude::{App, Component, Plugin, Query, Res},
+    prelude::*,
+    text::Text,
     time::{Stopwatch, Time, Timer},
 };
 
@@ -7,7 +8,9 @@ pub(crate) struct TimerPlugin;
 
 impl Plugin for TimerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(stopwatch_tick).add_system(timer_tick);
+        app.init_resource::<TimerUi>()
+            .add_system(stopwatch_tick)
+            .add_systems((timer_tick, timer_text_update).chain());
     }
 }
 
@@ -17,9 +20,10 @@ pub struct StopwatchComponent {
 }
 
 #[derive(Component)]
-pub struct TimerComponent {
-    pub(crate) time: Timer,
-}
+pub struct TimerTextComponent;
+
+#[derive(Resource, Default)]
+pub struct TimerUi(pub Option<Timer>);
 
 fn stopwatch_tick(time: Res<Time>, mut stopwatch: Query<&mut StopwatchComponent>) {
     for mut watch in stopwatch.iter_mut() {
@@ -27,8 +31,19 @@ fn stopwatch_tick(time: Res<Time>, mut stopwatch: Query<&mut StopwatchComponent>
     }
 }
 
-fn timer_tick(time: Res<Time>, mut timer: Query<&mut TimerComponent>) {
-    for mut t in timer.iter_mut() {
-        t.time.tick(time.delta());
+fn timer_tick(time: Res<Time>, mut timer: ResMut<TimerUi>) {
+    if let Some(timer) = timer.0.as_mut() {
+        timer.tick(time.delta());
+    }
+}
+
+fn timer_text_update(
+    timer: Res<TimerUi>,
+    mut q_timer_text: Query<&mut Text, With<TimerTextComponent>>,
+) {
+    if let Some(timer) = timer.0.as_ref() {
+        for mut text in q_timer_text.iter_mut() {
+            text.sections[0].value = timer.remaining_secs().ceil().to_string();
+        }
     }
 }

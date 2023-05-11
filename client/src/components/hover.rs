@@ -23,6 +23,9 @@ pub struct Hovered;
 #[derive(Debug, Component, Clone)]
 pub struct BoundingBox(pub Vec3, pub Quat);
 
+#[derive(Debug, Component, Clone)]
+pub struct Clickable;
+
 pub struct ClickEvent(pub Entity);
 
 impl BoundingBox {
@@ -112,7 +115,7 @@ fn on_hover_removed(
 
 fn on_click(
     mut ev_cursor_click: EventReader<MouseButtonInput>,
-    q_hovered: Query<Entity, With<Hovered>>,
+    q_hovered: Query<Entity, (With<Hovered>, With<Clickable>)>,
     mut ev_click: EventWriter<ClickEvent>,
 ) {
     for cursor_event in ev_cursor_click.iter() {
