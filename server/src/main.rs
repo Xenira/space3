@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate rocket;
+extern crate openssl;
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
@@ -9,11 +10,7 @@ embed_migrations!("./migrations");
 
 use dotenv::dotenv;
 use model::model::get_api;
-use rocket::{
-    fairing::AdHoc,
-    fs::{FileServer, NamedFile},
-    Build, Rocket,
-};
+use rocket::{fairing::AdHoc, fs::FileServer, Build, Rocket};
 use rocket_sync_db_pools::database;
 
 pub mod model;
@@ -23,11 +20,6 @@ pub mod util;
 
 #[database("db")]
 pub struct Database(diesel::PgConnection);
-
-#[get("/<_..>", rank = 30)]
-async fn index() -> Result<NamedFile, std::io::Error> {
-    NamedFile::open("static/index.html").await
-}
 
 #[launch]
 fn rocket() -> _ {
@@ -40,8 +32,7 @@ fn rocket() -> _ {
             run_db_migrations,
         ))
         .mount("/api/v1", get_api())
-        .mount("/static", FileServer::from("./static"))
-        .mount("/", routes![index])
+        .mount("/", FileServer::from("./static"))
 }
 
 async fn run_db_migrations(rocket: Rocket<Build>) -> Result<Rocket<Build>, Rocket<Build>> {

@@ -20,7 +20,7 @@ pub fn generate(sub: &str) -> String {
             .expect("Expiration invalid")
             .timestamp() as usize,
         iat: Utc::now().timestamp() as usize,
-        nbf: Utc::now().timestamp() as usize,
+        nbf: Utc::now().timestamp() as usize - 500,
         sub: sub.to_string(),
     };
 
@@ -35,9 +35,15 @@ pub fn generate(sub: &str) -> String {
 pub fn validate(
     token: &str,
 ) -> Result<jsonwebtoken::TokenData<Claims>, jsonwebtoken::errors::Error> {
-    decode::<Claims>(
+    match decode::<Claims>(
         token,
         &DecodingKey::from_secret("secret".as_ref()),
         &Validation::default(),
-    )
+    ) {
+        Ok(claims) => Ok(claims),
+        Err(err) => {
+            warn!("Error validating jwt {:?}", err);
+            Err(err)
+        }
+    }
 }

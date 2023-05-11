@@ -16,6 +16,7 @@ table! {
         id -> Int4,
         game_id -> Int4,
         user_id -> Int4,
+        username -> Varchar,
         health -> Int4,
         credits -> Int4,
         created_at -> Timestamp,
@@ -39,6 +40,7 @@ table! {
         id -> Int4,
         lobby_id -> Int4,
         user_id -> Int4,
+        username -> Varchar,
         ready -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
@@ -48,7 +50,7 @@ table! {
 table! {
     lobbys (id) {
         id -> Int4,
-        name -> Nullable<Varchar>,
+        name -> Varchar,
         passphrase -> Nullable<Varchar>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
