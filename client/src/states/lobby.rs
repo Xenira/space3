@@ -1,10 +1,10 @@
-use bevy::{app::AppExit, prelude::*};
+use bevy::prelude::*;
 use bevy_forms::{
     button::{self, ButtonClickEvent},
-    form::Form,
-    text_input,
+    list, text_input,
 };
-use protocol::protocol::{Credentials, Protocol};
+use protocol::protocol::Protocol;
+use surf::http::Method;
 
 use crate::{
     cleanup_system,
@@ -63,7 +63,9 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                     color: Color::NONE.into(),
                     ..Default::default()
                 })
-                .with_children(|inputs| {});
+                .with_children(|parent| {
+                    list::generate_list("list_users", None, parent);
+                });
             parent
                 .spawn_bundle(NodeBundle {
                     color: Color::NONE.into(),
@@ -80,14 +82,11 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn button_click(
     mut network: ResMut<NetworkingRessource>,
-    form: Res<Form<Credentials>>,
     mut ev_button_click: EventReader<ButtonClickEvent>,
-    mut ev_exit: EventWriter<AppExit>,
 ) {
     for ev in ev_button_click.iter() {
-        debug!("Form mapping: {:?}", form.get_mapping());
         match ev.0.as_str() {
-            "btn_exit" => ev_exit.send(AppExit),
+            "btn_leave" => network.request(Method::Delete, "lobbys"),
             _ => (),
         }
     }

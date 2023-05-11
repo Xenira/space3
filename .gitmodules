@@ -1,0 +1,6 @@
+[submodule ".githooker"]
+	path = .githooker
+	url = https://github.com/duchainer/.githooker
+[submodule "bevy_forms"]
+	path = bevy_forms
+	url = https://github.com/Xenira/bevy_forms

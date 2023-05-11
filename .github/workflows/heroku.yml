@@ -16,14 +16,11 @@ jobs:
       name: Heroku
       url: https://github.com/Xenira/space3
     steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "space-cubed" #Must be unique in Heroku
-          heroku_email: "l.sprengel@pm.me"
-          justlogin: true
-      - run: heroku container:login
+          submodules: recursive
+
       - id: cache-docker
         uses: actions/cache@v1
         with:
@@ -72,7 +69,19 @@ jobs:
       - name: cache server
         run: docker tag space-cubed/web localhost:5000/space-cubed/web && docker push localhost:5000/space-cubed/web || true
         if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Heroku login
+        uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "space-cubed" #Must be unique in Heroku
+          heroku_email: "l.sprengel@pm.me"
+          justlogin: true
+      - name: Heroku Registry Login
+        run: heroku container:login
         
       - run: docker tag space-cubed/web registry.heroku.com/space-cubed/web
-      - run: docker push registry.heroku.com/space-cubed/web
-      - run: heroku container:release web -a space-cubed
+      - name: Push to Heroku
+        run: docker push registry.heroku.com/space-cubed/web
+      - name: Heroku release
+        run: heroku container:release web -a space-cubed

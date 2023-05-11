@@ -152,6 +152,10 @@ fn button_click(
                 Ok(creds) => network.request_data(Method::Post, "users", &creds.0),
                 Err(err) => error!("Failed to send login request {:?}", err),
             },
+            "btn_register" => match form.get() {
+                Ok(creds) => network.request_data(Method::Put, "users", &creds.0),
+                Err(err) => error!("Failed to send registration request {:?}", err),
+            },
             "btn_exit" => ev_exit.send(AppExit),
             _ => (),
         }
