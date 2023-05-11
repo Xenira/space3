@@ -47,7 +47,7 @@ RUN cargo build --target x86_64-unknown-linux-musl --release
 ##################################################
 # Final Image
 ##################################################
-FROM alpine
+FROM alpine as server
 WORKDIR /usr/local/bin
 RUN addgroup -S serveruser && adduser -S serveruser -G serveruser
 COPY --from=builder-server /app/target/x86_64-unknown-linux-musl/release/server .
