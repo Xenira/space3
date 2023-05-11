@@ -5,6 +5,7 @@ use protocol::protocol::Protocol;
 use crate::{
     model::game_users::GameUser,
     schema::{game_user_avatar_choices, game_users, games},
+    service::game_service::notify_users,
     Database,
 };
 use protocol::gods::GODS;
@@ -50,12 +51,12 @@ pub enum GameUserAvatarChoiceError {
 #[put("/games/avatar/<avatar_id>")]
 pub async fn select_avatar(
     db: Database,
-    game: Game,
+    mut game: Game,
     game_user: GameUser,
     avatar_id: i32,
 ) -> Json<Protocol> {
-    Json(
-        db.run(move |c| {
+    let (choice, game) = db
+        .run(move |c| {
             let choosen_avatar = GameUserAvatarChoice::belonging_to(&game_user)
                 .filter(game_user_avatar_choices::avatar_id.eq(avatar_id))
                 .first::<GameUserAvatarChoice>(c);
@@ -91,25 +92,36 @@ pub async fn select_avatar(
                             debug!(
                                 "All players have chosen their avatar, starting game in 5 seconds"
                             );
+                            game.next_battle = Some(
+                                Utc::now()
+                                    .naive_utc()
+                                    .checked_add_signed(chrono::Duration::seconds(5))
+                                    .unwrap(),
+                            );
                             update(games::table)
-                                .set(
-                                    games::next_battle
-                                        .eq(Utc::now().naive_utc() + chrono::Duration::seconds(5)),
-                                )
+                                .set(games::next_battle.eq(game.next_battle))
                                 .filter(games::id.eq(game.id))
                                 .execute(c);
                         }
                     }
                 }
 
-                Protocol::AvatarSelectResponse(GODS[avatar_id as usize].clone())
+                (
+                    Protocol::AvatarSelectResponse(GODS[avatar_id as usize].clone()),
+                    game,
+                )
             } else {
-                protocol::protocol::Error::new_protocol(
-                    Status::Conflict.code,
-                    "Avatar not available".to_string(),
+                (
+                    protocol::protocol::Error::new_protocol(
+                        Status::Conflict.code,
+                        "Avatar not available".to_string(),
+                    ),
+                    game,
                 )
             }
         })
-        .await,
-    )
+        .await;
+
+    notify_users(&game).await;
+    Json(choice)
 }

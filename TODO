@@ -21,12 +21,21 @@ Service:
 	Game:
 		✔ Create Game @started(23-04-30 16:48) @done(23-05-02 17:53) @lasted(2d1h5m25s)
 		✔ Transition to Pilot selection @started(23-05-02 17:53) @done(23-05-04 06:39) @lasted(1d12h46m36s)
-		☐ Add game state update service (polling) + timer info
+		✔ Add game state update service (polling) + timer info @started(23-05-11 18:42) @done(23-05-11 19:22) @lasted(40m24s)
 		☐ Determine next opponent (round robin)
-		☐ Transition to Shop phase
-		☐ Transition to Combat phase
-		☐ Calculate Combat
+		✔ Transition to Shop phase @done(23-05-11 19:48)
+		✔ Transition to Combat phase @done(23-05-11 19:48)
 		☐ Transition to End phase
+		Shop:
+			☐ Remove old shop if not locked
+			☐ Buy Character
+			☐ Sell Character
+			✔ Roll @done(23-05-11 21:03)
+			☐ Reroll
+			☐ Upgrade Character
+			☐ Lock Shop
+		Game:
+			☐ Calculate Combat
 	Bot Games:
 		☐ Add fill with bots option to lobby
 		☐ Simple Bots
@@ -66,6 +75,25 @@ Client:
 		☐ Add random selection
 		☐ Add ready button
 		☐ Add confirmation button
+	Main-Game:
+		☐ Player List
+		Shop:
+			☐ Add character pedestal @started(23-05-11 19:35)
+			✔ Add shop UI @started(23-05-11 19:35) @done(23-05-11 21:44) @lasted(2h9m59s)
+			UI:
+				☐ Add reroll button
+				☐ Add lock button
+			☐ Add Characters
+			☐ Add Reroll
+			☐ Add Buy
+			☐ Add character move
+			☐ Add character sell
+			☐ Add character upgrade
+		Battle:
+			☐ Add character pedestal
+			☐ Add battle UI
+			☐ Add enemy god
+			☐ Add battle animation
 	Settings:
 		Dev:
 			☐ Log Settings

@@ -72,6 +72,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    shops (id) {
+        id -> Int4,
+        game_user_id -> Int4,
+        character_ids -> Array<Nullable<Int4>>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Int4,
         username -> Varchar,
@@ -94,5 +104,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     games,
     lobbies,
     lobby_users,
+    shops,
     users,
 );

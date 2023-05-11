@@ -1,10 +1,19 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
-use bevy_forms::button::{self, ButtonClickEvent};
+use bevy::{prelude::*, utils::tracing::span::Entered};
+use protocol::{protocol::Protocol, protocol_types::character::Character};
+use surf::http::Method;
 
 use crate::{
-    cleanup_system, components::timer::TimerComponent, AppState, Cleanup, StateChangeEvent,
+    cleanup_system,
+    components::{
+        animation::AnimationTimer,
+        hover::{BoundingBox, Clickable, Hoverable},
+    },
+    networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
+    prefabs::animation,
+    states::game_commander_selection::GodComponent,
+    AppState, Cleanup, StateChangeEvent,
 };
 
 const STATE: AppState = AppState::GameShop;
@@ -13,101 +22,97 @@ pub(crate) struct GameShopPlugin;
 
 impl Plugin for GameShopPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(STATE).with_system(setup))
-            // .add_system_set(
-            //     SystemSet::on_update(STATE)
-            //         .with_system(button_click)
-            //         .with_system(timer),
-            // )
-            .add_system_set(SystemSet::on_exit(STATE).with_system(cleanup_system::<Cleanup>));
+        app.add_event::<ShopChangedEvent>()
+            .add_system(setup.in_schedule(OnEnter(STATE)))
+            .add_systems((on_network, generate_shop).in_set(OnUpdate(STATE)))
+            .add_system(cleanup_system::<Cleanup>.in_schedule(OnExit(STATE)));
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+#[derive(Component)]
+pub struct Shop;
+
+#[derive(Component)]
+pub struct ShopCharacter(pub Character);
+
+#[derive(Debug)]
+pub struct ShopChangedEvent(pub Vec<Character>);
+
+fn setup(mut commands: Commands, mut networking: ResMut<NetworkingRessource>) {
     // root node
-    commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                justify_content: JustifyContent::SpaceBetween,
-                ..Default::default()
-            },
-            color: Color::NONE.into(),
+    networking.request(Method::Get, "games/shop");
+    commands.spawn((
+        SpatialBundle {
+            transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 0.0)),
             ..Default::default()
-        })
-        .with_children(|parent| {
-            // bevy logo (flex center)
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                        position_type: PositionType::Absolute,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::FlexEnd,
-                        ..Default::default()
-                    },
-                    color: Color::NONE.into(),
-                    ..Default::default()
-                })
-                .with_children(|parent| {
-                    parent.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "Select your Commander:",
-                            TextStyle {
-                                font: asset_server.load("fonts/monogram-extended.ttf"),
-                                font_size: 40.0,
-                                color: Color::rgb(0.9, 0.9, 0.9),
-                            },
-                            Default::default(),
-                        ),
-                        ..Default::default()
-                    });
-
-                    parent
-                        .spawn_bundle(TextBundle {
-                            text: Text::with_section(
-                                "",
-                                TextStyle {
-                                    font: asset_server.load("fonts/monogram-extended.ttf"),
-                                    font_size: 40.0,
-                                    color: Color::rgb(0.9, 0.9, 0.9),
-                                },
-                                Default::default(),
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(TimerComponent {
-                            time: Timer::new(Duration::from_secs(30), false),
-                        });
-                });
-            button::generate_button("Select", "btn_select", &asset_server, None, parent);
-        })
-        .insert(Cleanup);
+        },
+        Shop,
+        Cleanup,
+    ));
 }
 
-fn button_click(
-    mut ev_button_click: EventReader<ButtonClickEvent>,
-    mut ev_state_change: EventWriter<StateChangeEvent>,
+fn on_network(
+    mut ev_networking: EventReader<NetworkingEvent>,
+    mut ev_shop_change: EventWriter<ShopChangedEvent>,
 ) {
-    for ev in ev_button_click.iter() {
-        match ev.0.as_str() {
-            "btn_select" => ev_state_change.send(StateChangeEvent(AppState::GameShop)),
-            _ => (),
+    for ev in ev_networking.iter() {
+        match &ev.0 {
+            Protocol::GameShopResponse(shop) => {
+                debug!("GameShopResponse: {:?}", shop);
+                ev_shop_change.send(ShopChangedEvent(shop.clone()));
+            }
+            _ => {}
         }
     }
 }
 
-fn timer(
-    mut ev_state_change: EventWriter<StateChangeEvent>,
-    mut timer: Query<(&TimerComponent, &mut Text), With<Text>>,
+fn generate_shop(
+    mut commands: Commands,
+    mut ev_shop_change: EventReader<ShopChangedEvent>,
+    q_shop: Query<Entity, With<Shop>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    asset_server: Res<AssetServer>,
 ) {
-    for (watch, mut text) in timer.iter_mut() {
-        if watch.time.finished() {
-            ev_state_change.send(StateChangeEvent(AppState::GameShop));
-        } else if watch.time.percent() >= 0.75 {
-            text.sections[0].value = ((watch.time.duration().as_secs_f32()
-                - watch.time.elapsed_secs()) as u32)
-                .to_string();
-        }
+    for ev in ev_shop_change.iter() {
+        let shop_frame = asset_server.load("textures/ui/user_frame.png");
+        let shop_frame_atlas =
+            TextureAtlas::from_grid(shop_frame, Vec2::new(64.0, 64.0), 2, 1, None, None);
+        let shop_frame_atlas_handle = texture_atlases.add(shop_frame_atlas);
+
+        let mut frame_animation = animation::simple(0, 0);
+        animation::add_hover_state(&mut frame_animation, 1, 1);
+
+        let character_fallback = asset_server.load("textures/ui/character_fallback.png");
+
+        debug!("generate_shop: {:?}", ev);
+        let shop = q_shop.single();
+        commands.entity(shop).despawn_descendants();
+
+        commands.entity(shop).with_children(|parent| {
+            for (i, character) in ev.0.iter().enumerate() {
+                parent
+                    .spawn((
+                        SpriteSheetBundle {
+                            texture_atlas: shop_frame_atlas_handle.clone(),
+                            sprite: TextureAtlasSprite::new(0),
+                            transform: Transform::from_scale(Vec3::splat(2.0))
+                                .with_translation(Vec3::new(68.0 * 2.0 * i as f32, 0.0, 1.0)),
+                            ..Default::default()
+                        },
+                        Hoverable("hover".to_string(), "leave".to_string()),
+                        BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
+                        frame_animation.clone(),
+                        AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                        Clickable,
+                        ShopCharacter(character.clone()),
+                    ))
+                    .with_children(|parent| {
+                        parent.spawn(SpriteBundle {
+                            texture: character_fallback.clone(),
+                            ..Default::default()
+                        });
+                    });
+            }
+        });
     }
 }

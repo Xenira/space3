@@ -6,6 +6,6 @@ pub mod gods {
     include!(concat!(env!("OUT_DIR"), "/gods.rs"));
 }
 
-pub fn god() {
-    println!("{}", gods::GODS[0].name);
+pub mod characters {
+    include!(concat!(env!("OUT_DIR"), "/characters.rs"));
 }

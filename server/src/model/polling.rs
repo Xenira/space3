@@ -114,6 +114,11 @@ impl ActivePolls {
             polls.join(channel, user);
         }
     }
+
+    pub fn close_channel(channel: &Channel) {
+        let mut polls = Self::get().lock().unwrap();
+        polls.channels.remove(channel);
+    }
 }
 
 #[get("/poll")]

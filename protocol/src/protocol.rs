@@ -23,11 +23,13 @@ pub enum Protocol {
 
     // Game
     // TODO: Change to [God; 4]
+    GameUpdateResponse(GameUpdate),
     GameStartResponse(Vec<God>),
     AvatarSelectResponse(God),
     GameShopResponse(Vec<Character>),
     GameBattleResponse(BattleResponse),
     GameBattleResultResponse(BattleResult),
+    GameEndResponse(GameResult),
 
     // Polling
     PollingTimeout,
@@ -96,6 +98,19 @@ pub struct BattleAction {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BattleResult {
     pub dmg: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct GameUpdate {
+    pub turn: i32,
+    pub next_turn_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct GameResult {
+    pub place: i32,
+    pub reward: i32,
+    pub ranking: i32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

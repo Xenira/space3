@@ -48,10 +48,13 @@ fn setup(
     let god_fallback = asset_server.load("textures/ui/god_fallback.png");
 
     commands
-        .spawn(SpatialBundle {
-            transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 0.0)),
-            ..Default::default()
-        })
+        .spawn((
+            SpatialBundle {
+                transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 0.0)),
+                ..Default::default()
+            },
+            Cleanup,
+        ))
         .with_children(|parent| {
             parent
                 .spawn((
@@ -168,15 +171,18 @@ fn setup(
         });
 
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                flex_direction: FlexDirection::Row,
-                justify_content: JustifyContent::End,
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::End,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
-            ..Default::default()
-        })
+            Cleanup,
+        ))
         .with_children(|parent| {
             parent
                 .spawn((NodeBundle {

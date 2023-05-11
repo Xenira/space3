@@ -1,0 +1,23 @@
+[
+    {
+        "name": "foo",
+        "description": "foo",
+        "health": 2,
+        "damage": 2,
+        "cost": 2
+    },
+    {
+        "name": "bar",
+        "description": "bar",
+        "health": 3,
+        "damage": 2,
+        "cost": 2
+    },
+    {
+        "name": "baz",
+        "description": "baz",
+        "health": 2,
+        "damage": 3,
+        "cost": 2
+    }
+]

@@ -47,7 +47,7 @@ enum AppState {
     GameSearch,
     GameCommanderSelection,
     GameShop,
-    _GameBattle,
+    GameBattle,
     _GameResult,
 }
 
@@ -150,6 +150,25 @@ fn networking_handler(
                 commands.insert_resource(TimerUi(Some(Timer::from_seconds(30.0, TimerMode::Once))));
                 commands.insert_resource(GameCommanderSelection(gods.clone()));
                 ev_state_change.send(StateChangeEvent(AppState::GameCommanderSelection));
+            }
+            Protocol::GameUpdateResponse(update) => {
+                if let Some(timer) = update.next_turn_at {
+                    commands.insert_resource(TimerUi(Some(Timer::from_seconds(
+                        timer.signed_duration_since(Utc::now()).num_seconds() as f32,
+                        TimerMode::Once,
+                    ))));
+                }
+
+                if update.turn > 0 {
+                    if update.turn % 2 == 0 {
+                        ev_state_change.send(StateChangeEvent(AppState::GameBattle));
+                    } else {
+                        ev_state_change.send(StateChangeEvent(AppState::GameShop));
+                    }
+                }
+            }
+            Protocol::GameEndResponse(_) => {
+                ev_state_change.send(StateChangeEvent(AppState::MenuMain))
             }
             Protocol::NetworkingError(e) => {
                 if e.status == 401 {

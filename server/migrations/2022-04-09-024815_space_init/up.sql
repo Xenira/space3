@@ -97,4 +97,15 @@ create TABLE game_user_characters (
 	) -- 7 for board + 5 for hand
 );
 CREATE TRIGGER update_game_user_characters_updated_at BEFORE
-UPDATE ON game_user_characters FOR EACH ROW EXECUTE PROCEDURE set_updated_at_date()
+UPDATE ON game_user_characters FOR EACH ROW EXECUTE PROCEDURE set_updated_at_date();
+create TABLE shops (
+	id SERIAL PRIMARY KEY,
+	game_user_id INT NOT NULL,
+	character_ids INT[8] NOT NULL,
+	locked BOOLEAN NOT NULL DEFAULT 'f',
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT fk_game_user FOREIGN KEY(game_user_id) REFERENCES game_users(id) ON DELETE CASCADE
+);
+CREATE TRIGGER update_shops_updated_at BEFORE
+UPDATE ON shops FOR EACH ROW EXECUTE PROCEDURE set_updated_at_date();
