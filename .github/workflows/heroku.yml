@@ -23,5 +23,5 @@ jobs:
           heroku_email: "l.sprengel@pm.me"
           justlogin: true
       - run: heroku container:login
-      - run: heroku container:push web
+      - run: heroku container:push web -a space-cubed
       - run: heroku container:release web
