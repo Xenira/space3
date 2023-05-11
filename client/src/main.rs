@@ -1,21 +1,33 @@
 use bevy::{
     diagnostic::{EntityCountDiagnosticsPlugin, LogDiagnosticsPlugin},
-    pbr::{StandardMaterial, PointLightBundle},
+    hierarchy::DespawnRecursiveExt,
+    log::{Level, LogSettings},
+    math::Vec3,
+    pbr::{PointLightBundle, StandardMaterial},
     prelude::*,
-    DefaultPlugins, log::{LogSettings, Level}, hierarchy::{DespawnRecursiveExt}, math::Vec3,
+    DefaultPlugins,
 };
 use bevy_vox::*;
+use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
+use surf::http::Method;
 
-use crate::{ui::button::{self, ButtonClickEvent}, states::{game_states}, components::timer};
+use crate::{
+    components::timer,
+    networking::networking::NetworkingPlugin,
+    states::game_states,
+    ui::button::{self, ButtonClickEvent},
+};
 
+mod components;
+mod networking;
 mod states;
 mod ui;
 mod util;
-mod components;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
     STARTUP,
+    MENU_LOGIN,
     MENU_MAIN,
     GAME_SEARCH,
     GAME_COMMANDER_SELECTION,
@@ -37,8 +49,11 @@ fn main() {
     debug!("Generating app");
     let mut app = App::new();
 
-    app.add_state(AppState::MENU_MAIN)
-        .insert_resource(LogSettings { level: Level::DEBUG, ..Default::default()})
+    app.add_state(AppState::MENU_LOGIN)
+        .insert_resource(LogSettings {
+            level: Level::DEBUG,
+            ..Default::default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
@@ -46,24 +61,24 @@ fn main() {
         .add_plugin(VoxPlugin)
         .add_event::<ButtonClickEvent>()
         .add_event::<StateChangeEvent>()
+        .add_plugin(NetworkingPlugin(
+            "http://localhost:8000/api/v1/".to_string(),
+        ))
         .add_startup_system(setup)
         .add_system(button::button_system)
         .add_system(state_change_handler)
+        .add_system(networking_handler)
         .add_plugin(timer::TimerPlugin)
+        .add_plugins(ui::form::FormPluginGroup)
         .add_plugins(game_states::GameStatesPluginGroup);
-    
+
     debug!("Starting app");
     app.run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
-) {
+fn setup(mut commands: Commands, mut net: ResMut<NetworkingRessource>) {
     commands.spawn_bundle(UiCameraBundle::default());
-    
+
     commands
         // light
         .spawn_bundle(PointLightBundle {
@@ -77,20 +92,27 @@ fn setup(
                 .looking_at(Vec3::default(), Vec3::Y),
             ..Default::default()
         });
+
+    net.request(Method::Get, "status");
 }
 
-fn state_change_handler(mut app_state: ResMut<State<AppState>>,
-    mut ev_state_change: EventReader<StateChangeEvent>) {
+fn networking_handler(mut ev_net: EventReader<NetworkingEvent>) {
+    for ev in ev_net.iter() {
+        debug!("[NET] {:?}", ev.0)
+    }
+}
+
+fn state_change_handler(
+    mut app_state: ResMut<State<AppState>>,
+    mut ev_state_change: EventReader<StateChangeEvent>,
+) {
     for ev in ev_state_change.iter() {
         debug!("State change {:?}", ev);
         app_state.overwrite_set(ev.0.clone());
     }
 }
 
-pub fn cleanup_system<T: Component>(
-    mut commands: Commands,
-    q: Query<Entity, With<T>>,
-) {
+pub fn cleanup_system<T: Component>(mut commands: Commands, q: Query<Entity, With<T>>) {
     debug!("[CLEANUP] Removing entities");
     for e in q.iter() {
         debug!("[CLEANUP] Despawning {:?}", e);
