@@ -2,18 +2,20 @@
 name = "space_3"
 version = "0.1.0"
 edition = "2021"
+proc-macro = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 bevy = { version = "0.7" }
-bevy_vox = { path = "../../bevy_vox" }
+bevy_vox = { git = "https://github.com/Xenira/bevy_vox" }
 # bevy_vox = { path = "../../bevy_vox" }
 serde = {version="1.0", features=["derive"]}
 serde_json = "1.0"
 # dialog = "0.3"
-futures-lite = "1.11.3"
 protocol = { path = "../protocol" }
+bevy_forms = { git = "https://github.com/Xenira/bevy_forms" }
+async-channel = "1.6.1"
 
 [target.wasm32-unknown-unknown.dependencies]
 surf = { version = "2.3", default-features = false, features = ["wasm-client", "middleware-logger", "encoding"] }

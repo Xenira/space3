@@ -3,25 +3,22 @@ use bevy::{
     hierarchy::DespawnRecursiveExt,
     log::{Level, LogSettings},
     math::Vec3,
-    pbr::{PointLightBundle, StandardMaterial},
+    pbr::PointLightBundle,
     prelude::*,
     DefaultPlugins,
 };
+use bevy_forms::{
+    button::{self, ButtonClickEvent},
+    form::FormPluginGroup,
+};
 use bevy_vox::*;
 use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
-use surf::http::Method;
 
-use crate::{
-    components::timer,
-    networking::networking::NetworkingPlugin,
-    states::game_states,
-    ui::button::{self, ButtonClickEvent},
-};
+use crate::{components::timer, networking::networking::NetworkingPlugin, states::game_states};
 
 mod components;
 mod networking;
 mod states;
-mod ui;
 mod util;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -29,6 +26,8 @@ enum AppState {
     STARTUP,
     MENU_LOGIN,
     MENU_MAIN,
+    DIALOG_LOBBY_JOIN,
+    LOBBY,
     GAME_SEARCH,
     GAME_COMMANDER_SELECTION,
     GAME_SHOP,
@@ -69,14 +68,14 @@ fn main() {
         .add_system(state_change_handler)
         .add_system(networking_handler)
         .add_plugin(timer::TimerPlugin)
-        .add_plugins(ui::form::FormPluginGroup)
+        .add_plugins(FormPluginGroup)
         .add_plugins(game_states::GameStatesPluginGroup);
 
     debug!("Starting app");
     app.run();
 }
 
-fn setup(mut commands: Commands, mut net: ResMut<NetworkingRessource>) {
+fn setup(mut commands: Commands) {
     commands.spawn_bundle(UiCameraBundle::default());
 
     commands
@@ -92,8 +91,6 @@ fn setup(mut commands: Commands, mut net: ResMut<NetworkingRessource>) {
                 .looking_at(Vec3::default(), Vec3::Y),
             ..Default::default()
         });
-
-    net.request(Method::Get, "status");
 }
 
 fn networking_handler(mut ev_net: EventReader<NetworkingEvent>) {
@@ -108,7 +105,10 @@ fn state_change_handler(
 ) {
     for ev in ev_state_change.iter() {
         debug!("State change {:?}", ev);
-        app_state.overwrite_set(ev.0.clone());
+        match ev.0 {
+            AppState::DIALOG_LOBBY_JOIN => app_state.push(AppState::DIALOG_LOBBY_JOIN),
+            _ => app_state.overwrite_set(ev.0.clone()),
+        };
     }
 }
 

@@ -1,0 +1,81 @@
+= Units
+:toc2:
+:sectnums:
+:icons: font
+:docinfodir: ../
+
+== General
+
+== [gray]#Common#
+
+.Unit Sheet Foo
+[cols=">s,4*^3"]
+|===
+|         2+|Normal 2+|Upgraded
+|Name   4+^s|Foo
+|Image    4+|<tbd>
+|Stats    2+|3 2+|2
+|Ability 4+a|Does not upgrade with other **Foo**s
+|Faction  4+|<tbd>
+|Role     4+|<tbd>
+|===
+
+.Unit Sheet Bar
+[cols=">s,4*^3"]
+|===
+|         2+|Normal 2+|Upgraded
+|Name   4+^s|Bar
+|Image    4+|<tbd>
+|Stats    2+|2 2+|3
+|Ability 4+a|Does not upgrade with other **Bar**s
+|Faction  4+|<tbd>
+|Role     4+|<tbd>
+|===
+
+== [green]#Uncommon#
+.Unit Sheet Baz
+[cols=">s,4*^3"]
+|===
+|         2+|Normal 2+|Upgraded
+|Name     2+|Baz    2+|Foo-Bar-Baz
+|Image    4+|<tbd>
+|Stats      |3 |3 |9 | 9
+|Ability 2+a|Upgrades with *foo* and *bar* 2+|
+|Faction  4+|<tbd>
+|Role     4+|<tbd>
+|===
+
+.Unit Sheet Replicat ||
+[cols=">s,4*^3"]
+|===
+|         2+|Normal 2+|Upgraded
+|Name     4+|Replicat \|\|
+|Image    4+|<tbd>
+|Stats      |3 |3 |9 | 9
+|Ability 4+a|
+|Faction  4+|<tbd>
+|Role     4+|<tbd>
+|===
+
+== [blue]#Rare#
+
+== [purple]#Epic#
+
+== [yellow]#Legendary#
+
+== [orange]#Mythic#
+
+// Template
+////
+.Unit Sheet <name>
+[cols=">s,4*^3"]
+|===
+|         2+|Normal 2+|Upgraded
+|Name     4+|<name>
+|Image    4+|<tbd>
+|Stats      |<d> |<d> |<d> |<d>
+|Ability 4+a|<tbd>
+|Faction  4+|<tbd>
+|Role     4+|<tbd>
+|===
+////

@@ -8,6 +8,9 @@
     },
     {
       "path": "protocol"
+    },
+    {
+      "path": "docs"
     }
   ],
   "settings": {

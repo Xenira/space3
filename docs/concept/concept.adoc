@@ -1,0 +1,10 @@
+= Concept
+:toc2:
+:sectnums:
+:icons: font
+
+:leveloffset: +1
+include::units.adoc[]
+include::commanders.adoc[]
+include::command_abilities.adoc[]
+:leveloffset: -1

@@ -1,12 +1,10 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
+use bevy_forms::button::{self, ButtonClickEvent};
 
 use crate::{
-    cleanup_system,
-    components::timer::TimerComponent,
-    ui::button::{self, ButtonClickEvent},
-    AppState, Cleanup, StateChangeEvent,
+    cleanup_system, components::timer::TimerComponent, AppState, Cleanup, StateChangeEvent,
 };
 
 const STATE: AppState = AppState::GAME_SHOP;
@@ -82,7 +80,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             time: Timer::new(Duration::from_secs(30), false),
                         });
                 });
-            button::generate_button("Select", "btn_select", parent, &asset_server);
+            button::generate_button("Select", "btn_select", &asset_server, None, parent);
         })
         .insert(Cleanup);
 }

@@ -1,0 +1,14 @@
+= [ ]³ Docs
+:toc2:
+:toclevels: 3
+:sectnums:
+:icons: font
+:docinfo: shared
+
+[ ]³ ["Space cubed" / "Cubed space"] will be a voxel based auto battler set in space (duh!).
+
+== General
+
+:leveloffset: +1
+include::concept/concept.adoc[]
+:leveloffset: -1
