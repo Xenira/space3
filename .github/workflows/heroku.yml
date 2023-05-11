@@ -25,6 +25,6 @@ jobs:
       - run: heroku container:login
       - run: docker pull docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit || true
       - run: docker build . -t space-cubed:web --cache-from=docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit
-      - run: docker tag thing docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit && docker push docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit || true
+      - run: docker tag space-cubed:web docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit && docker push docker.pkg.github.com/$GITHUB_REPOSITORY/build-cache-no-buildkit || true
       - run: heroku container:push web -a space-cubed
       - run: heroku container:release web -a space-cubed
