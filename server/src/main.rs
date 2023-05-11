@@ -34,17 +34,15 @@ pub struct Database(diesel::PgConnection);
 #[launch]
 fn rocket() -> _ {
     dotenv();
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is missing");
     let db: Map<_, Value> = map! {
         "url" => database_url.into(),
-        "pool_size" => 10.into()
     };
 
     let figment = rocket::Config::figment().merge(("databases", map!["db" => db]));
 
-    rocket::custom(figment);
-
-    rocket::build()
+    rocket::custom(figment)
         .attach(Database::fairing())
         .attach(AdHoc::try_on_ignite(
             "Database Migrations",
