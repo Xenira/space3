@@ -11,6 +11,9 @@
     },
     {
       "path": "docs"
+    },
+    {
+      "path": "bevy_forms"
     }
   ],
   "settings": {
