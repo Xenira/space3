@@ -8,9 +8,19 @@ extern crate dotenv;
 extern crate diesel_migrations;
 embed_migrations!("./migrations");
 
+use std::env;
+
 use dotenv::dotenv;
 use model::model::get_api;
-use rocket::{fairing::AdHoc, fs::FileServer, Build, Rocket};
+use rocket::{
+    fairing::AdHoc,
+    figment::{
+        map,
+        value::{Map, Value},
+    },
+    fs::FileServer,
+    Build, Rocket,
+};
 use rocket_sync_db_pools::database;
 
 pub mod model;
@@ -24,6 +34,15 @@ pub struct Database(diesel::PgConnection);
 #[launch]
 fn rocket() -> _ {
     dotenv();
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is missing");
+    let db: Map<_, Value> = map! {
+        "url" => database_url.into(),
+        "pool_size" => 10.into()
+    };
+
+    let figment = rocket::Config::figment().merge(("databases", map!["db" => db]));
+
+    rocket::custom(figment);
 
     rocket::build()
         .attach(Database::fairing())

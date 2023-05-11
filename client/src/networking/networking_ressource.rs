@@ -53,7 +53,7 @@ impl NetworkingRessource {
         )
     }
 
-    pub fn get_request(&self, method: Method, url: &str) -> RequestBuilder {
+    fn get_request(&self, method: Method, url: &str) -> RequestBuilder {
         self.client.request(method, url)
     }
 }
