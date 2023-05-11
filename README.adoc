@@ -1,0 +1,6 @@
+= space3
+:icons: font
+
+WARNING: WIP - DO NOT USE
+
+[ ]³ ["Space cubed" / "Cubed space"] will be a voxel based auto battler set in space (duh!).
