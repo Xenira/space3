@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub(crate) mod animation;
+pub(crate) mod dragndrop;
 pub(crate) mod hover;
 pub(crate) mod on_screen_log;
 pub(crate) mod timer;
@@ -27,6 +28,7 @@ impl Plugin for ComponentsPlugin {
         .add_system(apply_system_buffers.in_set(ChangeDetectionSystemSet::MouseDetectionFlush))
         .add_plugin(animation::AnimationPlugin)
         .add_plugin(hover::HoverPlugin)
+        .add_plugin(dragndrop::DragNDropPlugin)
         .add_plugin(on_screen_log::OnScreenLogPlugin)
         .add_plugin(timer::TimerPlugin);
     }

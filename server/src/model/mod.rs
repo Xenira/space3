@@ -1,5 +1,6 @@
 pub(crate) mod game;
 pub(crate) mod game_user_avatar_choices;
+pub(crate) mod game_user_characters;
 pub(crate) mod game_users;
 pub mod lobbies;
 pub mod lobby_users;

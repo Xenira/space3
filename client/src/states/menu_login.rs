@@ -6,6 +6,7 @@ use surf::http::Method;
 
 use crate::{
     cleanup_system,
+    components::hover::{BoundingBox, Hoverable},
     networking::{
         networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
         polling::PollingStatus,
@@ -48,6 +49,15 @@ fn logout(
     //     texture_atlases.as_mut(),
     // ));
     commands.spawn(TimerTextBundle::new(&asset_server));
+
+    // commands.spawn((
+    //     SpatialBundle {
+    //         transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 100.0, 0.0)),
+    //         ..Default::default()
+    //     },
+    //     BoundingBox,
+    //     Hoverable
+    // ));
 
     debug!("Logout end")
 }

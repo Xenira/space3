@@ -28,7 +28,7 @@ Service:
 		☐ Transition to End phase
 		Shop:
 			☐ Remove old shop if not locked
-			☐ Buy Character
+			✔ Buy Character @started(23-05-14 01:55) @done(23-05-14 03:34) @lasted(1h39m42s)
 			☐ Sell Character
 			✔ Roll @done(23-05-11 21:03)
 			☐ Reroll
@@ -85,7 +85,7 @@ Client:
 				☐ Add lock button
 			☐ Add Characters
 			☐ Add Reroll
-			☐ Add Buy
+			☐ Add Buy @started(23-05-14 01:55)
 			☐ Add character move
 			☐ Add character sell
 			☐ Add character upgrade
@@ -103,9 +103,17 @@ Client:
 		☐ Add transform animations
 		☐ Text animation
 	Misc:
+		✔ Add drag and drop plugin @started(23-05-14 03:36) @done(23-05-14 04:19) @lasted(43m36s)
+		☐ Do not modify final transform, instead use events
+		☐ Fix jittering between original and coursor position
+		☐ Add labels to drop targets
+		☐ Add drag and drop animation
 		☐ Add version check
 		☐ Add bug report button
 
 
 Misc:
 	☐ Intro video
+
+Stupid Ideas I prob won't be able (or want) to do:
+	☐ <epic> 2D or 3D Fight animation

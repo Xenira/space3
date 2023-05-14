@@ -81,7 +81,8 @@ CREATE TABLE game_user_avatar_choices (
 CREATE TRIGGER update_game_user_avatar_choices_updated_at BEFORE
 UPDATE ON game_user_avatar_choices FOR EACH ROW EXECUTE PROCEDURE set_updated_at_date();
 create TABLE game_user_characters (
-	game_user_id INT PRIMARY KEY,
+	id SERIAL PRIMARY KEY,
+	game_user_id INT NOT NULL,
 	character_id INT NOT NULL,
 	position INT NOT NULL,
 	upgraded BOOLEAN NOT NULL DEFAULT 'f',

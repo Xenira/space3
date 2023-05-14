@@ -55,6 +55,7 @@ pub async fn select_avatar(
     game_user: GameUser,
     avatar_id: i32,
 ) -> Json<Protocol> {
+    let game_user = game_user.clone();
     let (choice, game) = db
         .run(move |c| {
             let choosen_avatar = GameUserAvatarChoice::belonging_to(&game_user)

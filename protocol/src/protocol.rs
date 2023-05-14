@@ -114,6 +114,12 @@ pub struct GameResult {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct BuyRequest {
+    pub character_idx: u8,
+    pub target_idx: u8,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Error {
     pub message: String,
     pub status: u16,

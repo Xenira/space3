@@ -73,7 +73,7 @@ impl<'r> FromRequest<'r> for GameUser {
                     .run(move |con| {
                         if let Ok(user) = game_users::table
                             .filter(game_users::user_id.eq(user.id))
-                            .first::<Self>(con)
+                            .first::<GameUser>(con)
                         {
                             return Outcome::Success(user);
                         } else {

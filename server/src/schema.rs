@@ -12,7 +12,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    game_user_characters (game_user_id) {
+    game_user_characters (id) {
+        id -> Int4,
         game_user_id -> Int4,
         character_id -> Int4,
         position -> Int4,
@@ -76,6 +77,7 @@ diesel::table! {
         id -> Int4,
         game_user_id -> Int4,
         character_ids -> Array<Nullable<Int4>>,
+        locked -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
