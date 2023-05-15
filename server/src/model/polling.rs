@@ -130,10 +130,7 @@ pub async fn poll(user: &User) -> Json<Protocol> {
     match future::timeout(dur, notify.1.recv()).await {
         Ok(res) => match res {
             Ok(res) => Json(res),
-            Err(err) => Json(Protocol::NetworkingError(Error {
-                message: err.to_string(),
-                status: 500,
-            })),
+            Err(err) => Json(Error::new_protocol(500, err.to_string())),
         },
         Err(_) => Json(Protocol::PollingTimeout),
     }

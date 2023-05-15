@@ -21,6 +21,29 @@ pub struct GameUserCharacter {
     updated_at: NaiveDateTime,
 }
 
+impl GameUserCharacter {
+    pub fn new(
+        game_user_id: i32,
+        character_id: i32,
+        position: i32,
+        upgraded: bool,
+        attack_bonus: i32,
+        defense_bonus: i32,
+    ) -> Self {
+        Self {
+            id: 0,
+            game_user_id,
+            character_id,
+            position,
+            upgraded,
+            attack_bonus,
+            defense_bonus,
+            created_at: chrono::Utc::now().naive_utc(),
+            updated_at: chrono::Utc::now().naive_utc(),
+        }
+    }
+}
+
 #[derive(Insertable)]
 #[table_name = "game_user_characters"]
 pub struct NewGameUserCharacter {

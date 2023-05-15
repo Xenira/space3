@@ -36,6 +36,7 @@ pub mod model {
             game_user_avatar_choices::select_avatar,
             shop::get_shop,
             shop::reroll_shop,
+            shop::buy_character,
             polling::poll,
             polling::notify,
         ]

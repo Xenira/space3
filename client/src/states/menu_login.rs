@@ -6,7 +6,11 @@ use surf::http::Method;
 
 use crate::{
     cleanup_system,
-    components::hover::{BoundingBox, Hoverable},
+    components::{
+        animation::AnimationTimer,
+        dragndrop::{Dragable, DropTagret},
+        hover::{BoundingBox, Clickable, Hoverable},
+    },
     networking::{
         networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
         polling::PollingStatus,
@@ -50,14 +54,57 @@ fn logout(
     // ));
     commands.spawn(TimerTextBundle::new(&asset_server));
 
-    // commands.spawn((
-    //     SpatialBundle {
-    //         transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 100.0, 0.0)),
-    //         ..Default::default()
-    //     },
-    //     BoundingBox,
-    //     Hoverable
-    // ));
+    let shop_frame = asset_server.load("textures/ui/user_frame.png");
+    let shop_frame_atlas =
+        TextureAtlas::from_grid(shop_frame, Vec2::new(64.0, 64.0), 2, 1, None, None);
+    let shop_frame_atlas_handle = texture_atlases.add(shop_frame_atlas);
+
+    let pedestal = asset_server.load("textures/ui/character_base.png");
+    let pedestal_atlas = TextureAtlas::from_grid(pedestal, Vec2::new(64.0, 64.0), 2, 1, None, None);
+    let pedestal_atlas_handle = texture_atlases.add(pedestal_atlas);
+
+    commands
+        .spawn((
+            SpatialBundle {
+                transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 0.0)),
+                ..Default::default()
+            },
+            Cleanup,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                SpriteSheetBundle {
+                    texture_atlas: pedestal_atlas_handle.clone(),
+                    sprite: TextureAtlasSprite::new(0),
+                    transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
+                        68.0 * 3.0 as f32,
+                        0.0,
+                        1.0,
+                    )),
+                    ..Default::default()
+                },
+                Hoverable("hover".to_string(), "leave".to_string()),
+                BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
+                DropTagret,
+            ));
+
+            parent.spawn((
+                SpriteSheetBundle {
+                    texture_atlas: shop_frame_atlas_handle.clone(),
+                    sprite: TextureAtlasSprite::new(0),
+                    transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
+                        68.0 * 1.0 as f32,
+                        200.0,
+                        1.0,
+                    )),
+                    ..Default::default()
+                },
+                Hoverable("hover".to_string(), "leave".to_string()),
+                BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
+                Dragable,
+                Clickable,
+            ));
+        });
 
     debug!("Logout end")
 }

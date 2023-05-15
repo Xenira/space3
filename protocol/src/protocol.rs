@@ -26,7 +26,9 @@ pub enum Protocol {
     GameUpdateResponse(GameUpdate),
     GameStartResponse(Vec<God>),
     AvatarSelectResponse(God),
-    GameShopResponse(Vec<Character>),
+    GameShopResponse(Vec<Option<Character>>),
+    BuyRequest(BuyRequest),
+    BuyResponse(Vec<Option<Character>>, Vec<Option<Character>>),
     GameBattleResponse(BattleResponse),
     GameBattleResultResponse(BattleResult),
     GameEndResponse(GameResult),
@@ -119,18 +121,36 @@ pub struct BuyRequest {
     pub target_idx: u8,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Error {
     pub message: String,
     pub status: u16,
+    pub reference: Option<Box<Protocol>>,
 }
 
 impl Error {
-    pub fn new(status: u16, message: String) -> Error {
-        Error { message, status }
+    pub fn new(status: u16, message: String) -> Self {
+        Self {
+            message,
+            status,
+            ..Default::default()
+        }
     }
 
     pub fn new_protocol(status: u16, message: String) -> Protocol {
-        Protocol::NetworkingError(Error::new(status, message))
+        Protocol::NetworkingError(Self::new(status, message))
+    }
+
+    pub fn new_protocol_response(status: u16, message: String, reference: Protocol) -> Protocol {
+        Protocol::NetworkingError(Self {
+            message,
+            status,
+            reference: Some(Box::new(reference)),
+        })
+    }
+
+    pub fn with_reference(mut self, reference: Protocol) -> Self {
+        self.reference = Some(Box::new(reference));
+        self
     }
 }

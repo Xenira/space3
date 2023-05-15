@@ -117,6 +117,12 @@ pub async fn next_turn(db: &Database, game: &Game) {
                 .execute(con)
                 .unwrap();
 
+            update(game_users::table)
+                .filter(game_users::game_id.eq(game.id))
+                .set(game_users::credits.eq((next_turn + 3) / 2))
+                .execute(con)
+                .unwrap();
+
             Some(games::table.find(game.id).first::<Game>(con).unwrap())
         })
         .await

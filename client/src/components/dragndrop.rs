@@ -36,7 +36,10 @@ pub struct Dragged(pub Transform);
 pub struct DragEvent(pub Entity);
 
 #[derive(Debug)]
-pub struct DropEvent(pub Entity);
+pub struct DropEvent {
+    pub target: Entity,
+    pub entity: Entity,
+}
 
 fn on_drag(
     mut commands: Commands,
@@ -46,6 +49,7 @@ fn on_drag(
 ) {
     for ev in ev_clicked.iter() {
         if let Ok((entity, transform)) = q_hovered.get(ev.0) {
+            debug!("Dragged: {:?}", entity);
             commands.entity(entity).insert(Dragged(transform.clone()));
             ev_draged.send(DragEvent(entity));
         }
@@ -58,14 +62,24 @@ fn drag(
     mut q_draged: Query<(&mut Transform, &GlobalTransform), With<Dragged>>,
 ) {
     let (camera, camera_transform) = q_camera.single();
-    for cursor_event in ev_cursor_move.iter() {
+    if let Some(cursor_event) = ev_cursor_move.iter().last() {
         if let Some(world_position) = camera
             .viewport_to_world(camera_transform, cursor_event.position)
             .map(|r| r.origin)
         {
             for (mut transform, global_transform) in q_draged.iter_mut() {
-                transform.translation =
-                    world_position - global_transform.compute_transform().translation;
+                let global_transform =
+                    global_transform.compute_transform().translation - transform.translation;
+                let global_transform = Vec3::new(global_transform.x, global_transform.y, 0.0);
+                let world_position =
+                    Vec3::new(world_position.x, world_position.y, transform.translation.z);
+                debug!(
+                    "{:?} - {:?} = {:?}",
+                    world_position,
+                    global_transform,
+                    world_position - global_transform
+                );
+                transform.translation = world_position - global_transform;
             }
         }
     }
@@ -81,11 +95,15 @@ fn on_drop(
     for ev in ev_cursor_click.iter() {
         if ev.button == MouseButton::Left && ev.state == ButtonState::Released {
             for (entity, dragged) in q_draged.iter() {
+                debug!("Droped: {:?}", entity);
                 commands.entity(entity).remove::<Dragged>();
+                commands.entity(entity).insert(dragged.0.clone());
                 if let Ok((drop_target, _)) = q_drop_target.get_single() {
-                    ev_droped.send(DropEvent(drop_target));
-                } else {
-                    commands.entity(entity).insert(dragged.0.clone());
+                    debug!("Droped on: {:?}", drop_target);
+                    ev_droped.send(DropEvent {
+                        target: drop_target,
+                        entity,
+                    });
                 }
             }
         }

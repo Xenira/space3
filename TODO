@@ -27,14 +27,17 @@ Service:
 		✔ Transition to Combat phase @done(23-05-11 19:48)
 		☐ Transition to End phase
 		Shop:
+			☐ Set player money
 			☐ Remove old shop if not locked
 			✔ Buy Character @started(23-05-14 01:55) @done(23-05-14 03:34) @lasted(1h39m42s)
+			✔ Send updated shop and board to player after buy @started(23-05-15 19:19) @done(23-05-15 20:01) @lasted(42m16s)
 			☐ Sell Character
 			✔ Roll @done(23-05-11 21:03)
 			☐ Reroll
 			☐ Upgrade Character
 			☐ Lock Shop
 		Game:
+			☐ Delete non locked shops
 			☐ Calculate Combat
 	Bot Games:
 		☐ Add fill with bots option to lobby
@@ -78,14 +81,18 @@ Client:
 	Main-Game:
 		☐ Player List
 		Shop:
-			☐ Add character pedestal @started(23-05-11 19:35)
+			✔ Add character pedestal @started(23-05-11 19:35) @done(23-05-15 19:18) @lasted(3d23h43m54s)
 			✔ Add shop UI @started(23-05-11 19:35) @done(23-05-11 21:44) @lasted(2h9m59s)
 			UI:
 				☐ Add reroll button
 				☐ Add lock button
+				☐ Display money
+				☐ Display health
 			☐ Add Characters
 			☐ Add Reroll
-			☐ Add Buy @started(23-05-14 01:55)
+			✔ Add Buy @started(23-05-14 01:55) @done(23-05-15 19:18) @lasted(1d17h23m47s)
+			✔ Display Characters on board @started(23-05-15 20:01) @done(23-05-15 20:19) @lasted(18m8s)
+			☐ Fix character positioning (index not deterministic)
 			☐ Add character move
 			☐ Add character sell
 			☐ Add character upgrade

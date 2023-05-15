@@ -126,8 +126,7 @@ pub async fn get_shop(db: crate::Database, game_user: GameUser) -> Json<Protocol
     Json(Protocol::GameShopResponse(
         shop.character_ids
             .into_iter()
-            .filter_map(|c| c)
-            .map(|c| CHARACTERS[c as usize].clone())
+            .map(|c| c.and_then(|c| Some(CHARACTERS[c as usize].clone())))
             .collect::<Vec<_>>(),
     ))
 }
@@ -153,8 +152,7 @@ pub async fn reroll_shop(db: Database, game_user: GameUser) -> Json<Protocol> {
     Json(Protocol::GameShopResponse(
         shop.character_ids
             .into_iter()
-            .filter_map(|c| c)
-            .map(|c| CHARACTERS[c as usize].clone())
+            .map(|c| c.and_then(|c| Some(CHARACTERS[c as usize].clone())))
             .collect::<Vec<_>>(),
     ))
 }
@@ -164,42 +162,58 @@ pub async fn buy_character(
     db: Database,
     game_user: GameUser,
     shop: Shop,
-    game_user_characters: GameUserCharacters,
+    mut game_user_characters: GameUserCharacters,
     buy_request: Json<BuyRequest>,
 ) -> Json<Protocol> {
     let character =
         if let Some(Some(character)) = shop.character_ids.get(buy_request.character_idx as usize) {
             let character = CHARACTERS[*character as usize].clone();
             if character.cost > game_user.credits {
-                return Json(Error::new_protocol(
+                return Json(Error::new_protocol_response(
                     Status::PaymentRequired.code,
                     "Not enough credits".to_string(),
+                    Protocol::BuyRequest(buy_request.into_inner()),
                 ));
             }
             character
         } else {
-            return Json(Error::new_protocol(
+            return Json(Error::new_protocol_response(
                 Status::UnprocessableEntity.code,
                 "Invalid character index".to_string(),
+                Protocol::BuyRequest(buy_request.into_inner()),
             ));
         };
 
-    if let Some(Some(GameUserCharacter)) = game_user_characters
+    if let Some(Some(_)) = game_user_characters
         .0
         .get(buy_request.character_idx as usize)
     {
         // TODO: Tyr to move current character to free slot
-        return Json(Error::new_protocol(
+        return Json(Error::new_protocol_response(
             Status::UnprocessableEntity.code,
             "Character slot alredy occupied".to_string(),
+            Protocol::BuyRequest(buy_request.into_inner()),
         ));
     }
+
+    game_user_characters.0.insert(
+        buy_request.target_idx.into(),
+        Some(GameUserCharacter::new(
+            game_user.id,
+            character.id,
+            buy_request.target_idx.into(),
+            false,
+            0,
+            0,
+        )),
+    );
 
     let game_user_id = game_user.id;
     let character_id = character.id;
     let shop_id = shop.id;
     let mut shop_character_ids = shop.character_ids.clone();
     shop_character_ids[buy_request.character_idx as usize] = None;
+    let request = buy_request.clone();
     if let Ok(shop_character_ids) = db
         .run(move |c| {
             c.build_transaction().run(move |c| {
@@ -229,17 +243,22 @@ pub async fn buy_character(
         })
         .await
     {
-        Json(Protocol::GameShopResponse(
+        Json(Protocol::BuyResponse(
             shop_character_ids
+                .iter()
+                .map(|c| c.and_then(|c| Some(CHARACTERS[c as usize].clone())))
+                .collect::<Vec<_>>(),
+            game_user_characters
+                .0
                 .into_iter()
-                .filter_map(|c| c)
-                .map(|c| CHARACTERS[c as usize].clone())
+                .map(|c| c.and_then(|c| Some(CHARACTERS[c.character_id as usize].clone())))
                 .collect::<Vec<_>>(),
         ))
     } else {
-        Json(Error::new_protocol(
+        Json(Error::new_protocol_response(
             Status::InternalServerError.code,
             "Internal server error".to_string(),
+            Protocol::BuyRequest(request.into_inner()),
         ))
     }
 }
