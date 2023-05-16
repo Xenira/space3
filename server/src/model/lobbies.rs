@@ -16,16 +16,16 @@ use rocket::{
 };
 
 #[derive(Identifiable, Associations, Queryable, Clone, Debug)]
-#[table_name = "lobbies"]
-#[belongs_to(User, foreign_key = "master_id")]
+#[diesel(table_name = lobbies)]
+#[diesel(belongs_to(User, foreign_key = master_id))]
 pub struct Lobby {
     pub id: i32,
     pub name: String,
     pub passphrase: Option<String>,
     pub master_id: i32,
     pub start_at: Option<NaiveDateTime>,
-    created_at: NaiveDateTime,
-    updated_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 impl Lobby {

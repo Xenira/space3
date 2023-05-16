@@ -5,15 +5,15 @@ extern crate openssl;
 extern crate diesel;
 extern crate dotenv;
 
-use diesel::{pg::Pg, PgConnection};
+use diesel::pg::Pg;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use scheduler::long_running_task;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
-use std::{env, error::Error, sync::Mutex};
+use std::{env, error::Error};
 
 use dotenv::dotenv;
-use model::{model::get_api, polling::ActivePolls};
+use model::model::get_api;
 use rocket::{
     fairing::AdHoc,
     figment::{

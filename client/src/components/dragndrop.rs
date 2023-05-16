@@ -73,12 +73,6 @@ fn drag(
                 let global_transform = Vec3::new(global_transform.x, global_transform.y, 0.0);
                 let world_position =
                     Vec3::new(world_position.x, world_position.y, transform.translation.z);
-                debug!(
-                    "{:?} - {:?} = {:?}",
-                    world_position,
-                    global_transform,
-                    world_position - global_transform
-                );
                 transform.translation = world_position - global_transform;
             }
         }

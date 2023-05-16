@@ -1,6 +1,5 @@
 use std::{future::Future, pin::Pin, time::Duration};
 
-use chrono::NaiveDateTime;
 use diesel::{dsl::now, prelude::*, ExpressionMethods, QueryDsl};
 use rocket::{log::private::warn, tokio};
 
@@ -10,15 +9,6 @@ use crate::{
     service::{game_service, lobby_service},
     Database,
 };
-
-struct ScheduledTask {
-    task: Box<dyn Fn(Database) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send>,
-    interval: Duration,
-}
-
-pub struct Scheduler {
-    tasks: Vec<ScheduledTask>,
-}
 
 pub async fn long_running_task(db: Database) {
     loop {

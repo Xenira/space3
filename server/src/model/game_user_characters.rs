@@ -1,10 +1,13 @@
 use crate::model::game_users::GameUser;
 use crate::schema::game_user_characters;
+use crate::service::character_service;
 use crate::Database;
 use chrono::NaiveDateTime;
-use diesel::prelude::*;
+use diesel::{prelude::*, update};
+use protocol::protocol::{Error, Protocol};
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Outcome};
+use rocket::serde::json::Json;
 use rocket::Request;
 
 #[derive(Identifiable, Associations, Queryable, Clone, Debug)]
@@ -45,7 +48,7 @@ impl GameUserCharacter {
 }
 
 #[derive(Insertable)]
-#[table_name = "game_user_characters"]
+#[diesel(table_name = game_user_characters)]
 pub struct NewGameUserCharacter {
     pub game_user_id: i32,
     pub character_id: i32,
@@ -56,7 +59,7 @@ pub struct NewGameUserCharacter {
 }
 
 #[derive(AsChangeset)]
-#[table_name = "game_user_characters"]
+#[diesel(table_name = game_user_characters)]
 pub struct GameUserCharacterUpdate {
     pub position: Option<i32>,
     pub upgraded: Option<bool>,
@@ -132,5 +135,69 @@ impl<'r> FromRequest<'r> for GameUserCharacters {
             return Outcome::Failure((Status::ServiceUnavailable, Self::Error::Internal));
         }
         Outcome::Failure((Status::Unauthorized, Self::Error::Internal))
+    }
+}
+
+#[put("/games/character/<character_idx>/<target_idx>")]
+pub async fn move_character(
+    db: Database,
+    game_user_characters: GameUserCharacters,
+    character_idx: u8,
+    target_idx: u8,
+) -> Json<Protocol> {
+    if character_idx == target_idx {
+        return Json(Error::new_protocol_response(
+            Status::BadRequest.code,
+            "Cannot move character to same position".to_string(),
+            Protocol::CharacterMoveRequest,
+        ));
+    }
+
+    if let Some(source_character) = game_user_characters.0[character_idx as usize].clone() {
+        let source_character_id = source_character.id;
+        if let Some(target_character) = game_user_characters.0[target_idx as usize].clone() {
+            let target_character_id = target_character.id;
+            db.run(move |con| {
+                con.build_transaction().deferrable().run(|con| {
+                    update(game_user_characters::table)
+                        .filter(game_user_characters::id.eq(source_character_id))
+                        .set(game_user_characters::position.eq(target_idx as i32))
+                        .execute(con)
+                        .unwrap();
+                    update(game_user_characters::table)
+                        .filter(game_user_characters::id.eq(target_character_id))
+                        .set(game_user_characters::position.eq(character_idx as i32))
+                        .execute(con)
+                        .unwrap();
+                    QueryResult::Ok(())
+                })
+            })
+            .await;
+        } else {
+            db.run(move |con| {
+                update(game_user_characters::table)
+                    .filter(game_user_characters::id.eq(source_character.id))
+                    .set(game_user_characters::position.eq(target_idx as i32))
+                    .execute(con)
+                    .unwrap();
+            })
+            .await;
+        }
+
+        if let Ok(board) = character_service::get_board(&db, source_character.game_user_id).await {
+            Json(Protocol::BoardResponse(board))
+        } else {
+            Json(Error::new_protocol_response(
+                Status::InternalServerError.code,
+                "Could not get board".to_string(),
+                Protocol::CharacterMoveRequest,
+            ))
+        }
+    } else {
+        Json(Error::new_protocol_response(
+            Status::NotFound.code,
+            "Character not found".to_string(),
+            Protocol::CharacterMoveRequest,
+        ))
     }
 }

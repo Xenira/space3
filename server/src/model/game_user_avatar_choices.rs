@@ -11,7 +11,7 @@ use crate::{
 use protocol::gods::GODS;
 use rocket::{http::Status, log::private::debug, serde::json::Json};
 
-use super::{game::Game, game_users::GameUserUpdate};
+use super::game::Game;
 
 #[derive(Identifiable, Queryable, Associations, Clone, Debug)]
 #[diesel(belongs_to(Game))]
@@ -26,7 +26,7 @@ pub struct GameUserAvatarChoice {
 }
 
 #[derive(Insertable)]
-#[table_name = "game_user_avatar_choices"]
+#[diesel(table_name = game_user_avatar_choices)]
 pub struct NewGameUserAvatarChoice {
     pub game_id: i32,
     pub game_user_id: i32,

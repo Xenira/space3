@@ -1,5 +1,5 @@
 use crate::model::{game::Game, users::User};
-use crate::schema::{game_users, games, users};
+use crate::schema::game_users;
 use crate::Database;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
@@ -7,7 +7,7 @@ use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 
-#[derive(Identifiable, Associations, Queryable, Clone, Debug)]
+#[derive(Identifiable, Associations, Queryable, Clone, Default, PartialEq, Debug)]
 #[diesel(belongs_to(Game))]
 #[diesel(belongs_to(User))]
 pub struct GameUser {
@@ -17,12 +17,12 @@ pub struct GameUser {
     pub avatar_id: Option<i32>,
     pub health: i32,
     pub credits: i32,
-    created_at: NaiveDateTime,
-    updated_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Insertable)]
-#[table_name = "game_users"]
+#[diesel(table_name = game_users)]
 pub struct NewGameUser {
     pub game_id: i32,
     pub user_id: i32,
@@ -42,7 +42,7 @@ impl NewGameUser {
 }
 
 #[derive(AsChangeset)]
-#[table_name = "game_users"]
+#[diesel(table_name = game_users)]
 pub struct GameUserUpdate {
     pub health: Option<i32>,
     pub credits: Option<i32>,

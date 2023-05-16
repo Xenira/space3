@@ -22,7 +22,7 @@ Service:
 		✔ Create Game @started(23-04-30 16:48) @done(23-05-02 17:53) @lasted(2d1h5m25s)
 		✔ Transition to Pilot selection @started(23-05-02 17:53) @done(23-05-04 06:39) @lasted(1d12h46m36s)
 		✔ Add game state update service (polling) + timer info @started(23-05-11 18:42) @done(23-05-11 19:22) @lasted(40m24s)
-		☐ Determine next opponent (round robin)
+		✔ Determine next opponent (round robin) @done(23-05-16 21:34)
 		✔ Transition to Shop phase @done(23-05-11 19:48)
 		✔ Transition to Combat phase @done(23-05-11 19:48)
 		☐ Transition to End phase
@@ -36,9 +36,11 @@ Service:
 			☐ Reroll
 			☐ Upgrade Character
 			☐ Lock Shop
+			✔ Move character @started(23-05-16 17:25) @done(23-05-16 18:12) @lasted(47m8s)
 		Game:
 			☐ Delete non locked shops
-			☐ Calculate Combat
+			☐ Calculate Combat @started(23-05-16 18:14)
+			☐ Add Action Stack
 	Bot Games:
 		☐ Add fill with bots option to lobby
 		☐ Simple Bots
@@ -92,8 +94,8 @@ Client:
 			☐ Add Reroll
 			✔ Add Buy @started(23-05-14 01:55) @done(23-05-15 19:18) @lasted(1d17h23m47s)
 			✔ Display Characters on board @started(23-05-15 20:01) @done(23-05-15 20:19) @lasted(18m8s)
-			☐ Fix character positioning (index not deterministic)
-			☐ Add character move
+			✔ Fix character positioning (index not deterministic) @started(23-05-16 17:00) @done(23-05-16 17:16) @lasted(16m49s)
+			✔ Add character move @started(23-05-16 17:49) @done(23-05-16 18:12) @lasted(23m3s)
 			☐ Add character sell
 			☐ Add character upgrade
 		Battle:

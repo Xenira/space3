@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::{prelude::*, utils::tracing::span::Entered};
 use protocol::{
-    protocol::{BuyRequest, Protocol},
+    protocol::{BuyRequest, CharacterInstance, Protocol},
     protocol_types::character::Character,
 };
 use surf::http::Method;
@@ -30,7 +30,8 @@ impl Plugin for GameShopPlugin {
             .add_event::<BoardChangedEvent>()
             .add_system(setup.in_schedule(OnEnter(STATE)))
             .add_systems(
-                (on_network, generate_shop, on_buy, generate_board).in_set(OnUpdate(STATE)),
+                (on_network, generate_shop, on_buy, on_move, generate_board)
+                    .in_set(OnUpdate(STATE)),
             )
             .add_system(cleanup_system::<Cleanup>.in_schedule(OnExit(STATE)));
     }
@@ -51,14 +52,14 @@ pub struct Pedestals;
 #[derive(Component, Debug)]
 pub struct Pedestal(pub u8);
 
-#[derive(Component)]
-pub struct BoardCharacter(pub u8, pub Character);
+#[derive(Component, Debug)]
+pub struct BoardCharacter(pub u8, pub CharacterInstance);
 
 #[derive(Debug)]
 pub struct ShopChangedEvent(pub Vec<Option<Character>>);
 
 #[derive(Debug)]
-pub struct BoardChangedEvent(pub Vec<Option<Character>>);
+pub struct BoardChangedEvent(pub Vec<Option<CharacterInstance>>);
 
 fn setup(
     mut commands: Commands,
@@ -128,7 +129,7 @@ fn setup(
                     pedestal_animation.clone(),
                     AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
                     DropTagret,
-                    Pedestal(i),
+                    Pedestal(4 + i),
                 ));
             }
         });
@@ -149,6 +150,10 @@ fn on_network(
             Protocol::BuyResponse(shop, board) => {
                 debug!("BuyResponse: {:?}", ev);
                 ev_shop_change.send(ShopChangedEvent(shop.clone()));
+                ev_board_change.send(BoardChangedEvent(board.clone()));
+            }
+            Protocol::BoardResponse(board) => {
+                debug!("MoveResponse: {:?}", ev);
                 ev_board_change.send(BoardChangedEvent(board.clone()));
             }
             Protocol::NetworkingError(err) => {
@@ -190,6 +195,27 @@ fn on_buy(
             }
         }
         debug!("on_buy: {:?}", ev);
+    }
+}
+
+fn on_move(
+    mut commands: Commands,
+    mut ev_droped: EventReader<DropEvent>,
+    q_pedestal: Query<&Pedestal>,
+    q_god: Query<&BoardCharacter>,
+    mut networking: ResMut<NetworkingRessource>,
+) {
+    for ev in ev_droped.iter() {
+        if let Ok(pedestal) = q_pedestal.get(ev.target) {
+            if let Ok(god) = q_god.get(ev.entity) {
+                debug!("on_move: {:?} {:?}", pedestal, god);
+                networking.request(
+                    Method::Put,
+                    format!("games/character/{}/{}", god.0, pedestal.0).as_str(),
+                );
+                commands.entity(ev.entity).despawn_recursive();
+            }
+        }
     }
 }
 
@@ -254,7 +280,7 @@ fn generate_board(
     mut commands: Commands,
     mut ev_shop_change: EventReader<BoardChangedEvent>,
     q_board_character: Query<(Entity, &BoardCharacter)>,
-    q_pedestal: Query<Entity, With<Pedestal>>,
+    q_pedestal: Query<(Entity, &Pedestal)>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
 ) {
@@ -269,16 +295,26 @@ fn generate_board(
 
         let character_fallback = asset_server.load("textures/ui/character_fallback.png");
 
-        for (idx, _) in ev.0.iter().enumerate().filter(|(_, c)| c.is_some()) {
-            for (entity, character) in q_board_character.iter() {
-                if character.0 == idx as u8 {
-                    commands.entity(entity).despawn_recursive();
-                    break;
-                }
-            }
-            commands
-                .entity(q_pedestal.iter().nth(idx).unwrap())
-                .with_children(|parent| {
+        for (entity, _) in q_board_character.iter() {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        for (idx, pedestal) in
+            ev.0.iter()
+                .enumerate()
+                .filter(|(_, c)| c.is_some())
+                .map(|(idx, _)| {
+                    (
+                        idx,
+                        q_pedestal
+                            .iter()
+                            .find(|(_, pedestal)| pedestal.0 == idx as u8),
+                    )
+                })
+                .filter(|(_, pedestal)| pedestal.is_some())
+        {
+            if let Some((entity, _)) = pedestal {
+                commands.entity(entity).with_children(|parent| {
                     parent
                         .spawn((
                             SpriteSheetBundle {
@@ -301,6 +337,7 @@ fn generate_board(
                             });
                         });
                 });
+            }
         }
     }
 }

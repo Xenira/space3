@@ -1,6 +1,9 @@
-use std::time::Duration;
+use std::{fmt::Debug, time::Duration};
 
-use bevy::prelude::{FromWorld, Resource, World};
+use bevy::{
+    log::debug,
+    prelude::{FromWorld, Resource, World},
+};
 use serde::Serialize;
 use surf::{http::Method, Client, Config, Request, RequestBuilder, Url};
 
@@ -53,7 +56,11 @@ impl NetworkingRessource {
         self.requests.push(self.get_request(method, url).build())
     }
 
-    pub fn request_data<T: Serialize>(&mut self, method: Method, url: &str, data: &T) {
+    pub fn request_data<T: Serialize + Debug>(&mut self, method: Method, url: &str, data: &T) {
+        debug!(
+            "[NET] {} Request to \"{}\" with data {:?}",
+            method, url, data
+        );
         self.requests.push(
             self.get_request(method, url)
                 .body_json(data)

@@ -28,10 +28,13 @@ pub enum Protocol {
     AvatarSelectResponse(God),
     GameShopResponse(Vec<Option<Character>>),
     BuyRequest(BuyRequest),
-    BuyResponse(Vec<Option<Character>>, Vec<Option<Character>>),
+    BuyResponse(Vec<Option<Character>>, Vec<Option<CharacterInstance>>),
     GameBattleResponse(BattleResponse),
     GameBattleResultResponse(BattleResult),
     GameEndResponse(GameResult),
+
+    CharacterMoveRequest,
+    BoardResponse(Vec<Option<CharacterInstance>>),
 
     // Polling
     PollingTimeout,
@@ -94,7 +97,7 @@ pub struct BattleResponse {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BattleAction {
     pub action: String,
-    pub target: i32,
+    pub target: Vec<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -119,6 +122,18 @@ pub struct GameResult {
 pub struct BuyRequest {
     pub character_idx: u8,
     pub target_idx: u8,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CharacterInstance {
+    pub id: i32,
+    pub character_id: i32,
+    pub position: i32,
+    pub upgraded: bool,
+    pub attack: i32,
+    pub defense: i32,
+    pub attack_bonus: i32,
+    pub defense_bonus: i32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]

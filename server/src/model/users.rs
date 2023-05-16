@@ -10,7 +10,6 @@ use chrono::NaiveDateTime;
 use diesel::{insert_into, prelude::*, QueryDsl};
 
 use protocol::protocol::Credentials;
-use protocol::protocol::LobbyInfo;
 use protocol::protocol::LoginResponse;
 use protocol::protocol::Protocol;
 use protocol::protocol::UserData;
@@ -21,7 +20,6 @@ use rocket::request::FromRequest;
 use rocket::request::Outcome;
 use rocket::serde::json::Json;
 use rocket::Request;
-use uuid::Uuid;
 
 use super::lobbies::LobbyWithUsers;
 use super::polling::ActivePolls;
@@ -90,7 +88,7 @@ impl<'r> FromRequest<'r> for &'r User {
 }
 
 #[derive(Insertable)]
-#[table_name = "users"]
+#[diesel(table_name = users)]
 pub struct NewUser {
     pub username: String,
     pub password: String,

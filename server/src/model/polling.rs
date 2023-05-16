@@ -3,7 +3,6 @@ use async_std::future;
 use protocol::protocol::{Error, Protocol};
 use rocket::futures::future::join_all;
 use rocket::serde::json::Json;
-use rocket::State;
 use static_init::dynamic;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};

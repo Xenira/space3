@@ -1,6 +1,7 @@
 use crate::{
     model::{game_user_characters::GameUserCharacters, game_users::GameUser},
     schema::{game_user_characters, game_users, shops},
+    service::character_service,
     Database,
 };
 use chrono::NaiveDateTime;
@@ -18,11 +19,7 @@ use rocket::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{
-    game::Game,
-    game_user_avatar_choices::GameUserAvatarChoice,
-    game_user_characters::{GameUserCharacter, NewGameUserCharacter},
-};
+use super::game_user_characters::{GameUserCharacter, NewGameUserCharacter};
 
 #[derive(Queryable, Identifiable, Associations, Serialize, Deserialize, Clone, Debug)]
 #[diesel(belongs_to(GameUser))]
@@ -36,7 +33,7 @@ pub struct Shop {
 }
 
 #[derive(Insertable, Serialize, Deserialize, Clone, Debug)]
-#[table_name = "shops"]
+#[diesel(table_name = shops)]
 pub struct NewShop {
     game_user_id: i32,
     character_ids: Vec<Option<i32>>,
@@ -52,7 +49,7 @@ impl NewShop {
 }
 
 #[derive(AsChangeset, Serialize, Deserialize, Clone, Debug)]
-#[table_name = "shops"]
+#[diesel(table_name = shops)]
 pub struct ShopUpdate {
     character_ids: Vec<Option<i32>>,
 }
@@ -248,11 +245,9 @@ pub async fn buy_character(
                 .iter()
                 .map(|c| c.and_then(|c| Some(CHARACTERS[c as usize].clone())))
                 .collect::<Vec<_>>(),
-            game_user_characters
-                .0
-                .into_iter()
-                .map(|c| c.and_then(|c| Some(CHARACTERS[c.character_id as usize].clone())))
-                .collect::<Vec<_>>(),
+            character_service::get_board(&db, game_user_id)
+                .await
+                .unwrap(),
         ))
     } else {
         Json(Error::new_protocol_response(

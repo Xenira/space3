@@ -12,7 +12,7 @@ pub mod model {
     use protocol::protocol::{Protocol, Status};
     use rocket::{serde::json::Json, Route};
 
-    use super::{game_user_avatar_choices, lobbies, polling, shop, users};
+    use super::{game_user_avatar_choices, game_user_characters, lobbies, polling, shop, users};
 
     #[get("/status")]
     fn status() -> Json<Protocol> {
@@ -37,6 +37,7 @@ pub mod model {
             shop::get_shop,
             shop::reroll_shop,
             shop::buy_character,
+            game_user_characters::move_character,
             polling::poll,
             polling::notify,
         ]

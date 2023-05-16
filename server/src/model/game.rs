@@ -23,7 +23,7 @@ pub struct Game {
 }
 
 #[derive(Insertable)]
-#[table_name = "games"]
+#[diesel(table_name = games)]
 pub struct NewGame {
     pub next_battle: Option<NaiveDateTime>,
     pub current_round: i32,
@@ -39,7 +39,7 @@ impl NewGame {
 }
 
 #[derive(AsChangeset, Debug)]
-#[table_name = "games"]
+#[diesel(table_name = games)]
 pub struct GameUpdate {
     pub next_battle: Option<NaiveDateTime>,
     pub current_round: Option<i32>,

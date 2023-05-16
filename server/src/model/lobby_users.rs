@@ -5,9 +5,9 @@ use protocol::protocol;
 use super::{lobbies::Lobby, users::User};
 
 #[derive(Identifiable, Queryable, Associations, Clone)]
-#[belongs_to(Lobby)]
-#[belongs_to(User)]
-#[table_name = "lobby_users"]
+#[diesel(belongs_to(Lobby))]
+#[diesel(belongs_to(User))]
+#[diesel(table_name = lobby_users)]
 pub struct LobbyUser {
     pub id: i32,
     pub lobby_id: i32,
@@ -29,7 +29,7 @@ impl Into<protocol::LobbyUser> for LobbyUser {
 }
 
 #[derive(Insertable)]
-#[table_name = "lobby_users"]
+#[diesel(table_name = lobby_users)]
 pub struct NewLobbyUser {
     lobby_id: i32,
     user_id: i32,
