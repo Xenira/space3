@@ -15,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment:
-      name: Heroku
+      name: deployment
       url: https://github.com/Xenira/space3
     steps:
       - name: Checkout
@@ -72,18 +72,4 @@ jobs:
         run: docker tag space-cubed/web localhost:5000/space-cubed/web && docker push localhost:5000/space-cubed/web || true
         if: steps.cache.outputs.cache-hit != 'true'
   
-      - name: Heroku login
-        uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "space-cubed" #Must be unique in Heroku
-          heroku_email: "l.sprengel@pm.me"
-          justlogin: true
-      - name: Heroku Registry Login
-        run: heroku container:login
-        
       - run: docker tag space-cubed/web registry.heroku.com/space-cubed/web
-      - name: Push to Heroku
-        run: docker push registry.heroku.com/space-cubed/web
-      - name: Heroku release
-        run: heroku container:release web -a space-cubed
