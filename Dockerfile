@@ -1,9 +1,9 @@
 ##################################################
 # General
 ##################################################
-FROM ekidd/rust-musl-builder:latest AS chef
+FROM rust:alpine AS chef
 USER root
-RUN cargo install cargo-chef
+RUN apk update && apk add --no-cache openssl-dev musl-dev && cargo install cargo-chef
 WORKDIR /app
 
 ##################################################
