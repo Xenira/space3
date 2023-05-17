@@ -11,7 +11,7 @@ pub(crate) struct AnimationPlugin;
 
 impl Plugin for AnimationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<AnimationFinished>().add_systems(
             (animate_sprite, animate_transform).in_set(ChangeDetectionSystemSet::Animation),
         );
     }
@@ -100,8 +100,10 @@ impl Default for Animation {
 
 #[derive(Component, Debug, Clone)]
 pub struct TransformAnimation {
+    pub source: Transform,
     pub target: Transform,
     pub speed: f32,
+    pub repeat: AnimationRepeatType,
 }
 
 #[derive(Debug, Clone)]
@@ -176,9 +178,10 @@ pub enum AnimationRepeatType {
     Loop,
     Once,
     PingPong,
+    PingPongOnce,
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub enum AnimationDirection {
     #[default]
     Forward,
@@ -187,6 +190,9 @@ pub enum AnimationDirection {
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(pub Timer);
+
+#[derive(Debug, Clone)]
+pub struct AnimationFinished(pub Entity);
 
 fn animate_sprite(
     mut commands: Commands,
@@ -198,6 +204,7 @@ fn animate_sprite(
         &mut TextureAtlasSprite,
         Option<&AnimationTransition>,
     )>,
+    mut ev_animation_finished: EventWriter<AnimationFinished>,
 ) {
     for (entity, mut animation, mut timer, mut sprite, transition) in &mut query {
         if !animation.playing {
@@ -257,6 +264,7 @@ fn animate_sprite(
                     AnimationRepeatType::Loop => *indices.start(),
                     AnimationRepeatType::Once => {
                         trace!("Animation {} finished", current_state.name);
+                        ev_animation_finished.send(AnimationFinished(entity));
                         sprite.index
                     }
                     AnimationRepeatType::PingPong => {
@@ -265,6 +273,20 @@ fn animate_sprite(
                                 AnimationDirection::Forward => AnimationDirection::Backward,
                                 AnimationDirection::Backward => AnimationDirection::Forward,
                             };
+
+                        sprite.index
+                    }
+                    AnimationRepeatType::PingPongOnce => {
+                        animation.current_state.as_mut().unwrap().direction =
+                            match current_state.direction {
+                                AnimationDirection::Forward => AnimationDirection::Backward,
+                                AnimationDirection::Backward => AnimationDirection::Forward,
+                            };
+
+                        if current_state.direction == AnimationDirection::Forward {
+                            trace!("Animation {} finished", current_state.name);
+                            ev_animation_finished.send(AnimationFinished(entity));
+                        }
 
                         sprite.index
                     }
@@ -291,6 +313,7 @@ fn animate_transform(
     mut commands: Commands,
     time: Res<Time>,
     mut query: Query<(Entity, &mut Transform, &TransformAnimation)>,
+    mut ev_animation_finished: EventWriter<AnimationFinished>,
 ) {
     for (entity, mut transform, animation) in &mut query {
         let delta = time.delta_seconds() * animation.speed;
@@ -322,7 +345,33 @@ fn animate_transform(
         }
 
         if finished {
-            commands.entity(entity).remove::<TransformAnimation>();
+            match animation.repeat {
+                AnimationRepeatType::Loop => {
+                    transform.translation = animation.source.translation;
+                    transform.rotation = animation.source.rotation;
+                    transform.scale = animation.source.scale;
+                }
+                AnimationRepeatType::Once => {
+                    commands.entity(entity).remove::<TransformAnimation>();
+                    ev_animation_finished.send(AnimationFinished(entity));
+                }
+                AnimationRepeatType::PingPong => {
+                    commands.entity(entity).insert(TransformAnimation {
+                        source: animation.target.clone(),
+                        target: animation.source.clone(),
+                        speed: animation.speed,
+                        repeat: AnimationRepeatType::PingPong,
+                    });
+                }
+                AnimationRepeatType::PingPongOnce => {
+                    commands.entity(entity).insert(TransformAnimation {
+                        source: animation.target.clone(),
+                        target: animation.source.clone(),
+                        speed: animation.speed,
+                        repeat: AnimationRepeatType::Once,
+                    });
+                }
+            }
         }
     }
 }

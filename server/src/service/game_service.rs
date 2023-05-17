@@ -19,6 +19,7 @@ use crate::{
         game_user_avatar_choices::{self},
         game_users, games, lobby_users,
     },
+    service::combat_service::{calculate_combat, get_pairing},
     Database,
 };
 
@@ -91,11 +92,37 @@ pub async fn start_game(db: &Database, lobby: &Lobby) {
 pub async fn next_turn(db: &Database, game: &Game) {
     debug!("Next turn for game {:?}", game);
     let game_id = game.id;
+
+    // Battle Turn
+    let next_turn = game.current_round + 1;
+    if next_turn % 2 == 0 {
+        let game = game.clone();
+        let all_users = db
+            .run(move |con| GameUser::belonging_to(&game).load::<GameUser>(con).unwrap())
+            .await;
+
+        let pairings = get_pairing(next_turn, all_users);
+
+        for pairing in pairings {
+            let combat_result = calculate_combat(db, &pairing).await;
+            let swapped_result = combat_result.swap_players();
+
+            ActivePolls::notify(
+                &pairing.0.user_id,
+                Protocol::GameBattleResponse(combat_result),
+            )
+            .await;
+            ActivePolls::notify(
+                &pairing.1.user_id,
+                Protocol::GameBattleResponse(swapped_result),
+            )
+            .await;
+        }
+    }
+
     let game = game.clone();
     if let Some(game) = db
         .run(move |con| {
-            let next_turn = game.current_round + 1;
-
             let active_users = GameUser::belonging_to(&game)
                 .filter(game_users::health.gt(0))
                 .load::<GameUser>(con)

@@ -236,6 +236,9 @@ fn generate_shop(
         animation::add_hover_state(&mut frame_animation, 0, 1);
 
         let character_fallback = asset_server.load("textures/ui/character_fallback.png");
+        let character_atlas =
+            TextureAtlas::from_grid(character_fallback, Vec2::new(64.0, 64.0), 1, 1, None, None);
+        let character_atlas_handle = texture_atlases.add(character_atlas);
 
         debug!("generate_shop: {:?}", ev);
         let shop = q_shop.single();
@@ -265,8 +268,10 @@ fn generate_shop(
                             Dragable,
                         ))
                         .with_children(|parent| {
-                            parent.spawn(SpriteBundle {
-                                texture: character_fallback.clone(),
+                            parent.spawn(SpriteSheetBundle {
+                                texture_atlas: character_atlas_handle.clone(),
+                                sprite: TextureAtlasSprite::new(0),
+                                transform: Transform::from_translation(Vec3::ZERO),
                                 ..Default::default()
                             });
                         });
@@ -278,13 +283,13 @@ fn generate_shop(
 
 fn generate_board(
     mut commands: Commands,
-    mut ev_shop_change: EventReader<BoardChangedEvent>,
+    mut ev_board_change: EventReader<BoardChangedEvent>,
     q_board_character: Query<(Entity, &BoardCharacter)>,
     q_pedestal: Query<(Entity, &Pedestal)>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
 ) {
-    for ev in ev_shop_change.iter() {
+    for ev in ev_board_change.iter() {
         let shop_frame = asset_server.load("textures/ui/user_frame.png");
         let shop_frame_atlas =
             TextureAtlas::from_grid(shop_frame, Vec2::new(64.0, 64.0), 2, 1, None, None);
@@ -294,6 +299,9 @@ fn generate_board(
         animation::add_hover_state(&mut frame_animation, 0, 1);
 
         let character_fallback = asset_server.load("textures/ui/character_fallback.png");
+        let character_atlas =
+            TextureAtlas::from_grid(character_fallback, Vec2::new(64.0, 64.0), 1, 1, None, None);
+        let character_atlas_handle = texture_atlases.add(character_atlas);
 
         for (entity, _) in q_board_character.iter() {
             commands.entity(entity).despawn_recursive();
@@ -323,7 +331,7 @@ fn generate_board(
                                 ..Default::default()
                             },
                             Hoverable("hover".to_string(), "leave".to_string()),
-                            BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
+                            BoundingBox(Vec3::new(64.0, 64.0, 1.0), Quat::from_rotation_z(0.0)),
                             frame_animation.clone(),
                             AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
                             Clickable,
@@ -331,8 +339,10 @@ fn generate_board(
                             Dragable,
                         ))
                         .with_children(|parent| {
-                            parent.spawn(SpriteBundle {
-                                texture: character_fallback.clone(),
+                            parent.spawn(SpriteSheetBundle {
+                                texture_atlas: character_atlas_handle.clone(),
+                                sprite: TextureAtlasSprite::new(0),
+                                transform: Transform::from_translation(Vec3::ZERO),
                                 ..Default::default()
                             });
                         });

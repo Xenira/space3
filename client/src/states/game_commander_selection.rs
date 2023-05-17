@@ -1,7 +1,7 @@
 use crate::{
     cleanup_system,
     components::{
-        animation::{AnimationIndices, AnimationTimer, TransformAnimation},
+        animation::{AnimationIndices, AnimationRepeatType, AnimationTimer, TransformAnimation},
         hover::{BoundingBox, ClickEvent, Clickable, Hoverable, Hovered},
     },
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
@@ -295,8 +295,10 @@ fn on_network(
                 if god_comp.0.id == god.id {
                     // Move god to center
                     commands.entity(entity).insert(TransformAnimation {
+                        source: transform.clone(),
                         target: transform.with_translation(Vec3::ZERO),
                         speed: 1.0,
+                        repeat: AnimationRepeatType::Once,
                     });
 
                     // Set god info

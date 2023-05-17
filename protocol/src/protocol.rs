@@ -90,14 +90,50 @@ pub struct LoginResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BattleResponse {
-    pub opponent: Character,
     pub actions: Vec<BattleAction>,
+    pub start_own: Vec<Option<CharacterInstance>>,
+    pub start_opponent: Vec<Option<CharacterInstance>>,
+}
+
+impl BattleResponse {
+    pub fn swap_players(&self) -> Self {
+        Self {
+            actions: self
+                .actions
+                .iter()
+                .map(|a| a.swap_players())
+                .collect::<Vec<_>>(),
+            start_own: self.start_opponent.clone(),
+            start_opponent: self.start_own.clone(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BattleAction {
-    pub action: String,
-    pub target: Vec<i32>,
+    pub action: BattleActionType,
+    pub source: i32,
+    pub target: Option<i32>,
+    pub result_own: Vec<Option<CharacterInstance>>,
+    pub result_opponent: Vec<Option<CharacterInstance>>,
+}
+
+impl BattleAction {
+    pub fn swap_players(&self) -> Self {
+        let mut result = self.clone();
+
+        let result_own = self.result_own.clone();
+        result.result_opponent = result_own;
+        result.result_own = self.result_opponent.clone();
+
+        result
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum BattleActionType {
+    Attack,
+    Die,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

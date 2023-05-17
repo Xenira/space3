@@ -3,6 +3,7 @@ extern crate dotenv;
 use components::on_screen_log::{LogEntry, LogLevel};
 #[cfg(not(target_family = "wasm"))]
 use dotenv::dotenv;
+use surf::http::Method;
 
 use crate::{
     components::{
@@ -10,7 +11,9 @@ use crate::{
         ComponentsPlugin,
     },
     networking::networking::NetworkingPlugin,
-    states::{game_commander_selection::GameCommanderSelection, game_states},
+    states::{
+        game_combat::BattleRes, game_commander_selection::GameCommanderSelection, game_states,
+    },
 };
 use bevy::{
     diagnostic::{EntityCountDiagnosticsPlugin, LogDiagnosticsPlugin},
@@ -26,8 +29,8 @@ use bevy_egui::{
     EguiContexts, EguiPlugin,
 };
 use chrono::{DateTime, Local, Utc};
-use networking::networking_events::NetworkingEvent;
-use protocol::protocol::Protocol;
+use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
+use protocol::protocol::{Credentials, Protocol};
 use std::env;
 
 mod components;
@@ -102,7 +105,11 @@ fn main() {
 #[derive(Component)]
 struct MainCamera;
 
-fn setup(mut commands: Commands, mut contexts: EguiContexts) {
+fn setup(
+    mut commands: Commands,
+    mut contexts: EguiContexts,
+    mut networking: ResMut<NetworkingRessource>,
+) {
     commands
         // light
         .spawn(PointLightBundle {
@@ -117,6 +124,23 @@ fn setup(mut commands: Commands, mut contexts: EguiContexts) {
         panel_fill: Color32::TRANSPARENT,
         ..Default::default()
     });
+
+    if let Ok(user) = env::var("USER") {
+        if let Ok(pass) = env::var("PASS") {
+            warn!(
+                "Logging in as {} from env. Except during development you prob. shouldn't do this!",
+                user,
+            );
+            networking.request_data(
+                Method::Post,
+                "users",
+                &Credentials {
+                    username: user,
+                    password: pass,
+                },
+            );
+        }
+    }
 }
 
 fn networking_handler(
@@ -161,11 +185,15 @@ fn networking_handler(
 
                 if update.turn > 0 {
                     if update.turn % 2 == 0 {
-                        ev_state_change.send(StateChangeEvent(AppState::GameBattle));
+                        // ev_state_change.send(StateChangeEvent(AppState::GameBattle));
                     } else {
                         ev_state_change.send(StateChangeEvent(AppState::GameShop));
                     }
                 }
+            }
+            Protocol::GameBattleResponse(battle) => {
+                commands.insert_resource(BattleRes(battle.clone()));
+                ev_state_change.send(StateChangeEvent(AppState::GameBattle));
             }
             Protocol::GameEndResponse(_) => {
                 ev_state_change.send(StateChangeEvent(AppState::MenuMain))
@@ -187,7 +215,7 @@ fn state_change_handler(
 ) {
     for ev in ev_state_change.iter() {
         if current_state.0 == ev.0 {
-            trace!("State change {:?} is already active", ev);
+            warn!("State change {:?} is already active", ev);
             continue;
         }
 

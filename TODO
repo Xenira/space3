@@ -39,7 +39,8 @@ Service:
 			✔ Move character @started(23-05-16 17:25) @done(23-05-16 18:12) @lasted(47m8s)
 		Game:
 			☐ Delete non locked shops
-			☐ Calculate Combat @started(23-05-16 18:14)
+			✔ Calculate Combat @started(23-05-16 18:14) @done(23-05-17 17:07) @lasted(22h53m25s)
+			☐ Send Combat log to players
 			☐ Add Action Stack
 	Bot Games:
 		☐ Add fill with bots option to lobby
@@ -68,6 +69,9 @@ Client:
 			☐ Add settings menu
 			☐ Add logout button
 			☐ Add credits button
+	Lobby:
+		☐ Disable play button if not master
+		☐ Change ready button text to "not ready" if already ready
 	God Selection:
 		✔ Add frame for gods @done(23-05-06 18:27)
 		✔ Add Animation and State handling @done(23-05-06 18:28)
@@ -90,17 +94,24 @@ Client:
 				☐ Add lock button
 				☐ Display money
 				☐ Display health
-			☐ Add Characters
+			✔ Add Characters @done(23-05-16 22:50)
 			☐ Add Reroll
 			✔ Add Buy @started(23-05-14 01:55) @done(23-05-15 19:18) @lasted(1d17h23m47s)
 			✔ Display Characters on board @started(23-05-15 20:01) @done(23-05-15 20:19) @lasted(18m8s)
 			✔ Fix character positioning (index not deterministic) @started(23-05-16 17:00) @done(23-05-16 17:16) @lasted(16m49s)
 			✔ Add character move @started(23-05-16 17:49) @done(23-05-16 18:12) @lasted(23m3s)
+			☐ Display health and attack
+			☐ Display price
 			☐ Add character sell
 			☐ Add character upgrade
+			☐ Fix buy position
+			☐ Initialy load board from server
 		Battle:
-			☐ Add character pedestal
+			✔ Add character pedestal @started(23-05-17 17:07) @done(23-05-17 17:45) @lasted(38m13s)
 			☐ Add battle UI
+			✔ Playback battle @started(23-05-17 17:45) @done(23-05-17 21:38) @lasted(3h53m59s)
+			☐ Fix battle animation jumping
+			☐ Display health and attack
 			☐ Add enemy god
 			☐ Add battle animation
 	Settings:
@@ -113,7 +124,7 @@ Client:
 		☐ Text animation
 	Misc:
 		✔ Add drag and drop plugin @started(23-05-14 03:36) @done(23-05-14 04:19) @lasted(43m36s)
-		☐ Do not modify final transform, instead use events
+		✔ Do not modify final transform, instead use events @done(23-05-16 22:50)
 		☐ Fix jittering between original and coursor position
 		☐ Add labels to drop targets
 		☐ Add drag and drop animation

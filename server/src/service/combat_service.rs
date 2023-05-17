@@ -3,7 +3,7 @@ use crate::{
     Database,
 };
 use diesel::prelude::*;
-use protocol::protocol::BattleAction;
+use protocol::protocol::{BattleAction, BattleActionType, BattleResponse};
 use rand::seq::IteratorRandom;
 
 pub fn get_pairing(round: i32, mut players: Vec<GameUser>) -> Vec<(GameUser, GameUser)> {
@@ -45,13 +45,17 @@ fn shifted(round: i32, players: i32) -> (Vec<i32>, Vec<i32>) {
     )
 }
 
-pub async fn calculate_combat(db: &Database, players: (GameUser, GameUser)) -> Vec<BattleAction> {
+pub async fn calculate_combat(db: &Database, players: &(GameUser, GameUser)) -> BattleResponse {
     let mut player_a_board = get_board(db, players.0.id).await.unwrap()[0..7].to_vec();
     let mut player_b_board = get_board(db, players.1.id).await.unwrap()[0..7].to_vec();
+    let start_own = player_a_board.clone();
+    let start_opponent = player_b_board.clone();
 
     let mut current_player = rand::random::<bool>();
     let mut player_a_index = 0;
     let mut player_b_index = 0;
+
+    let mut actions = vec![];
 
     // While there are still characters with attack on the board
     while player_a_board
@@ -77,7 +81,7 @@ pub async fn calculate_combat(db: &Database, players: (GameUser, GameUser)) -> V
         };
 
         // Get attacking creature
-        if board[*index].is_none() {
+        while board[*index].is_none() {
             if *index < 6 {
                 *index += 1;
             } else {
@@ -112,18 +116,45 @@ pub async fn calculate_combat(db: &Database, players: (GameUser, GameUser)) -> V
         attacker.defense -= oponent.1.attack + oponent.1.attack_bonus;
         oponent.1.defense -= attacker.attack + attacker.attack_bonus;
 
+        let attacker = attacker.clone();
+
+        // Add battle action
+        actions.push(BattleAction {
+            action: BattleActionType::Attack,
+            source: attacker.id,
+            target: Some(oponent.1.id),
+            result_own: board.clone(),
+            result_opponent: op_board.clone(),
+        });
+
         // Check for death
         if attacker.defense <= 0 {
             board[*index] = None;
+
+            // Add attacker death event
+            actions.push(BattleAction {
+                action: BattleActionType::Die,
+                source: attacker.id,
+                target: None,
+                result_own: board.clone(),
+                result_opponent: op_board.clone(),
+            });
         }
 
         if oponent.1.defense <= 0 {
             op_board[oponent.0] = None;
+
+            // Add defender death event
+            actions.push(BattleAction {
+                action: BattleActionType::Die,
+                source: oponent.1.id,
+                target: None,
+                result_own: board.clone(),
+                result_opponent: op_board.clone(),
+            });
         } else {
             op_board[oponent.0] = Some(oponent.1.clone());
         }
-
-        // Add battle action
 
         current_player = !current_player;
     }
@@ -160,7 +191,11 @@ pub async fn calculate_combat(db: &Database, players: (GameUser, GameUser)) -> V
     .await
     .unwrap();
 
-    vec![]
+    BattleResponse {
+        actions,
+        start_own,
+        start_opponent,
+    }
 }
 
 #[test]
