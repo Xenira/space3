@@ -16,6 +16,7 @@ RUN rustup target add wasm32-unknown-unknown
 FROM chef AS planner-client
 COPY ./client .
 COPY ./protocol /protocol
+COPY Cargo.toml /
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM trunk AS builder-client
@@ -23,6 +24,7 @@ ARG BASE_URL
 ENV BASE_URL=$BASE_URL
 COPY --from=planner-client /app/recipe.json recipe.json
 COPY ./protocol /protocol
+COPY Cargo.toml /
 RUN cargo chef cook --target wasm32-unknown-unknown --recipe-path recipe.json
 COPY ./client .
 RUN ~/.cargo/bin/trunk build
@@ -36,12 +38,14 @@ RUN ~/.cargo/bin/trunk build
 FROM chef AS planner-server
 COPY ./server .
 COPY ./protocol /protocol
+COPY Cargo.toml /
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder-server
 RUN apt install libpq-dev -y
 COPY --from=planner-server /app/recipe.json recipe.json
 COPY ./protocol /protocol
+COPY Cargo.toml /
 RUN cargo chef cook --target x86_64-unknown-linux-musl --release --recipe-path recipe.json
 COPY ./server .
 RUN cargo build --target x86_64-unknown-linux-musl --release
