@@ -132,6 +132,12 @@ pub async fn next_turn(db: &Database, game: &Game) {
                 return None;
             }
 
+            update(game_users::table)
+                .filter(game_users::game_id.eq(game.id))
+                .set(game_users::experience.eq(game_users::experience + 1))
+                .execute(con)
+                .unwrap();
+
             let game_update = GameUpdate {
                 current_round: Some(next_turn),
                 next_battle: Some(get_next_turn_time(next_turn)),
@@ -163,7 +169,7 @@ pub async fn next_turn(db: &Database, game: &Game) {
 
 fn get_next_turn_time(turn: i32) -> NaiveDateTime {
     let turn: i64 = turn.into();
-    chrono::Utc::now().naive_utc() + chrono::Duration::seconds(30 + (turn - 1) * 5)
+    chrono::Utc::now().naive_utc() + chrono::Duration::seconds(90.min(30 + (turn / 2 - 1) * 5))
 }
 
 pub async fn notify_users(game: &Game) {

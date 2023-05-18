@@ -31,6 +31,7 @@ diesel::table! {
         game_id -> Int4,
         user_id -> Int4,
         avatar_id -> Nullable<Int4>,
+        experience -> Int4,
         health -> Int4,
         credits -> Int4,
         created_at -> Timestamp,

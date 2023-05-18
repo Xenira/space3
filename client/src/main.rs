@@ -10,6 +10,7 @@ use crate::{
         timer::{TimerPlugin, TimerUi},
         ComponentsPlugin,
     },
+    modules::game_user_info::GameUserRes,
     networking::networking::NetworkingPlugin,
     states::{
         game_combat::BattleRes, game_commander_selection::GameCommanderSelection, game_states,
@@ -34,6 +35,7 @@ use protocol::protocol::{Credentials, Protocol};
 use std::env;
 
 mod components;
+mod modules;
 mod networking;
 mod prefabs;
 mod states;
@@ -96,6 +98,7 @@ fn main() {
         .add_system(state_change_handler)
         .add_system(networking_handler)
         .add_plugin(ComponentsPlugin)
+        .add_plugin(modules::ModulesPlugin)
         .add_plugins(game_states::GameStatesPluginGroup);
 
     debug!("Starting app");
@@ -190,6 +193,9 @@ fn networking_handler(
                         ev_state_change.send(StateChangeEvent(AppState::GameShop));
                     }
                 }
+            }
+            Protocol::GameUserInfoResponse(user_info) => {
+                commands.insert_resource(GameUserRes(user_info.clone()));
             }
             Protocol::GameBattleResponse(battle) => {
                 commands.insert_resource(BattleRes(battle.clone()));

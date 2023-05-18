@@ -1,14 +1,14 @@
 use crate::{
-    model::{game_user_characters::GameUserCharacters, game_users::GameUser},
+    model::{game_user_characters::GameUserCharacters, game_users::GameUser, users::User},
     schema::{game_user_characters, game_users, shops},
     service::character_service,
     Database,
 };
 use chrono::NaiveDateTime;
-use diesel::{insert_into, prelude::*, update};
+use diesel::{delete, insert_into, prelude::*, update};
 use protocol::{
     characters::CHARACTERS,
-    protocol::{BuyRequest, Error, Protocol},
+    protocol::{BuyRequest, CharacterInstance, Error, GameUserInfo, Protocol},
 };
 use rand::seq::SliceRandom;
 use rocket::{
@@ -123,40 +123,71 @@ pub async fn get_shop(db: crate::Database, game_user: GameUser) -> Json<Protocol
     Json(Protocol::GameShopResponse(
         shop.character_ids
             .into_iter()
-            .map(|c| c.and_then(|c| Some(CHARACTERS[c as usize].clone())))
+            .map(|c| c.and_then(|c| Some(CharacterInstance::from(&CHARACTERS[c as usize]))))
             .collect::<Vec<_>>(),
     ))
 }
 
 #[post("/games/shop")]
 pub async fn reroll_shop(db: Database, game_user: GameUser) -> Json<Protocol> {
+    if game_user.credits <= 0 {
+        return Json(Error::new_protocol_response(
+            Status::PaymentRequired.code,
+            "Not enough credits".to_string(),
+            Protocol::RerollShopRequest,
+        ));
+    }
+
     let game_user_id = game_user.id;
-    let shop = db
+    if let Ok(shop) = db
         .run(move |c| {
-            let shop = shops::table
-                .filter(shops::game_user_id.eq(game_user_id))
-                .get_result::<Shop>(c)
-                .unwrap();
+            c.transaction(|c| {
+                delete(shops::table.filter(shops::game_user_id.eq(game_user_id))).execute(c)?;
 
-            let new_shop = ShopUpdate::new();
+                let mut new_shop = NewShop::new(game_user.id);
+                let characters = CHARACTERS.clone();
+                while new_shop.character_ids.len() < 5 {
+                    new_shop
+                        .character_ids
+                        .push(Some(characters.choose(&mut rand::thread_rng()).unwrap().id));
+                }
 
-            diesel::update(&shop).set(&new_shop).execute(c).unwrap();
+                diesel::insert_into(shops::table)
+                    .values(&new_shop)
+                    .execute(c)
+                    .unwrap();
 
-            new_shop
+                update(game_users::table)
+                    .filter(game_users::id.eq(game_user_id))
+                    .set(game_users::credits.eq(game_users::credits - 1))
+                    .execute(c)?;
+
+                QueryResult::Ok(new_shop)
+            })
         })
-        .await;
-
-    Json(Protocol::GameShopResponse(
-        shop.character_ids
-            .into_iter()
-            .map(|c| c.and_then(|c| Some(CHARACTERS[c as usize].clone())))
-            .collect::<Vec<_>>(),
-    ))
+        .await
+    {
+        Json(Protocol::GameShopResponse(
+            shop.character_ids
+                .into_iter()
+                .map(|c| {
+                    c.and_then(|c| Some(CharacterInstance::from(&CHARACTERS[c as usize].clone())))
+                })
+                .collect::<Vec<_>>(),
+        ))
+    } else {
+        Json(Error::new_protocol_response(
+            Status::InternalServerError.code,
+            "Internal server error".to_string(),
+            Protocol::RerollShopRequest,
+        ))
+    }
 }
 
 #[post("/games/shop/buy", data = "<buy_request>")]
 pub async fn buy_character(
     db: Database,
+    user: &User,
     game_user: GameUser,
     shop: Shop,
     mut game_user_characters: GameUserCharacters,
@@ -241,9 +272,18 @@ pub async fn buy_character(
         .await
     {
         Json(Protocol::BuyResponse(
+            GameUserInfo {
+                experience: game_user.experience,
+                health: game_user.health,
+                money: game_user.credits - character.cost,
+                name: user.username.clone(),
+                avatar: game_user.avatar_id,
+            },
             shop_character_ids
                 .iter()
-                .map(|c| c.and_then(|c| Some(CHARACTERS[c as usize].clone())))
+                .map(|c| {
+                    c.and_then(|c| Some(CharacterInstance::from(&CHARACTERS[c as usize].clone())))
+                })
                 .collect::<Vec<_>>(),
             character_service::get_board(&db, game_user_id)
                 .await

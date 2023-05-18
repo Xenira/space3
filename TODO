@@ -33,15 +33,16 @@ Service:
 			✔ Send updated shop and board to player after buy @started(23-05-15 19:19) @done(23-05-15 20:01) @lasted(42m16s)
 			☐ Sell Character
 			✔ Roll @done(23-05-11 21:03)
-			☐ Reroll
+			✔ Reroll @started(23-05-18 14:57) @done(23-05-18 15:26) @lasted(29m11s)
 			☐ Upgrade Character
 			☐ Lock Shop
 			✔ Move character @started(23-05-16 17:25) @done(23-05-16 18:12) @lasted(47m8s)
 		Game:
 			☐ Delete non locked shops
 			✔ Calculate Combat @started(23-05-16 18:14) @done(23-05-17 17:07) @lasted(22h53m25s)
-			☐ Send Combat log to players
+			✔ Send Combat log to players @done(23-05-18 14:43)
 			☐ Add Action Stack
+			✔ Fix order of boards in combat log @started(23-05-18 14:43) @done(23-05-18 14:56) @lasted(13m4s)
 	Bot Games:
 		☐ Add fill with bots option to lobby
 		☐ Simple Bots
@@ -90,10 +91,11 @@ Client:
 			✔ Add character pedestal @started(23-05-11 19:35) @done(23-05-15 19:18) @lasted(3d23h43m54s)
 			✔ Add shop UI @started(23-05-11 19:35) @done(23-05-11 21:44) @lasted(2h9m59s)
 			UI:
-				☐ Add reroll button
+				✔ Add reroll button @done(23-05-18 15:26)
 				☐ Add lock button
-				☐ Display money
-				☐ Display health
+				✔ Display money @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m55s)
+				✔ Display health @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m54s)
+				✔ Display exp @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m53s)
 			✔ Add Characters @done(23-05-16 22:50)
 			☐ Add Reroll
 			✔ Add Buy @started(23-05-14 01:55) @done(23-05-15 19:18) @lasted(1d17h23m47s)
@@ -111,9 +113,10 @@ Client:
 			☐ Add battle UI
 			✔ Playback battle @started(23-05-17 17:45) @done(23-05-17 21:38) @lasted(3h53m59s)
 			☐ Fix battle animation jumping
-			☐ Display health and attack
+			✔ Display health and attack @started(23-05-18 11:46) @done(23-05-18 13:19) @lasted(1h33m27s)
 			☐ Add enemy god
-			☐ Add battle animation
+			✔ Add battle animation @done(23-05-18 13:19)
+			☐ Fix stacked entities on x axis
 	Settings:
 		Dev:
 			☐ Log Settings

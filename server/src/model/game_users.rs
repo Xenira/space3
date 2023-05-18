@@ -3,8 +3,10 @@ use crate::schema::game_users;
 use crate::Database;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use protocol::protocol::{GameUserInfo, Protocol};
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome};
+use rocket::serde::json::Json;
 use rocket::Request;
 
 #[derive(Identifiable, Associations, Queryable, Clone, Default, PartialEq, Debug)]
@@ -15,6 +17,7 @@ pub struct GameUser {
     pub game_id: i32,
     pub user_id: i32,
     pub avatar_id: Option<i32>,
+    pub experience: i32,
     pub health: i32,
     pub credits: i32,
     pub created_at: NaiveDateTime,
@@ -26,6 +29,7 @@ pub struct GameUser {
 pub struct NewGameUser {
     pub game_id: i32,
     pub user_id: i32,
+    pub experience: i32,
     pub health: i32,
     pub credits: i32,
 }
@@ -35,26 +39,19 @@ impl NewGameUser {
         Self {
             game_id,
             user_id,
-            health: 100,
+            experience: 0,
+            health: 10,
             credits: 0,
         }
     }
 }
 
-#[derive(AsChangeset)]
+#[derive(AsChangeset, Default)]
 #[diesel(table_name = game_users)]
 pub struct GameUserUpdate {
+    pub experience: Option<i32>,
     pub health: Option<i32>,
     pub credits: Option<i32>,
-}
-
-impl GameUserUpdate {
-    pub fn new() -> Self {
-        Self {
-            health: None,
-            credits: None,
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -86,4 +83,15 @@ impl<'r> FromRequest<'r> for GameUser {
         }
         Outcome::Failure((Status::Unauthorized, Self::Error::Internal))
     }
+}
+
+#[get("/games/users/me")]
+pub async fn get_user(user: &User, game_user: GameUser) -> Json<Protocol> {
+    Json(Protocol::GameUserInfoResponse(GameUserInfo {
+        experience: game_user.experience,
+        health: game_user.health,
+        money: game_user.credits,
+        name: user.username.clone(),
+        avatar: game_user.avatar_id,
+    }))
 }

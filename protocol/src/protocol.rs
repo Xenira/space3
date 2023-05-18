@@ -26,12 +26,18 @@ pub enum Protocol {
     GameUpdateResponse(GameUpdate),
     GameStartResponse(Vec<God>),
     AvatarSelectResponse(God),
-    GameShopResponse(Vec<Option<Character>>),
+    GameShopResponse(Vec<Option<CharacterInstance>>),
     BuyRequest(BuyRequest),
-    BuyResponse(Vec<Option<Character>>, Vec<Option<CharacterInstance>>),
+    RerollShopRequest,
+    BuyResponse(
+        GameUserInfo,
+        Vec<Option<CharacterInstance>>,
+        Vec<Option<CharacterInstance>>,
+    ),
     GameBattleResponse(BattleResponse),
     GameBattleResultResponse(BattleResult),
     GameEndResponse(GameResult),
+    GameUserInfoResponse(GameUserInfo),
 
     CharacterMoveRequest,
     BoardResponse(Vec<Option<CharacterInstance>>),
@@ -122,9 +128,9 @@ impl BattleAction {
     pub fn swap_players(&self) -> Self {
         let mut result = self.clone();
 
-        let result_own = self.result_own.clone();
-        result.result_opponent = result_own;
-        result.result_own = self.result_opponent.clone();
+        let res_op = result.result_opponent;
+        result.result_opponent = result.result_own;
+        result.result_own = res_op;
 
         result
     }
@@ -145,6 +151,15 @@ pub struct BattleResult {
 pub struct GameUpdate {
     pub turn: i32,
     pub next_turn_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct GameUserInfo {
+    pub name: String,
+    pub experience: i32,
+    pub health: i32,
+    pub money: i32,
+    pub avatar: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -170,6 +185,21 @@ pub struct CharacterInstance {
     pub defense: i32,
     pub attack_bonus: i32,
     pub defense_bonus: i32,
+}
+
+impl From<&Character> for CharacterInstance {
+    fn from(character: &Character) -> Self {
+        Self {
+            id: -1,
+            character_id: character.id,
+            position: -1,
+            upgraded: false,
+            attack: character.damage,
+            defense: character.health,
+            attack_bonus: 0,
+            defense_bonus: 0,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]

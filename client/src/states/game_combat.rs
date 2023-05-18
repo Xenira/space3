@@ -4,6 +4,7 @@ use crate::{
         Animation, AnimationFinished, AnimationIndices, AnimationRepeatType, AnimationState,
         AnimationTimer, AnimationTransition, AnimationTransitionType, TransformAnimation,
     },
+    modules::character::Character,
     prefabs::animation,
     AppState, Cleanup, StateChangeEvent,
 };
@@ -142,6 +143,7 @@ fn play_animation(
             combat_state.set(GameCombatState::PlayAnimation);
         } else {
             warn!("No character found for {:?}", current_action);
+            combat_state.set(GameCombatState::AnimationFinished);
         }
     } else {
         combat_state.set(GameCombatState::WaitingForShop);
@@ -178,26 +180,9 @@ fn generate_board(
     q_board_character: Query<(Entity, &BoardCharacter)>,
     q_own: Query<Entity, With<BoardOwn>>,
     q_opponent: Query<Entity, With<BoardOpponent>>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    asset_server: Res<AssetServer>,
 ) {
     for ev in ev_shop_change.iter() {
         debug!("Generating board");
-        let character_handle = asset_server.load("textures/ui/character_fallback.png");
-        let character_atlas =
-            TextureAtlas::from_grid(character_handle, Vec2::new(64.0, 64.0), 14, 1, None, None);
-        let character_atlas_handle = texture_atlases.add(character_atlas);
-
-        let character_animation = animation::simple(0, 0)
-            .with_state(
-                AnimationState::new("die", AnimationIndices::new(1, 13))
-                    .with_repeat_type(AnimationRepeatType::Once),
-            )
-            .with_global_transition(AnimationTransition {
-                name: "die".to_string(),
-                to_state: "die".to_string(),
-                transition_type: AnimationTransitionType::Imediate,
-            });
 
         for (entity, _) in q_board_character.iter() {
             commands.entity(entity).despawn_recursive();
@@ -232,22 +217,18 @@ fn generate_board(
         {
             commands.entity(board).with_children(|parent| {
                 parent.spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: character_atlas_handle.clone(),
-                        sprite: TextureAtlasSprite::new(0),
-                        transform: Transform::from_translation(Vec3::new(
-                            68.0 * 2.0 * (idx % 4) as f32 + if idx < 4 { 0.0 } else { 68.0 } as f32,
-                            if idx < 4 {
-                                0.0
-                            } else {
-                                -1.0 * player_idx as f32 * -136.0
-                            },
-                            1.0,
-                        )),
-                        ..Default::default()
-                    },
-                    character_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    Transform::from_translation(Vec3::new(
+                        68.0 * 2.0 * (idx % 4) as f32 + if idx < 4 { 0.0 } else { 68.0 } as f32,
+                        if idx < 4 {
+                            0.0
+                        } else if player_idx == 0 {
+                            -136.0
+                        } else {
+                            136.0
+                        },
+                        1.0,
+                    )),
+                    Character(character.clone()),
                     BoardCharacter(idx as u8, character.clone()),
                 ));
             });

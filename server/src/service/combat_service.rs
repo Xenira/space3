@@ -123,8 +123,16 @@ pub async fn calculate_combat(db: &Database, players: &(GameUser, GameUser)) -> 
             action: BattleActionType::Attack,
             source: attacker.id,
             target: Some(oponent.1.id),
-            result_own: board.clone(),
-            result_opponent: op_board.clone(),
+            result_own: if current_player {
+                board.clone()
+            } else {
+                op_board.clone()
+            },
+            result_opponent: if current_player {
+                op_board.clone()
+            } else {
+                board.clone()
+            },
         });
 
         // Check for death
@@ -136,8 +144,16 @@ pub async fn calculate_combat(db: &Database, players: &(GameUser, GameUser)) -> 
                 action: BattleActionType::Die,
                 source: attacker.id,
                 target: None,
-                result_own: board.clone(),
-                result_opponent: op_board.clone(),
+                result_own: if current_player {
+                    board.clone()
+                } else {
+                    op_board.clone()
+                },
+                result_opponent: if current_player {
+                    op_board.clone()
+                } else {
+                    board.clone()
+                },
             });
         }
 
@@ -149,8 +165,16 @@ pub async fn calculate_combat(db: &Database, players: &(GameUser, GameUser)) -> 
                 action: BattleActionType::Die,
                 source: oponent.1.id,
                 target: None,
-                result_own: board.clone(),
-                result_opponent: op_board.clone(),
+                result_own: if current_player {
+                    board.clone()
+                } else {
+                    op_board.clone()
+                },
+                result_opponent: if current_player {
+                    op_board.clone()
+                } else {
+                    board.clone()
+                },
             });
         } else {
             op_board[oponent.0] = Some(oponent.1.clone());

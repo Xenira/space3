@@ -1,10 +1,5 @@
-use std::time::Duration;
-
-use bevy::{prelude::*, utils::tracing::span::Entered};
-use protocol::{
-    protocol::{BuyRequest, CharacterInstance, Protocol},
-    protocol_types::character::Character,
-};
+use bevy::prelude::*;
+use protocol::protocol::{BuyRequest, CharacterInstance, GameUserInfo, Protocol};
 use surf::http::Method;
 
 use crate::{
@@ -12,12 +7,12 @@ use crate::{
     components::{
         animation::AnimationTimer,
         dragndrop::{Dragable, DropEvent, DropTagret},
-        hover::{BoundingBox, Clickable, Hoverable},
+        hover::{BoundingBox, ClickEvent, Clickable, Hoverable},
     },
+    modules::{character::Character, game_user_info::GameUserRes},
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
     prefabs::animation,
-    states::game_commander_selection::GodComponent,
-    AppState, Cleanup, StateChangeEvent,
+    AppState, Cleanup,
 };
 
 const STATE: AppState = AppState::GameShop;
@@ -30,7 +25,14 @@ impl Plugin for GameShopPlugin {
             .add_event::<BoardChangedEvent>()
             .add_system(setup.in_schedule(OnEnter(STATE)))
             .add_systems(
-                (on_network, generate_shop, on_buy, on_move, generate_board)
+                (
+                    on_network,
+                    generate_shop,
+                    on_buy,
+                    on_move,
+                    generate_board,
+                    on_reroll,
+                )
                     .in_set(OnUpdate(STATE)),
             )
             .add_system(cleanup_system::<Cleanup>.in_schedule(OnExit(STATE)));
@@ -43,7 +45,7 @@ pub struct Shop;
 #[derive(Component, Debug)]
 pub struct ShopCharacter {
     idx: u8,
-    character: Character,
+    character: CharacterInstance,
 }
 
 #[derive(Component)]
@@ -55,8 +57,11 @@ pub struct Pedestal(pub u8);
 #[derive(Component, Debug)]
 pub struct BoardCharacter(pub u8, pub CharacterInstance);
 
+#[derive(Component, Debug)]
+pub struct Reroll;
+
 #[derive(Debug)]
-pub struct ShopChangedEvent(pub Vec<Option<Character>>);
+pub struct ShopChangedEvent(pub Vec<Option<CharacterInstance>>);
 
 #[derive(Debug)]
 pub struct BoardChangedEvent(pub Vec<Option<CharacterInstance>>);
@@ -69,6 +74,7 @@ fn setup(
 ) {
     // root node
     networking.request(Method::Get, "games/shop");
+    networking.request(Method::Get, "games/users/me");
     commands.spawn((
         SpatialBundle {
             transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 200.0, 0.0)),
@@ -133,9 +139,23 @@ fn setup(
                 ));
             }
         });
+
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/ui/reroll.png"),
+            transform: Transform::from_translation(Vec3::new(64.0 * 6.0, 200.0, 0.0)),
+            ..Default::default()
+        },
+        Hoverable("hover".to_string(), "leave".to_string()),
+        BoundingBox(Vec3::new(32.0, 32.0, 0.0), Quat::from_rotation_z(0.0)),
+        Clickable,
+        Reroll,
+        Cleanup,
+    ));
 }
 
 fn on_network(
+    mut commands: Commands,
     mut networking: ResMut<NetworkingRessource>,
     mut ev_networking: EventReader<NetworkingEvent>,
     mut ev_shop_change: EventWriter<ShopChangedEvent>,
@@ -147,8 +167,9 @@ fn on_network(
                 debug!("GameShopResponse: {:?}", shop);
                 ev_shop_change.send(ShopChangedEvent(shop.clone()));
             }
-            Protocol::BuyResponse(shop, board) => {
+            Protocol::BuyResponse(user_info, shop, board) => {
                 debug!("BuyResponse: {:?}", ev);
+                commands.insert_resource(GameUserRes(user_info.clone()));
                 ev_shop_change.send(ShopChangedEvent(shop.clone()));
                 ev_board_change.send(BoardChangedEvent(board.clone()));
             }
@@ -198,6 +219,18 @@ fn on_buy(
     }
 }
 
+fn on_reroll(
+    mut ev_cklicked: EventReader<ClickEvent>,
+    q_reroll: Query<&Reroll>,
+    mut networking: ResMut<NetworkingRessource>,
+) {
+    for ev in ev_cklicked.iter() {
+        if let Ok(_) = q_reroll.get(ev.0) {
+            networking.request(Method::Post, "games/shop");
+        }
+    }
+}
+
 fn on_move(
     mut commands: Commands,
     mut ev_droped: EventReader<DropEvent>,
@@ -235,11 +268,6 @@ fn generate_shop(
         let mut frame_animation = animation::simple(0, 0);
         animation::add_hover_state(&mut frame_animation, 0, 1);
 
-        let character_fallback = asset_server.load("textures/ui/character_fallback.png");
-        let character_atlas =
-            TextureAtlas::from_grid(character_fallback, Vec2::new(64.0, 64.0), 1, 1, None, None);
-        let character_atlas_handle = texture_atlases.add(character_atlas);
-
         debug!("generate_shop: {:?}", ev);
         let shop = q_shop.single();
         commands.entity(shop).despawn_descendants();
@@ -268,12 +296,7 @@ fn generate_shop(
                             Dragable,
                         ))
                         .with_children(|parent| {
-                            parent.spawn(SpriteSheetBundle {
-                                texture_atlas: character_atlas_handle.clone(),
-                                sprite: TextureAtlasSprite::new(0),
-                                transform: Transform::from_translation(Vec3::ZERO),
-                                ..Default::default()
-                            });
+                            parent.spawn(Character(character.clone()));
                         });
                 }
             }
@@ -297,11 +320,6 @@ fn generate_board(
 
         let mut frame_animation = animation::simple(0, 0);
         animation::add_hover_state(&mut frame_animation, 0, 1);
-
-        let character_fallback = asset_server.load("textures/ui/character_fallback.png");
-        let character_atlas =
-            TextureAtlas::from_grid(character_fallback, Vec2::new(64.0, 64.0), 1, 1, None, None);
-        let character_atlas_handle = texture_atlases.add(character_atlas);
 
         for (entity, _) in q_board_character.iter() {
             commands.entity(entity).despawn_recursive();
@@ -339,12 +357,7 @@ fn generate_board(
                             Dragable,
                         ))
                         .with_children(|parent| {
-                            parent.spawn(SpriteSheetBundle {
-                                texture_atlas: character_atlas_handle.clone(),
-                                sprite: TextureAtlasSprite::new(0),
-                                transform: Transform::from_translation(Vec3::ZERO),
-                                ..Default::default()
-                            });
+                            parent.spawn(Character(ev.0[idx].clone().unwrap()));
                         });
                 });
             }
