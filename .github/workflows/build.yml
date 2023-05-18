@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: xenira/space3
   CARGO_TERM_COLOR: always
   DOCKER_BUILDKIT: '1'
   TAG: ${{ github.sha }}
@@ -39,39 +39,39 @@ jobs:
         run: docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
 
       - name: build chef 
-        run: docker build . --target chef -t space-cubed/chef --cache-from=localhost:5000/space-cubed/chef --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target chef -t ${{ env.image_name }}/chef --cache-from=localhost:5000/${{ env.image_name }}/chef --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache chef 
-        run: docker tag space-cubed/chef localhost:5000/space-cubed/chef && docker push localhost:5000/space-cubed/chef || true
+        run: docker tag ${{ env.image_name }}/chef localhost:5000/${{ env.image_name }}/chef && docker push localhost:5000/${{ env.image_name }}/chef || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build trunk 
-        run: docker build . --target trunk -t space-cubed/trunk --cache-from=localhost:5000/space-cubed/trunk --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target trunk -t ${{ env.image_name }}/trunk --cache-from=localhost:5000/${{ env.image_name }}/trunk --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache trunk 
-        run: docker tag space-cubed/trunk localhost:5000/space-cubed/trunk && docker push localhost:5000/space-cubed/trunk || true
+        run: docker tag ${{ env.image_name }}/trunk localhost:5000/${{ env.image_name }}/trunk && docker push localhost:5000/${{ env.image_name }}/trunk || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build planner-client 
-        run: docker build . --target planner-client -t space-cubed/planner-client --cache-from=localhost:5000/space-cubed/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target planner-client -t ${{ env.image_name }}/planner-client --cache-from=localhost:5000/${{ env.image_name }}/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache planner-client 
-        run: docker tag space-cubed/planner-client localhost:5000/space-cubed/planner-client && docker push localhost:5000/space-cubed/planner-client || true
+        run: docker tag ${{ env.image_name }}/planner-client localhost:5000/${{ env.image_name }}/planner-client && docker push localhost:5000/${{ env.image_name }}/planner-client || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build builder-client 
-        run: docker build . --target builder-client -t space-cubed/builder-client --build-arg BASE_URL="https://space-cubed.herokuapp.com/" --cache-from=localhost:5000/space-cubed/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target builder-client -t ${{ env.image_name }}/builder-client --build-arg BASE_URL="https://${{ env.image_name }}.herokuapp.com/" --cache-from=localhost:5000/${{ env.image_name }}/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache builder-client 
-        run: docker tag space-cubed/builder-client localhost:5000/space-cubed/builder-client && docker push localhost:5000/space-cubed/builder-client || true
+        run: docker tag ${{ env.image_name }}/builder-client localhost:5000/${{ env.image_name }}/builder-client && docker push localhost:5000/${{ env.image_name }}/builder-client || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build planner-server 
-        run: docker build . --target planner-server -t space-cubed/planner-server --cache-from=localhost:5000/space-cubed/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target planner-server -t ${{ env.image_name }}/planner-server --cache-from=localhost:5000/${{ env.image_name }}/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache planner-server 
-        run: docker tag space-cubed/planner-server localhost:5000/space-cubed/planner-server && docker push localhost:5000/space-cubed/planner-server || true
+        run: docker tag ${{ env.image_name }}/planner-server localhost:5000/${{ env.image_name }}/planner-server && docker push localhost:5000/${{ env.image_name }}/planner-server || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build builder-server 
-        run: docker build . --target builder-server -t space-cubed/builder-server --cache-from=localhost:5000/space-cubed/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target builder-server -t ${{ env.image_name }}/builder-server --cache-from=localhost:5000/${{ env.image_name }}/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache builder-server 
-        run: docker tag space-cubed/builder-client localhost:5000/space-cubed/builder-server && docker push localhost:5000/space-cubed/builder-server || true
+        run: docker tag ${{ env.image_name }}/builder-client localhost:5000/${{ env.image_name }}/builder-server && docker push localhost:5000/${{ env.image_name }}/builder-server || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build server
@@ -88,11 +88,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Tag the image
-        run: docker tag space-cubed/web ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+        run: docker tag ${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
       - name: Tag release the image
         if: startsWith(github.ref, 'refs/tags/v')
-        run: docker tag space-cubed/web ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && docker tag space-cubed/web ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+        run: docker tag ${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && docker tag ${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
 
       - name: Push the image
         run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
