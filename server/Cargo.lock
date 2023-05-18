@@ -1423,7 +1423,6 @@ dependencies = [
  "protocol_types",
  "serde",
  "serde_json",
- "static_init",
 ]
 
 [[package]]

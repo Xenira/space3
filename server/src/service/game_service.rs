@@ -33,7 +33,7 @@ pub async fn start_game(db: &Database, lobby: &Lobby) {
                 .get_result::<Game>(con)
                 .unwrap();
 
-            let mut heros = protocol::gods::GODS.clone();
+            let mut heros = protocol::gods::GODS.to_vec();
             heros.shuffle(&mut rand::thread_rng());
 
             (

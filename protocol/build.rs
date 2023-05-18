@@ -17,11 +17,8 @@ struct GodJson {
 impl ToString for GodJson {
     fn to_string(&self, idx: usize) -> String {
         format!(
-            "God {{ id: {}, name: \"{}\".to_string(), description: \"{}\".to_string(), pantheon: \"{}\".to_string() }}",
-            idx,
-            self.name,
-            self.description,
-            self.pantheon
+            "God {{ id: {}, name: std::borrow::Cow::Borrowed(\"{}\"), description: std::borrow::Cow::Borrowed(\"{}\"), pantheon: std::borrow::Cow::Borrowed(\"{}\") }}",
+            idx, self.name, self.description, self.pantheon
         )
     }
 }
@@ -38,7 +35,7 @@ struct CharacterJson {
 impl ToString for CharacterJson {
     fn to_string(&self, idx: usize) -> String {
         format!(
-            "Character {{ id: {}, name: \"{}\".to_string(), description: \"{}\".to_string(), health: {}, damage: {}, cost: {} }}",
+            "Character {{ id: {}, name: std::borrow::Cow::Borrowed(\"{}\"), description: std::borrow::Cow::Borrowed(\"{}\"), health: {}, damage: {}, cost: {} }}",
             idx,
             self.name,
             self.description,
@@ -70,15 +67,13 @@ where
     let file = File::open(filename)?;
     let reader = BufReader::new(file);
     let entries: Vec<T> = serde_json::from_reader(reader)?;
-    let mut generated_rs = vec![
-        "use static_init::dynamic;".to_string(),
-        format!("use {};", type_name),
-    ];
+    let mut generated_rs = vec![format!("use {};", type_name)];
 
     generated_rs.push(format!(
-        "#[dynamic]\npub static {}: Vec<{}> = vec![{}];",
+        "pub static {}: [{};{}] = [{}];",
         name.to_uppercase(),
         type_name,
+        entries.len(),
         entries
             .iter()
             .enumerate()

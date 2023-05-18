@@ -3,31 +3,38 @@ name: Docker Image CI
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
   CARGO_TERM_COLOR: always
   DOCKER_BUILDKIT: '1'
+  TAG: ${{ github.sha }}
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
   build:
     runs-on: ubuntu-latest
     environment:
-      name: deployment
+      name: preview
       url: https://github.com/Xenira/space3
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
+        uses: actions/checkout@v3
 
-      - id: cache-docker
-        uses: actions/cache@v1
+      - id: cache
+        uses: actions/cache@v3
         with:
           path: /tmp/docker-registry
           key: docker-registry-buildkit-${{ hashFiles('Dockerfile') }}
+
       - name: Start cache registry
         run: docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
 
@@ -68,9 +75,28 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build server
-        run: docker build . --target server -t space-cubed/web --cache-from=localhost:5000/space-cubed/web --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target server -t ${{ env.IMAGE_NAME }} --cache-from=localhost:5000/${{ env.IMAGE_NAME }} --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache server
-        run: docker tag space-cubed/web localhost:5000/space-cubed/web && docker push localhost:5000/space-cubed/web || true
+        run: docker tag ${{ env.IMAGE_NAME }} localhost:5000/${{ env.IMAGE_NAME }} && docker push localhost:5000/${{ env.IMAGE_NAME }} || true
         if: steps.cache.outputs.cache-hit != 'true'
   
-      - run: docker tag space-cubed/web registry.heroku.com/space-cubed/web
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Tag the image
+        run: docker tag space-cubed/web ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+
+      - name: Tag release the image
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: docker tag space-cubed/web ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && docker tag space-cubed/web ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+
+      - name: Push the image
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+
+      - name: Push release the image
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}

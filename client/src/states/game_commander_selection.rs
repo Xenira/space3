@@ -254,10 +254,10 @@ fn god_hover(
     >,
 ) {
     if let Some(god) = q_hovered.iter().next() {
-        q_title.get_single_mut().unwrap().sections[0].value = god.0.name.clone();
+        q_title.get_single_mut().unwrap().sections[0].value = god.0.name.to_string();
         q_desc.get_single_mut().unwrap().sections[0].value =
-            break_text(god.0.description.clone(), 36, true);
-        q_pantheon.get_single_mut().unwrap().sections[0].value = god.0.pantheon.clone();
+            break_text(god.0.description.to_string(), 36, true);
+        q_pantheon.get_single_mut().unwrap().sections[0].value = god.0.pantheon.to_string();
     }
 }
 
@@ -302,10 +302,11 @@ fn on_network(
                     });
 
                     // Set god info
-                    q_title.get_single_mut().unwrap().sections[0].value = god.name.clone();
+                    q_title.get_single_mut().unwrap().sections[0].value = god.name.to_string();
                     q_desc.get_single_mut().unwrap().sections[0].value =
-                        break_text(god.description.clone(), 36, true);
-                    q_pantheon.get_single_mut().unwrap().sections[0].value = god.pantheon.clone();
+                        break_text(god.description.to_string(), 36, true);
+                    q_pantheon.get_single_mut().unwrap().sections[0].value =
+                        god.pantheon.to_string();
                 } else {
                     // Remove other gods
                     commands.entity(entity).despawn_recursive();
