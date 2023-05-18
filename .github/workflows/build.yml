@@ -39,39 +39,39 @@ jobs:
         run: docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
 
       - name: build chef 
-        run: docker build . --target chef -t ${{ env.image_name }}/chef --cache-from=localhost:5000/${{ env.image_name }}/chef --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target chef -t ${{ env.IMAGE_NAME }}/chef --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/chef --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache chef 
-        run: docker tag ${{ env.image_name }}/chef localhost:5000/${{ env.image_name }}/chef && docker push localhost:5000/${{ env.image_name }}/chef || true
+        run: docker tag ${{ env.IMAGE_NAME }}/chef localhost:5000/${{ env.IMAGE_NAME }}/chef && docker push localhost:5000/${{ env.IMAGE_NAME }}/chef || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build trunk 
-        run: docker build . --target trunk -t ${{ env.image_name }}/trunk --cache-from=localhost:5000/${{ env.image_name }}/trunk --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target trunk -t ${{ env.IMAGE_NAME }}/trunk --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/trunk --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache trunk 
-        run: docker tag ${{ env.image_name }}/trunk localhost:5000/${{ env.image_name }}/trunk && docker push localhost:5000/${{ env.image_name }}/trunk || true
+        run: docker tag ${{ env.IMAGE_NAME }}/trunk localhost:5000/${{ env.IMAGE_NAME }}/trunk && docker push localhost:5000/${{ env.IMAGE_NAME }}/trunk || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build planner-client 
-        run: docker build . --target planner-client -t ${{ env.image_name }}/planner-client --cache-from=localhost:5000/${{ env.image_name }}/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target planner-client -t ${{ env.IMAGE_NAME }}/planner-client --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache planner-client 
-        run: docker tag ${{ env.image_name }}/planner-client localhost:5000/${{ env.image_name }}/planner-client && docker push localhost:5000/${{ env.image_name }}/planner-client || true
+        run: docker tag ${{ env.IMAGE_NAME }}/planner-client localhost:5000/${{ env.IMAGE_NAME }}/planner-client && docker push localhost:5000/${{ env.IMAGE_NAME }}/planner-client || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build builder-client 
-        run: docker build . --target builder-client -t ${{ env.image_name }}/builder-client --build-arg BASE_URL="https://${{ env.image_name }}.herokuapp.com/" --cache-from=localhost:5000/${{ env.image_name }}/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target builder-client -t ${{ env.IMAGE_NAME }}/builder-client --build-arg BASE_URL="https://${{ env.IMAGE_NAME }}.herokuapp.com/" --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache builder-client 
-        run: docker tag ${{ env.image_name }}/builder-client localhost:5000/${{ env.image_name }}/builder-client && docker push localhost:5000/${{ env.image_name }}/builder-client || true
+        run: docker tag ${{ env.IMAGE_NAME }}/builder-client localhost:5000/${{ env.IMAGE_NAME }}/builder-client && docker push localhost:5000/${{ env.IMAGE_NAME }}/builder-client || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build planner-server 
-        run: docker build . --target planner-server -t ${{ env.image_name }}/planner-server --cache-from=localhost:5000/${{ env.image_name }}/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target planner-server -t ${{ env.IMAGE_NAME }}/planner-server --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache planner-server 
-        run: docker tag ${{ env.image_name }}/planner-server localhost:5000/${{ env.image_name }}/planner-server && docker push localhost:5000/${{ env.image_name }}/planner-server || true
+        run: docker tag ${{ env.IMAGE_NAME }}/planner-server localhost:5000/${{ env.IMAGE_NAME }}/planner-server && docker push localhost:5000/${{ env.IMAGE_NAME }}/planner-server || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build builder-server 
-        run: docker build . --target builder-server -t ${{ env.image_name }}/builder-server --cache-from=localhost:5000/${{ env.image_name }}/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
+        run: docker build . --target builder-server -t ${{ env.IMAGE_NAME }}/builder-server --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
       - name: cache builder-server 
-        run: docker tag ${{ env.image_name }}/builder-client localhost:5000/${{ env.image_name }}/builder-server && docker push localhost:5000/${{ env.image_name }}/builder-server || true
+        run: docker tag ${{ env.IMAGE_NAME }}/builder-client localhost:5000/${{ env.IMAGE_NAME }}/builder-server && docker push localhost:5000/${{ env.IMAGE_NAME }}/builder-server || true
         if: steps.cache.outputs.cache-hit != 'true'
         
       - name: build server
