@@ -29,56 +29,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - id: cache
-        uses: actions/cache@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: build
+        uses: docker/build-push-action@v4
         with:
-          path: /tmp/docker-registry
-          key: docker-registry-buildkit-${{ hashFiles('Dockerfile') }}
-
-      - name: Start cache registry
-        run: docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
-
-      - name: build chef 
-        run: docker build . --target chef -t ${{ env.IMAGE_NAME }}/chef --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/chef --build-arg BUILDKIT_INLINE_CACHE=1
-      - name: cache chef 
-        run: docker tag ${{ env.IMAGE_NAME }}/chef localhost:5000/${{ env.IMAGE_NAME }}/chef && docker push localhost:5000/${{ env.IMAGE_NAME }}/chef || true
-        if: steps.cache.outputs.cache-hit != 'true'
-        
-      - name: build trunk 
-        run: docker build . --target trunk -t ${{ env.IMAGE_NAME }}/trunk --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/trunk --build-arg BUILDKIT_INLINE_CACHE=1
-      - name: cache trunk 
-        run: docker tag ${{ env.IMAGE_NAME }}/trunk localhost:5000/${{ env.IMAGE_NAME }}/trunk && docker push localhost:5000/${{ env.IMAGE_NAME }}/trunk || true
-        if: steps.cache.outputs.cache-hit != 'true'
-        
-      - name: build planner-client 
-        run: docker build . --target planner-client -t ${{ env.IMAGE_NAME }}/planner-client --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/planner-client --build-arg BUILDKIT_INLINE_CACHE=1
-      - name: cache planner-client 
-        run: docker tag ${{ env.IMAGE_NAME }}/planner-client localhost:5000/${{ env.IMAGE_NAME }}/planner-client && docker push localhost:5000/${{ env.IMAGE_NAME }}/planner-client || true
-        if: steps.cache.outputs.cache-hit != 'true'
-        
-      - name: build builder-client 
-        run: docker build . --target builder-client -t ${{ env.IMAGE_NAME }}/builder-client --build-arg BASE_URL="https://${{ env.IMAGE_NAME }}.herokuapp.com/" --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/builder-client --build-arg BUILDKIT_INLINE_CACHE=1
-      - name: cache builder-client 
-        run: docker tag ${{ env.IMAGE_NAME }}/builder-client localhost:5000/${{ env.IMAGE_NAME }}/builder-client && docker push localhost:5000/${{ env.IMAGE_NAME }}/builder-client || true
-        if: steps.cache.outputs.cache-hit != 'true'
-        
-      - name: build planner-server 
-        run: docker build . --target planner-server -t ${{ env.IMAGE_NAME }}/planner-server --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/planner-server --build-arg BUILDKIT_INLINE_CACHE=1
-      - name: cache planner-server 
-        run: docker tag ${{ env.IMAGE_NAME }}/planner-server localhost:5000/${{ env.IMAGE_NAME }}/planner-server && docker push localhost:5000/${{ env.IMAGE_NAME }}/planner-server || true
-        if: steps.cache.outputs.cache-hit != 'true'
-        
-      - name: build builder-server 
-        run: docker build . --target builder-server -t ${{ env.IMAGE_NAME }}/builder-server --cache-from=localhost:5000/${{ env.IMAGE_NAME }}/builder-server --build-arg BUILDKIT_INLINE_CACHE=1
-      - name: cache builder-server 
-        run: docker tag ${{ env.IMAGE_NAME }}/builder-client localhost:5000/${{ env.IMAGE_NAME }}/builder-server && docker push localhost:5000/${{ env.IMAGE_NAME }}/builder-server || true
-        if: steps.cache.outputs.cache-hit != 'true'
-        
-      - name: build server
-        run: docker build . --target server -t ${{ env.IMAGE_NAME }} --cache-from=localhost:5000/${{ env.IMAGE_NAME }} --build-arg BUILDKIT_INLINE_CACHE=1
-      - name: cache server
-        run: docker tag ${{ env.IMAGE_NAME }} localhost:5000/${{ env.IMAGE_NAME }} && docker push localhost:5000/${{ env.IMAGE_NAME }} || true
-        if: steps.cache.outputs.cache-hit != 'true'
+          context: .
+          push: false
+          tags: ${{ env.IMAGE_NAME }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
