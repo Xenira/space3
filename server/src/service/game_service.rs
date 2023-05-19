@@ -1,11 +1,3 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
-use diesel::{delete, insert_into, prelude::*, update};
-use protocol::{
-    enum_iterator::all,
-    protocol::{GameResult, Protocol},
-};
-use rand::seq::SliceRandom;
-
 use crate::{
     model::{
         game::{Game, GameUpdate, NewGame},
@@ -17,11 +9,17 @@ use crate::{
     },
     schema::{
         game_user_avatar_choices::{self},
-        game_users, games, lobby_users,
+        game_users, games, lobby_users, shops,
     },
     service::combat_service::{calculate_combat, get_pairing},
     Database,
 };
+use chrono::{DateTime, NaiveDateTime, Utc};
+use diesel::{delete, insert_into, prelude::*, update};
+use futures::stream::futures_unordered::FuturesUnordered;
+use futures::stream::StreamExt;
+use protocol::protocol::{GameResult, Protocol};
+use rand::seq::SliceRandom;
 
 pub async fn start_game(db: &Database, lobby: &Lobby) {
     let lobby = lobby.clone();
@@ -95,7 +93,7 @@ pub async fn next_turn(db: &Database, game: &Game) {
 
     // Battle Turn
     let next_turn = game.current_round + 1;
-    if next_turn % 2 == 0 {
+    let battle_time = if next_turn % 2 == 0 {
         let game = game.clone();
         let all_users = db
             .run(move |con| GameUser::belonging_to(&game).load::<GameUser>(con).unwrap())
@@ -103,22 +101,32 @@ pub async fn next_turn(db: &Database, game: &Game) {
 
         let pairings = get_pairing(next_turn, all_users);
 
-        for pairing in pairings {
-            let combat_result = calculate_combat(db, &pairing).await;
-            let swapped_result = combat_result.swap_players();
-
-            ActivePolls::notify(
-                &pairing.0.user_id,
-                Protocol::GameBattleResponse(combat_result),
+        chrono::Utc::now().naive_utc()
+            + chrono::Duration::seconds(
+                (*pairings
+                    .iter()
+                    .map(|pairing| execute_combat(db, pairing))
+                    .collect::<FuturesUnordered<_>>()
+                    .collect::<Vec<_>>()
+                    .await
+                    .iter()
+                    .fold(None, |curr, next| {
+                        if let Some(curr) = curr {
+                            if next > curr {
+                                Some(next)
+                            } else {
+                                Some(curr)
+                            }
+                        } else {
+                            curr
+                        }
+                    })
+                    .unwrap_or(&5) as f64
+                    * 1.5) as i64,
             )
-            .await;
-            ActivePolls::notify(
-                &pairing.1.user_id,
-                Protocol::GameBattleResponse(swapped_result),
-            )
-            .await;
-        }
-    }
+    } else {
+        get_next_turn_time(next_turn)
+    };
 
     let game = game.clone();
     if let Some(game) = db
@@ -140,7 +148,7 @@ pub async fn next_turn(db: &Database, game: &Game) {
 
             let game_update = GameUpdate {
                 current_round: Some(next_turn),
-                next_battle: Some(get_next_turn_time(next_turn)),
+                next_battle: Some(battle_time),
             };
 
             debug!("Updating game {:?} with {:?}", game, game_update);
@@ -156,6 +164,19 @@ pub async fn next_turn(db: &Database, game: &Game) {
                 .execute(con)
                 .unwrap();
 
+            if next_turn % 2 == 0 {
+                delete(shops::table)
+                    .filter(shops::game_id.eq(game.id).and(shops::locked.eq(false)))
+                    .execute(con)
+                    .unwrap();
+
+                update(shops::table)
+                    .filter(shops::game_id.eq(game.id))
+                    .set(shops::locked.eq(false))
+                    .execute(con)
+                    .unwrap();
+            }
+
             Some(games::table.find(game.id).first::<Game>(con).unwrap())
         })
         .await
@@ -170,6 +191,25 @@ pub async fn next_turn(db: &Database, game: &Game) {
 fn get_next_turn_time(turn: i32) -> NaiveDateTime {
     let turn: i64 = turn.into();
     chrono::Utc::now().naive_utc() + chrono::Duration::seconds(90.min(30 + (turn / 2 - 1) * 5))
+}
+
+async fn execute_combat(db: &Database, pairing: &(GameUser, GameUser)) -> usize {
+    let combat_result = calculate_combat(db, &pairing).await;
+    let swapped_result = combat_result.swap_players();
+    let action_len = combat_result.actions.len();
+
+    ActivePolls::notify(
+        &pairing.0.user_id,
+        Protocol::GameBattleResponse(combat_result),
+    )
+    .await;
+    ActivePolls::notify(
+        &pairing.1.user_id,
+        Protocol::GameBattleResponse(swapped_result),
+    )
+    .await;
+
+    action_len
 }
 
 pub async fn notify_users(game: &Game) {

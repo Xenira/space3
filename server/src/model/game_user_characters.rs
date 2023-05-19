@@ -138,7 +138,20 @@ impl<'r> FromRequest<'r> for GameUserCharacters {
     }
 }
 
-#[put("/games/character/<character_idx>/<target_idx>")]
+#[get("/games/characters")]
+pub async fn get_board(db: Database, game_user: GameUser) -> Json<Protocol> {
+    if let Ok(board) = character_service::get_board(&db, game_user.id).await {
+        Json(Protocol::BoardResponse(board))
+    } else {
+        Json(Error::new_protocol_response(
+            Status::InternalServerError.code,
+            "Could not get board".to_string(),
+            Protocol::CharacterMoveRequest,
+        ))
+    }
+}
+
+#[put("/games/characters/<character_idx>/<target_idx>")]
 pub async fn move_character(
     db: Database,
     game_user_characters: GameUserCharacters,

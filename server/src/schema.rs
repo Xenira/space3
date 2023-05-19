@@ -76,6 +76,7 @@ diesel::table! {
 diesel::table! {
     shops (id) {
         id -> Int4,
+        game_id -> Int4,
         game_user_id -> Int4,
         character_ids -> Array<Nullable<Int4>>,
         locked -> Bool,

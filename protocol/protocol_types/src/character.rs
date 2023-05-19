@@ -9,5 +9,5 @@ pub struct Character {
     pub description: Cow<'static, str>,
     pub health: i32,
     pub damage: i32,
-    pub cost: i32,
+    pub cost: u8,
 }

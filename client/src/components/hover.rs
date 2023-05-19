@@ -29,8 +29,8 @@ pub struct Clickable;
 pub struct ClickEvent(pub Entity);
 
 impl BoundingBox {
-    pub fn is_point_inside(&self, point: Vec3, transform: &Transform) -> bool {
-        let relative_position = point - transform.translation;
+    pub fn is_point_inside(&self, point: Vec2, transform: &Transform) -> bool {
+        let relative_position = point.extend(0.0) - transform.translation;
         let rotated_relative_position = transform.rotation.mul_vec3(relative_position);
         let rotated_point = self.1.mul_vec3(rotated_relative_position).mul(2.0).abs();
         // debug!("rotated_point: {:?}", rotated_point);
@@ -54,10 +54,11 @@ fn check_hover(
     >,
 ) {
     let (camera, camera_transform) = q_camera.single();
+
     for cursor_event in ev_cursor_move.iter() {
         if let Some(world_position) = camera
-            .viewport_to_world(camera_transform, cursor_event.position)
-            .map(|r| r.origin)
+            .viewport_to_world_2d(camera_transform, cursor_event.position)
+            .map(|r| r)
         {
             for (entity, bounding_box, transform, hovered) in q_bounding_boxes.iter_mut() {
                 if bounding_box.is_point_inside(world_position, &transform.compute_transform()) {
@@ -162,13 +163,13 @@ fn did_handle_hover_add() {
 fn did_calculate_bounding_box_colision() {
     let bounding_box = BoundingBox(Vec3::new(1.0, 1.0, 0.0), Quat::IDENTITY);
     let transform = Transform::from_xyz(0.0, 0.0, 0.0);
-    assert!(bounding_box.is_point_inside(Vec3::new(0.0, 0.0, 0.0), &transform));
-    assert!(bounding_box.is_point_inside(Vec3::new(0.5, 0.5, 0.0), &transform));
-    assert!(bounding_box.is_point_inside(Vec3::new(1.0, 1.0, 0.0), &transform));
-    assert!(!bounding_box.is_point_inside(Vec3::new(1.1, 1.1, 0.0), &transform));
-    assert!(!bounding_box.is_point_inside(Vec3::new(1.0, 1.1, 0.0), &transform));
-    assert!(!bounding_box.is_point_inside(Vec3::new(1.1, 1.0, 0.0), &transform));
-    assert!(bounding_box.is_point_inside(Vec3::new(0.0, 1.0, 0.0), &transform));
-    assert!(bounding_box.is_point_inside(Vec3::new(1.0, 0.0, 0.0), &transform));
-    assert!(bounding_box.is_point_inside(Vec3::new(0.0, 0.0, 0.0), &transform));
+    assert!(bounding_box.is_point_inside(Vec2::new(0.0, 0.0), &transform));
+    assert!(bounding_box.is_point_inside(Vec2::new(0.5, 0.5), &transform));
+    assert!(bounding_box.is_point_inside(Vec2::new(1.0, 1.0), &transform));
+    assert!(!bounding_box.is_point_inside(Vec2::new(1.1, 1.1), &transform));
+    assert!(!bounding_box.is_point_inside(Vec2::new(1.0, 1.1), &transform));
+    assert!(!bounding_box.is_point_inside(Vec2::new(1.1, 1.0), &transform));
+    assert!(bounding_box.is_point_inside(Vec2::new(0.0, 1.0), &transform));
+    assert!(bounding_box.is_point_inside(Vec2::new(1.0, 0.0), &transform));
+    assert!(bounding_box.is_point_inside(Vec2::new(0.0, 0.0), &transform));
 }

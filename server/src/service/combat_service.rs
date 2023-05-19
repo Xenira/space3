@@ -136,7 +136,7 @@ pub async fn calculate_combat(db: &Database, players: &(GameUser, GameUser)) -> 
         });
 
         // Check for death
-        if attacker.defense <= 0 {
+        if attacker.defense + attacker.defense_bonus <= 0 {
             board[*index] = None;
 
             // Add attacker death event
@@ -157,7 +157,7 @@ pub async fn calculate_combat(db: &Database, players: &(GameUser, GameUser)) -> 
             });
         }
 
-        if oponent.1.defense <= 0 {
+        if oponent.1.defense + oponent.1.defense_bonus <= 0 {
             op_board[oponent.0] = None;
 
             // Add defender death event

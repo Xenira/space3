@@ -1,5 +1,7 @@
 use crate::{
-    model::{game_user_characters::GameUserCharacters, game_users::GameUser, users::User},
+    model::{
+        game::Game, game_user_characters::GameUserCharacters, game_users::GameUser, users::User,
+    },
     schema::{game_user_characters, game_users, shops},
     service::character_service,
     Database,
@@ -23,8 +25,10 @@ use super::game_user_characters::{GameUserCharacter, NewGameUserCharacter};
 
 #[derive(Queryable, Identifiable, Associations, Serialize, Deserialize, Clone, Debug)]
 #[diesel(belongs_to(GameUser))]
+#[diesel(belongs_to(Game))]
 pub struct Shop {
     pub id: i32,
+    pub game_id: i32,
     pub game_user_id: i32,
     pub character_ids: Vec<Option<i32>>,
     pub locked: bool,
@@ -35,13 +39,25 @@ pub struct Shop {
 #[derive(Insertable, Serialize, Deserialize, Clone, Debug)]
 #[diesel(table_name = shops)]
 pub struct NewShop {
+    game_id: i32,
     game_user_id: i32,
     character_ids: Vec<Option<i32>>,
 }
 
-impl NewShop {
-    pub fn new(game_user_id: i32) -> Self {
+impl From<&GameUser> for NewShop {
+    fn from(game_user: &GameUser) -> Self {
         Self {
+            game_id: game_user.game_id,
+            game_user_id: game_user.id,
+            character_ids: vec![],
+        }
+    }
+}
+
+impl NewShop {
+    pub fn new(game_id: i32, game_user_id: i32) -> Self {
+        Self {
+            game_id,
             game_user_id,
             character_ids: vec![],
         }
@@ -90,7 +106,7 @@ impl<'r> FromRequest<'r> for Shop {
     }
 }
 
-#[get("/games/shop")]
+#[get("/games/shops")]
 pub async fn get_shop(db: crate::Database, game_user: GameUser) -> Json<Protocol> {
     let game_user = game_user.clone();
     let shop = db
@@ -101,7 +117,7 @@ pub async fn get_shop(db: crate::Database, game_user: GameUser) -> Json<Protocol
             {
                 shop
             } else {
-                let mut new_shop = NewShop::new(game_user.id);
+                let mut new_shop = NewShop::from(&game_user);
                 let characters = CHARACTERS.clone();
                 while new_shop.character_ids.len() < 5 {
                     new_shop
@@ -121,14 +137,22 @@ pub async fn get_shop(db: crate::Database, game_user: GameUser) -> Json<Protocol
         .await;
 
     Json(Protocol::GameShopResponse(
+        shop.locked,
         shop.character_ids
             .into_iter()
-            .map(|c| c.and_then(|c| Some(CharacterInstance::from(&CHARACTERS[c as usize]))))
+            .map(|c| {
+                c.and_then(|c| {
+                    Some((
+                        CHARACTERS[c as usize].cost,
+                        CharacterInstance::from(&CHARACTERS[c as usize]),
+                    ))
+                })
+            })
             .collect::<Vec<_>>(),
     ))
 }
 
-#[post("/games/shop")]
+#[post("/games/shops")]
 pub async fn reroll_shop(db: Database, game_user: GameUser) -> Json<Protocol> {
     if game_user.credits <= 0 {
         return Json(Error::new_protocol_response(
@@ -144,7 +168,7 @@ pub async fn reroll_shop(db: Database, game_user: GameUser) -> Json<Protocol> {
             c.transaction(|c| {
                 delete(shops::table.filter(shops::game_user_id.eq(game_user_id))).execute(c)?;
 
-                let mut new_shop = NewShop::new(game_user.id);
+                let mut new_shop = NewShop::from(&game_user);
                 let characters = CHARACTERS.clone();
                 while new_shop.character_ids.len() < 5 {
                     new_shop
@@ -168,10 +192,16 @@ pub async fn reroll_shop(db: Database, game_user: GameUser) -> Json<Protocol> {
         .await
     {
         Json(Protocol::GameShopResponse(
+            false,
             shop.character_ids
                 .into_iter()
                 .map(|c| {
-                    c.and_then(|c| Some(CharacterInstance::from(&CHARACTERS[c as usize].clone())))
+                    c.and_then(|c| {
+                        Some((
+                            CHARACTERS[c as usize].cost,
+                            CharacterInstance::from(&CHARACTERS[c as usize]),
+                        ))
+                    })
                 })
                 .collect::<Vec<_>>(),
         ))
@@ -184,7 +214,32 @@ pub async fn reroll_shop(db: Database, game_user: GameUser) -> Json<Protocol> {
     }
 }
 
-#[post("/games/shop/buy", data = "<buy_request>")]
+#[patch("/games/shops")]
+pub async fn toggle_lock_shop(db: Database, shop: Shop) -> Json<Protocol> {
+    db.run(move |c| {
+        update(shops::table.filter(shops::id.eq(shop.id)))
+            .set(shops::locked.eq(!shop.locked))
+            .execute(c)
+    })
+    .await;
+
+    Json(Protocol::GameShopResponse(
+        !shop.locked,
+        shop.character_ids
+            .into_iter()
+            .map(|c| {
+                c.and_then(|c| {
+                    Some((
+                        CHARACTERS[c as usize].cost,
+                        CharacterInstance::from(&CHARACTERS[c as usize]),
+                    ))
+                })
+            })
+            .collect::<Vec<_>>(),
+    ))
+}
+
+#[post("/games/shops/buy", data = "<buy_request>")]
 pub async fn buy_character(
     db: Database,
     user: &User,
@@ -196,7 +251,7 @@ pub async fn buy_character(
     let character =
         if let Some(Some(character)) = shop.character_ids.get(buy_request.character_idx as usize) {
             let character = CHARACTERS[*character as usize].clone();
-            if character.cost > game_user.credits {
+            if character.cost as i32 > game_user.credits {
                 return Json(Error::new_protocol_response(
                     Status::PaymentRequired.code,
                     "Not enough credits".to_string(),
@@ -212,10 +267,7 @@ pub async fn buy_character(
             ));
         };
 
-    if let Some(Some(_)) = game_user_characters
-        .0
-        .get(buy_request.character_idx as usize)
-    {
+    if let Some(Some(_)) = game_user_characters.0.get(buy_request.target_idx as usize) {
         // TODO: Tyr to move current character to free slot
         return Json(Error::new_protocol_response(
             Status::UnprocessableEntity.code,
@@ -249,7 +301,7 @@ pub async fn buy_character(
                     .values(&NewGameUserCharacter {
                         game_user_id,
                         character_id,
-                        position: buy_request.character_idx as i32,
+                        position: buy_request.target_idx as i32,
                         upgraded: false,
                         attack_bonus: 0,
                         defense_bonus: 0,
@@ -263,7 +315,7 @@ pub async fn buy_character(
 
                 update(game_users::table)
                     .filter(game_users::id.eq(game_user_id))
-                    .set(game_users::credits.eq(game_users::credits - character.cost))
+                    .set(game_users::credits.eq(game_users::credits - character.cost as i32))
                     .execute(c)?;
 
                 QueryResult::Ok(shop_character_ids)
@@ -275,14 +327,19 @@ pub async fn buy_character(
             GameUserInfo {
                 experience: game_user.experience,
                 health: game_user.health,
-                money: game_user.credits - character.cost,
+                money: game_user.credits - character.cost as i32,
                 name: user.username.clone(),
                 avatar: game_user.avatar_id,
             },
             shop_character_ids
                 .iter()
                 .map(|c| {
-                    c.and_then(|c| Some(CharacterInstance::from(&CHARACTERS[c as usize].clone())))
+                    c.and_then(|c| {
+                        Some((
+                            CHARACTERS[c as usize].cost,
+                            CharacterInstance::from(&CHARACTERS[c as usize]),
+                        ))
+                    })
                 })
                 .collect::<Vec<_>>(),
             character_service::get_board(&db, game_user_id)

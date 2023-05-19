@@ -5,7 +5,10 @@ use surf::http::Method;
 use crate::{
     cleanup_system,
     components::{
-        animation::AnimationTimer,
+        animation::{
+            Animation, AnimationDirection, AnimationIndices, AnimationRepeatType, AnimationState,
+            AnimationTimer, AnimationTransition, AnimationTransitionType,
+        },
         dragndrop::{Dragable, DropEvent, DropTagret},
         hover::{BoundingBox, ClickEvent, Clickable, Hoverable},
     },
@@ -32,6 +35,7 @@ impl Plugin for GameShopPlugin {
                     on_move,
                     generate_board,
                     on_reroll,
+                    on_lock,
                 )
                     .in_set(OnUpdate(STATE)),
             )
@@ -60,8 +64,11 @@ pub struct BoardCharacter(pub u8, pub CharacterInstance);
 #[derive(Component, Debug)]
 pub struct Reroll;
 
+#[derive(Component, Debug)]
+pub struct Lock;
+
 #[derive(Debug)]
-pub struct ShopChangedEvent(pub Vec<Option<CharacterInstance>>);
+pub struct ShopChangedEvent(pub Vec<Option<(u8, CharacterInstance)>>);
 
 #[derive(Debug)]
 pub struct BoardChangedEvent(pub Vec<Option<CharacterInstance>>);
@@ -73,7 +80,8 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     // root node
-    networking.request(Method::Get, "games/shop");
+    networking.request(Method::Get, "games/shops");
+    networking.request(Method::Get, "games/characters");
     networking.request(Method::Get, "games/users/me");
     commands.spawn((
         SpatialBundle {
@@ -152,6 +160,47 @@ fn setup(
         Reroll,
         Cleanup,
     ));
+
+    let lock = asset_server.load("textures/ui/lock.png");
+    let lock_atlas = TextureAtlas::from_grid(lock, Vec2::new(32.0, 32.0), 2, 1, None, None);
+    let lock_atlas_handle = texture_atlases.add(lock_atlas);
+
+    let mut lock_animation = animation::simple(0, 0)
+        .with_state(
+            AnimationState::new("lock", AnimationIndices::new(0, 1))
+                .with_repeat_type(AnimationRepeatType::Once)
+                .with_direction(AnimationDirection::Backward),
+        )
+        .with_state(
+            AnimationState::new("unlock", AnimationIndices::new(0, 1))
+                .with_repeat_type(AnimationRepeatType::Once),
+        )
+        .with_global_transition(AnimationTransition {
+            name: "lock".to_string(),
+            to_state: "lock".to_string(),
+            transition_type: AnimationTransitionType::Imediate,
+        })
+        .with_global_transition(AnimationTransition {
+            name: "unlock".to_string(),
+            to_state: "unlock".to_string(),
+            transition_type: AnimationTransitionType::Imediate,
+        });
+
+    commands.spawn((
+        SpriteSheetBundle {
+            texture_atlas: lock_atlas_handle,
+            sprite: TextureAtlasSprite::new(0),
+            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 0.0)),
+            ..Default::default()
+        },
+        lock_animation,
+        AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+        Hoverable("hover".to_string(), "leave".to_string()),
+        BoundingBox(Vec3::new(32.0, 32.0, 0.0), Quat::from_rotation_z(0.0)),
+        Clickable,
+        Lock,
+        Cleanup,
+    ));
 }
 
 fn on_network(
@@ -160,12 +209,24 @@ fn on_network(
     mut ev_networking: EventReader<NetworkingEvent>,
     mut ev_shop_change: EventWriter<ShopChangedEvent>,
     mut ev_board_change: EventWriter<BoardChangedEvent>,
+    mut q_lock: Query<(Entity, &Animation), With<Lock>>,
 ) {
     for ev in ev_networking.iter() {
         match &ev.0 {
-            Protocol::GameShopResponse(shop) => {
+            Protocol::GameShopResponse(locked, shop) => {
                 debug!("GameShopResponse: {:?}", shop);
                 ev_shop_change.send(ShopChangedEvent(shop.clone()));
+                for (entity, animation) in q_lock.iter_mut() {
+                    if *locked {
+                        if let Some(lock_transition) = animation.get_transition("lock") {
+                            commands.entity(entity).insert(lock_transition);
+                        }
+                    } else {
+                        if let Some(unlock_transition) = animation.get_transition("unlock") {
+                            commands.entity(entity).insert(unlock_transition);
+                        }
+                    }
+                }
             }
             Protocol::BuyResponse(user_info, shop, board) => {
                 debug!("BuyResponse: {:?}", ev);
@@ -174,7 +235,7 @@ fn on_network(
                 ev_board_change.send(BoardChangedEvent(board.clone()));
             }
             Protocol::BoardResponse(board) => {
-                debug!("MoveResponse: {:?}", ev);
+                debug!("BoardResponse: {:?}", ev);
                 ev_board_change.send(BoardChangedEvent(board.clone()));
             }
             Protocol::NetworkingError(err) => {
@@ -182,7 +243,7 @@ fn on_network(
                     match *reference {
                         Protocol::BuyRequest(_) => {
                             debug!("BuyRequest failed: {:?}", err);
-                            networking.request(Method::Get, "games/shop");
+                            networking.request(Method::Get, "games/shops");
                         }
                         _ => {}
                     }
@@ -206,7 +267,7 @@ fn on_buy(
                 debug!("on_buy: {:?} {:?}", pedestal, god);
                 networking.request_data(
                     Method::Post,
-                    "games/shop/buy",
+                    "games/shops/buy",
                     &BuyRequest {
                         character_idx: god.idx,
                         target_idx: pedestal.0,
@@ -226,7 +287,19 @@ fn on_reroll(
 ) {
     for ev in ev_cklicked.iter() {
         if let Ok(_) = q_reroll.get(ev.0) {
-            networking.request(Method::Post, "games/shop");
+            networking.request(Method::Post, "games/shops");
+        }
+    }
+}
+
+fn on_lock(
+    mut ev_cklicked: EventReader<ClickEvent>,
+    q_lock: Query<&Lock>,
+    mut networking: ResMut<NetworkingRessource>,
+) {
+    for ev in ev_cklicked.iter() {
+        if let Ok(_) = q_lock.get(ev.0) {
+            networking.request(Method::Patch, "games/shops");
         }
     }
 }
@@ -244,7 +317,7 @@ fn on_move(
                 debug!("on_move: {:?} {:?}", pedestal, god);
                 networking.request(
                     Method::Put,
-                    format!("games/character/{}/{}", god.0, pedestal.0).as_str(),
+                    format!("games/characters/{}/{}", god.0, pedestal.0).as_str(),
                 );
                 commands.entity(ev.entity).despawn_recursive();
             }
@@ -274,7 +347,7 @@ fn generate_shop(
 
         commands.entity(shop).with_children(|parent| {
             for (i, character) in ev.0.iter().enumerate() {
-                if let Some(character) = character {
+                if let Some((cost, character)) = character {
                     parent
                         .spawn((
                             SpriteSheetBundle {
@@ -294,9 +367,35 @@ fn generate_shop(
                                 character: character.clone(),
                             },
                             Dragable,
+                            Character(character.clone()),
                         ))
                         .with_children(|parent| {
-                            parent.spawn(Character(character.clone()));
+                            parent
+                                .spawn(SpriteBundle {
+                                    texture: asset_server.load("textures/ui/price_orb.png"),
+                                    transform: Transform::from_translation(Vec3::new(
+                                        24.0, 28.0, 2.0,
+                                    ))
+                                    .with_scale(Vec3::splat(0.75)),
+                                    ..Default::default()
+                                })
+                                .with_children(|parent| {
+                                    parent.spawn(Text2dBundle {
+                                        text: Text::from_section(
+                                            cost.to_string(),
+                                            TextStyle {
+                                                font: asset_server
+                                                    .load("fonts/monogram-extended.ttf"),
+                                                font_size: 28.0,
+                                                color: Color::WHITE,
+                                            },
+                                        ),
+                                        transform: Transform::from_translation(Vec3::new(
+                                            0.0, 0.0, 1.0,
+                                        )),
+                                        ..Default::default()
+                                    });
+                                });
                         });
                 }
             }
@@ -341,24 +440,22 @@ fn generate_board(
         {
             if let Some((entity, _)) = pedestal {
                 commands.entity(entity).with_children(|parent| {
-                    parent
-                        .spawn((
-                            SpriteSheetBundle {
-                                texture_atlas: shop_frame_atlas_handle.clone(),
-                                sprite: TextureAtlasSprite::new(0),
-                                ..Default::default()
-                            },
-                            Hoverable("hover".to_string(), "leave".to_string()),
-                            BoundingBox(Vec3::new(64.0, 64.0, 1.0), Quat::from_rotation_z(0.0)),
-                            frame_animation.clone(),
-                            AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
-                            Clickable,
-                            BoardCharacter(idx as u8, ev.0[idx].clone().unwrap()),
-                            Dragable,
-                        ))
-                        .with_children(|parent| {
-                            parent.spawn(Character(ev.0[idx].clone().unwrap()));
-                        });
+                    parent.spawn((
+                        SpriteSheetBundle {
+                            texture_atlas: shop_frame_atlas_handle.clone(),
+                            sprite: TextureAtlasSprite::new(0),
+                            transform: Transform::from_translation(Vec3::ZERO),
+                            ..Default::default()
+                        },
+                        Hoverable("hover".to_string(), "leave".to_string()),
+                        BoundingBox(Vec3::new(64.0, 64.0, 1.0), Quat::from_rotation_z(0.0)),
+                        frame_animation.clone(),
+                        AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                        Clickable,
+                        BoardCharacter(idx as u8, ev.0[idx].clone().unwrap()),
+                        Dragable,
+                        Character(ev.0[idx].clone().unwrap()),
+                    ));
                 });
             }
         }
