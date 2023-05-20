@@ -11,7 +11,7 @@ Service:
 		☐ Join Queue
 		☐ Leave Queue
 	Game:
-		☐ Add endpoint for opponent list
+		✔ Add endpoint for opponent list @started(23-05-20 17:56) @done(23-05-20 18:32) @lasted(36m25s)
 		Shop:
 			☐ Add guard to prevent shop actions when not in shop phase
 		Game:
@@ -53,7 +53,7 @@ Client:
 		☐ Add ready button
 		☐ Add confirmation button
 	Main-Game:
-		☐ Player List
+		✔ Player List @started(23-05-20 18:32) @done(23-05-20 20:17) @lasted(1h45m59s)
 		☐ Fix assets unloading
 		☐ Add upgraded character frame
 		☐ Add hover "tooltip"

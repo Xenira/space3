@@ -13,6 +13,7 @@ pub enum Protocol {
     LoginRequest(Credentials),
     LoginResponse(LoginResponse),
     UserResponse(UserData),
+    DisplaynameResponse(String),
 
     // Lobby
     LobbyJoinRequest(LobbyJoinRequest),
@@ -39,6 +40,7 @@ pub enum Protocol {
     GameBattleResultResponse(BattleResult),
     GameEndResponse(GameResult),
     GameUserInfoResponse(GameUserInfo),
+    GameUsersResponse(Vec<GameOpponentInfo>),
 
     CharacterMoveRequest,
     BoardResponse(Vec<Option<CharacterInstance>>),
@@ -64,6 +66,7 @@ pub struct Status {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserData {
     pub username: String,
+    pub display_name: Option<String>,
     pub currency: i32,
     pub lobby: Option<LobbyInfo>,
 }
@@ -161,6 +164,15 @@ pub struct GameUserInfo {
     pub health: i32,
     pub money: i32,
     pub avatar: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct GameOpponentInfo {
+    pub name: String,
+    pub experience: i32,
+    pub health: i32,
+    pub character_id: i32,
+    pub is_next_opponent: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

@@ -18,6 +18,7 @@ CREATE TABLE users (
 	username VARCHAR(32) UNIQUE NOT NULL,
 	password VARCHAR(255) NOT NULL,
 	salt VARCHAR NOT NULL,
+	display_name VARCHAR(32) UNIQUE,
 	currency INT NOT NULL DEFAULT 0,
 	tutorial BOOLEAN NOT NULL DEFAULT 'f',
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -41,14 +42,14 @@ CREATE TABLE lobby_users (
 	id SERIAL PRIMARY KEY,
 	lobby_id INT NOT NULL,
 	user_id INT NOT NULL UNIQUE,
-	username VARCHAR(32) UNIQUE NOT NULL,
+	display_name VARCHAR(32) UNIQUE NOT NULL,
 	ready BOOLEAN NOT NULL DEFAULT 'f',
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT uq_lobby_user UNIQUE(lobby_id, user_id),
 	CONSTRAINT fk_lobby FOREIGN KEY(lobby_id) REFERENCES lobbies(id) ON DELETE CASCADE,
 	CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-	CONSTRAINT fk_username FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE
+	CONSTRAINT fk_username FOREIGN KEY(display_name) REFERENCES users(display_name) ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE TRIGGER update_lobby_users_updated_at BEFORE
 UPDATE ON lobby_users FOR EACH ROW EXECUTE PROCEDURE set_updated_at_date();
@@ -56,6 +57,7 @@ CREATE TABLE game_users (
 	id SERIAL PRIMARY KEY,
 	game_id INT NOT NULL,
 	user_id INT NOT NULL UNIQUE,
+	display_name VARCHAR(32) NOT NULL,
 	avatar_id INT,
 	experience INT NOT NULL,
 	health INT NOT NULL,
@@ -65,7 +67,8 @@ CREATE TABLE game_users (
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT uq_game_user UNIQUE(game_id, user_id),
 	CONSTRAINT fk_game FOREIGN KEY(game_id) REFERENCES games(id) ON DELETE CASCADE,
-	CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+	CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+	CONSTRAINT fk_username FOREIGN KEY(display_name) REFERENCES users(display_name) ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE TRIGGER update_game_users_updated_at BEFORE
 UPDATE ON game_users FOR EACH ROW EXECUTE PROCEDURE set_updated_at_date();

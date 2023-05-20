@@ -7,6 +7,7 @@ pub(crate) mod game_shop;
 pub(crate) mod lobby;
 pub(crate) mod menu_login;
 pub(crate) mod menu_main;
+pub(crate) mod set_display_name;
 
 pub(crate) mod game_states {
     use bevy::{app::PluginGroupBuilder, prelude::PluginGroup};
@@ -19,6 +20,7 @@ pub(crate) mod game_states {
         fn build(self) -> PluginGroupBuilder {
             PluginGroupBuilder::start::<Self>()
                 .add(menu_login::MenuLoginPlugin)
+                .add(set_display_name::SetDisplayNamePlugin)
                 .add(menu_main::MenuMainPlugin)
                 .add(dialog_lobby_join::DialogLobbyJoinPlugin)
                 .add(lobby::LobbyPlugin)

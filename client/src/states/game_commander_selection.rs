@@ -45,7 +45,7 @@ fn setup(
     let mut frame_animation = animation::simple(0, 0);
     animation::add_hover_state(&mut frame_animation, 0, 17);
 
-    let god_fallback = asset_server.load("textures/ui/god_fallback.png");
+    let god_fallback = asset_server.load("textures/gods/god_fallback.png");
 
     commands
         .spawn((

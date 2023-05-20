@@ -28,8 +28,9 @@ pub async fn upgrade_character(
         c.transaction(move |c| {
             let (attack_bonus, health_bonus) = delete(game_user_characters::table)
                 .filter(
-                    game_user_characters::character_id
-                        .eq(character_id)
+                    game_user_characters::game_user_id
+                        .eq(game_user_id)
+                        .and(game_user_characters::character_id.eq(character_id))
                         .and(game_user_characters::upgraded.eq(false)),
                 )
                 .returning((

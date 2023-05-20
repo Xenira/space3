@@ -171,7 +171,11 @@ fn on_login(
             debug!("Logged in as {}", login.user.username);
 
             ev_polling_status.send(PollingStatus::Start);
-            ev_state_change.send(StateChangeEvent(AppState::MenuMain));
+            if login.user.display_name.is_none() {
+                ev_state_change.send(StateChangeEvent(AppState::MenuSetDisplayName));
+            } else {
+                ev_state_change.send(StateChangeEvent(AppState::MenuMain));
+            }
         }
     }
 }

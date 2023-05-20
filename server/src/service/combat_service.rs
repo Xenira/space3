@@ -6,7 +6,8 @@ use diesel::prelude::*;
 use protocol::protocol::{BattleAction, BattleActionType, BattleResponse};
 use rand::seq::IteratorRandom;
 
-pub fn get_pairing(round: i32, mut players: Vec<GameUser>) -> Vec<(GameUser, GameUser)> {
+pub fn get_pairing(round: i32, players: &Vec<GameUser>) -> Vec<(GameUser, GameUser)> {
+    let mut players = players.clone();
     players.sort_by_key(|p| p.id);
 
     let mut active_players = players.iter().filter(|p| p.health > 0).collect::<Vec<_>>();
@@ -292,7 +293,7 @@ fn test_pairing() {
     ];
 
     assert_eq!(
-        get_pairing(0, players.clone()),
+        get_pairing(0, &players),
         vec![
             (players[0].clone(), players[7].clone()),
             (players[1].clone(), players[6].clone()),
@@ -301,7 +302,7 @@ fn test_pairing() {
         ]
     );
     assert_eq!(
-        get_pairing(1, players.clone()),
+        get_pairing(1, &players),
         vec![
             (players[0].clone(), players[1].clone()),
             (players[2].clone(), players[7].clone()),
@@ -357,7 +358,7 @@ fn test_pairing_with_dead_players() {
     ];
 
     assert_eq!(
-        get_pairing(0, players.clone()),
+        get_pairing(0, &players),
         vec![
             (players[0].clone(), players[5].clone()),
             (players[1].clone(), players[4].clone()),
@@ -366,7 +367,7 @@ fn test_pairing_with_dead_players() {
     );
 
     assert_eq!(
-        get_pairing(1, players.clone()),
+        get_pairing(1, &players),
         vec![
             (players[0].clone(), players[1].clone()),
             (players[2].clone(), players[5].clone()),

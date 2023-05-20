@@ -44,13 +44,13 @@ pub async fn start_game(db: &Database, lobby: &Lobby) {
             (
                 new_game.clone(),
                 LobbyUser::belonging_to(&lobby)
-                    .select(lobby_users::user_id)
-                    .load::<i32>(con)
+                    .select((lobby_users::user_id, lobby_users::display_name))
+                    .load::<(i32, String)>(con)
                     .unwrap()
                     .iter()
-                    .map(|user| {
+                    .map(|(user, display_name)| {
                         let game_user = insert_into(game_users::table)
-                            .values(NewGameUser::from_parents(new_game.id, *user))
+                            .values(NewGameUser::from_parents(new_game.id, *user, display_name))
                             .returning(game_users::id)
                             .get_result::<i32>(con)
                             .unwrap();
@@ -106,7 +106,7 @@ pub async fn next_turn(db: &Database, game: &Game) {
             .run(move |con| GameUser::belonging_to(&game).load::<GameUser>(con).unwrap())
             .await;
 
-        let pairings = get_pairing(next_turn, all_users);
+        let pairings = get_pairing(next_turn, &all_users);
 
         chrono::Utc::now().naive_utc()
             + chrono::Duration::seconds(

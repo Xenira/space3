@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use protocol::protocol::{BuyRequest, CharacterInstance, GameUserInfo, Protocol};
+use protocol::protocol::{BuyRequest, CharacterInstance, GameOpponentInfo, GameUserInfo, Protocol};
 use surf::http::Method;
 
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
         dragndrop::{Dragable, DropEvent, DropTagret},
         hover::{BoundingBox, ClickEvent, Clickable, Hoverable},
     },
-    modules::{character::Character, game_user_info::GameUserRes},
+    modules::{character::Character, game_user_info::GameUserRes, god::God},
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
     prefabs::animation,
     AppState, Cleanup,
@@ -26,14 +26,16 @@ impl Plugin for GameShopPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ShopChangedEvent>()
             .add_event::<BoardChangedEvent>()
+            .add_event::<GameUsersChangedEvent>()
             .add_system(setup.in_schedule(OnEnter(STATE)))
             .add_systems(
                 (
                     on_network,
                     generate_shop,
+                    generate_board,
+                    generate_game_users,
                     on_buy,
                     on_move,
-                    generate_board,
                     on_reroll,
                     on_lock,
                     on_sell,
@@ -71,11 +73,17 @@ pub struct Lock;
 #[derive(Component, Debug)]
 pub struct Sell;
 
+#[derive(Component, Debug)]
+pub struct GameUsers;
+
 #[derive(Debug)]
 pub struct ShopChangedEvent(pub Vec<Option<(u8, CharacterInstance)>>);
 
 #[derive(Debug)]
 pub struct BoardChangedEvent(pub Vec<Option<CharacterInstance>>);
+
+#[derive(Debug)]
+pub struct GameUsersChangedEvent(pub Vec<GameOpponentInfo>);
 
 fn setup(
     mut commands: Commands,
@@ -87,6 +95,7 @@ fn setup(
     networking.request(Method::Get, "games/shops");
     networking.request(Method::Get, "games/characters");
     networking.request(Method::Get, "games/users/me");
+    networking.request(Method::Get, "games/users");
     commands.spawn((
         SpatialBundle {
             transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 200.0, 0.0)),
@@ -216,8 +225,7 @@ fn setup(
         SpriteSheetBundle {
             texture_atlas: lock_atlas_handle,
             sprite: TextureAtlasSprite::new(0),
-            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 0.0))
-                .with_scale(Vec3::splat(2.0)),
+            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 0.0)),
             ..Default::default()
         },
         lock_animation,
@@ -233,13 +241,24 @@ fn setup(
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("textures/ui/sell.png"),
-            transform: Transform::from_translation(Vec3::new(64.0 * 7.0, 200.0, 0.0)),
+            transform: Transform::from_translation(Vec3::new(64.0 * 7.0, 200.0, 0.0))
+                .with_scale(Vec3::splat(2.0)),
             ..Default::default()
         },
         Hoverable("hover".to_string(), "leave".to_string()),
         BoundingBox(Vec3::new(32.0, 32.0, 0.0), Quat::from_rotation_z(0.0)),
         DropTagret,
         Sell,
+        Cleanup,
+    ));
+
+    // Opponent Anchor
+    commands.spawn((
+        SpatialBundle {
+            transform: Transform::from_translation(Vec3::new(-64.0 * 8.0, 200.0, 0.0)),
+            ..Default::default()
+        },
+        GameUsers,
         Cleanup,
     ));
 }
@@ -250,6 +269,7 @@ fn on_network(
     mut ev_networking: EventReader<NetworkingEvent>,
     mut ev_shop_change: EventWriter<ShopChangedEvent>,
     mut ev_board_change: EventWriter<BoardChangedEvent>,
+    mut ev_game_users_change: EventWriter<GameUsersChangedEvent>,
     mut q_lock: Query<(Entity, &Animation), With<Lock>>,
 ) {
     for ev in ev_networking.iter() {
@@ -283,6 +303,10 @@ fn on_network(
                 debug!("SellResponse: {:?}", ev);
                 commands.insert_resource(GameUserRes(user.clone()));
                 ev_board_change.send(BoardChangedEvent(board.clone()));
+            }
+            Protocol::GameUsersResponse(users) => {
+                debug!("GameUsersResponse: {:?}", ev);
+                ev_game_users_change.send(GameUsersChangedEvent(users.clone()));
             }
             Protocol::NetworkingError(err) => {
                 if let Some(reference) = err.reference.clone() {
@@ -521,6 +545,39 @@ fn generate_board(
                     ));
                 });
             }
+        }
+    }
+}
+
+fn generate_game_users(
+    mut commands: Commands,
+    mut ev_game_users: EventReader<GameUsersChangedEvent>,
+    q_game_users: Query<(Option<&Children>, Entity), With<GameUsers>>,
+) {
+    for ev in ev_game_users.iter() {
+        debug!("generate_game_users: {:?}", ev);
+        for (children, entity) in q_game_users.iter() {
+            if let Some(children) = children {
+                for child in children.iter() {
+                    commands.entity(*child).despawn_recursive();
+                }
+            }
+            commands.entity(entity).with_children(|parent| {
+                for (idx, opponent) in ev.0.iter().enumerate() {
+                    parent.spawn((
+                        SpatialBundle {
+                            transform: Transform::from_translation(Vec3::new(
+                                if idx % 2 == 0 { 0.0 } else { 68.0 },
+                                -68.0 * idx as f32,
+                                1.0,
+                            ))
+                            .with_scale(Vec3::splat(2.0)),
+                            ..Default::default()
+                        },
+                        God(opponent.clone()),
+                    ));
+                }
+            });
         }
     }
 }

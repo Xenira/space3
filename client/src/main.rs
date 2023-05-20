@@ -43,6 +43,7 @@ enum AppState {
     _Startup,
     #[default]
     MenuLogin,
+    MenuSetDisplayName,
     MenuMain,
     DialogLobbyJoin,
     Lobby,

@@ -10,6 +10,7 @@ use chrono::NaiveDateTime;
 use diesel::{insert_into, prelude::*, QueryDsl};
 
 use protocol::protocol::Credentials;
+use protocol::protocol::Error;
 use protocol::protocol::LoginResponse;
 use protocol::protocol::Protocol;
 use protocol::protocol::UserData;
@@ -30,6 +31,7 @@ pub struct User {
     pub username: String,
     pub password: String,
     pub salt: String,
+    pub display_name: Option<String>,
     pub currency: i32,
     pub tutorial: bool,
     pub created_at: NaiveDateTime,
@@ -135,6 +137,7 @@ pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> 
         key: jwt::generate(&creds.username),
         user: UserData {
             username: creds.username.clone(),
+            display_name: None,
             currency: 0,
             lobby: None,
         },
@@ -195,6 +198,7 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
         key: jwt::generate(&user.username),
         user: UserData {
             username: user.username,
+            display_name: user.display_name,
             currency: user.currency,
             lobby: None,
         },
@@ -205,7 +209,34 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
 pub fn me(user: &User, lobby: Option<LobbyWithUsers>) -> Json<Protocol> {
     Json(Protocol::UserResponse(UserData {
         username: user.username.to_string(),
+        display_name: user.display_name.clone(),
         currency: user.currency,
         lobby: lobby.map(|l| l.into()),
     }))
+}
+
+#[put("/users/display_name", data = "<display_name>")]
+pub async fn set_display_name(
+    db: Database,
+    user: &User,
+    display_name: Json<String>,
+) -> Json<Protocol> {
+    let user_id = user.id;
+    if let Ok(display_name) = db
+        .run(move |con| {
+            diesel::update(users::table.filter(users::id.eq(user_id)))
+                .set(users::display_name.eq(&display_name.0))
+                .execute(con)?;
+
+            QueryResult::Ok(display_name)
+        })
+        .await
+    {
+        Json(Protocol::DisplaynameResponse(display_name.0))
+    } else {
+        return Json(Error::new_protocol(
+            Status::InternalServerError.code,
+            "Failed to update display name".to_string(),
+        ));
+    }
 }
