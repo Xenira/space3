@@ -36,6 +36,7 @@ impl Plugin for GameShopPlugin {
                     generate_board,
                     on_reroll,
                     on_lock,
+                    on_sell,
                 )
                     .in_set(OnUpdate(STATE)),
             )
@@ -66,6 +67,9 @@ pub struct Reroll;
 
 #[derive(Component, Debug)]
 pub struct Lock;
+
+#[derive(Component, Debug)]
+pub struct Sell;
 
 #[derive(Debug)]
 pub struct ShopChangedEvent(pub Vec<Option<(u8, CharacterInstance)>>);
@@ -146,8 +150,29 @@ fn setup(
                     Pedestal(4 + i),
                 ));
             }
+
+            // Bench
+            for i in 0..5 {
+                parent.spawn((
+                    SpriteSheetBundle {
+                        texture_atlas: pedestal_atlas_handle.clone(),
+                        sprite: TextureAtlasSprite::new(0),
+                        transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(
+                            Vec3::new(-34.0 + 68.0 * 2.0 * i as f32, -136.0 * 2.0, 1.0),
+                        ),
+                        ..Default::default()
+                    },
+                    Hoverable("hover".to_string(), "leave".to_string()),
+                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
+                    pedestal_animation.clone(),
+                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    DropTagret,
+                    Pedestal(7 + i),
+                ));
+            }
         });
 
+    // Reroll Button
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("textures/ui/reroll.png"),
@@ -161,6 +186,7 @@ fn setup(
         Cleanup,
     ));
 
+    // Lock Button
     let lock = asset_server.load("textures/ui/lock.png");
     let lock_atlas = TextureAtlas::from_grid(lock, Vec2::new(32.0, 32.0), 2, 1, None, None);
     let lock_atlas_handle = texture_atlases.add(lock_atlas);
@@ -190,7 +216,8 @@ fn setup(
         SpriteSheetBundle {
             texture_atlas: lock_atlas_handle,
             sprite: TextureAtlasSprite::new(0),
-            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 0.0)),
+            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 0.0))
+                .with_scale(Vec3::splat(2.0)),
             ..Default::default()
         },
         lock_animation,
@@ -199,6 +226,20 @@ fn setup(
         BoundingBox(Vec3::new(32.0, 32.0, 0.0), Quat::from_rotation_z(0.0)),
         Clickable,
         Lock,
+        Cleanup,
+    ));
+
+    // Sell Area
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/ui/sell.png"),
+            transform: Transform::from_translation(Vec3::new(64.0 * 7.0, 200.0, 0.0)),
+            ..Default::default()
+        },
+        Hoverable("hover".to_string(), "leave".to_string()),
+        BoundingBox(Vec3::new(32.0, 32.0, 0.0), Quat::from_rotation_z(0.0)),
+        DropTagret,
+        Sell,
         Cleanup,
     ));
 }
@@ -236,6 +277,11 @@ fn on_network(
             }
             Protocol::BoardResponse(board) => {
                 debug!("BoardResponse: {:?}", ev);
+                ev_board_change.send(BoardChangedEvent(board.clone()));
+            }
+            Protocol::SellResponse(user, board) => {
+                debug!("SellResponse: {:?}", ev);
+                commands.insert_resource(GameUserRes(user.clone()));
                 ev_board_change.send(BoardChangedEvent(board.clone()));
             }
             Protocol::NetworkingError(err) => {
@@ -300,6 +346,23 @@ fn on_lock(
     for ev in ev_cklicked.iter() {
         if let Ok(_) = q_lock.get(ev.0) {
             networking.request(Method::Patch, "games/shops");
+        }
+    }
+}
+
+fn on_sell(
+    mut ev_droped: EventReader<DropEvent>,
+    q_sell: Query<Entity, With<Sell>>,
+    q_character: Query<&BoardCharacter>,
+    mut networking: ResMut<NetworkingRessource>,
+) {
+    for ev in ev_droped.iter() {
+        if let Ok(character) = q_sell.get(ev.target).and(q_character.get(ev.entity)) {
+            debug!("on_sell: {:?}", character);
+            networking.request(
+                Method::Delete,
+                format!("games/characters/{}", character.0).as_str(),
+            );
         }
     }
 }
@@ -387,7 +450,7 @@ fn generate_shop(
                                                 font: asset_server
                                                     .load("fonts/monogram-extended.ttf"),
                                                 font_size: 28.0,
-                                                color: Color::WHITE,
+                                                color: Color::BLACK,
                                             },
                                         ),
                                         transform: Transform::from_translation(Vec3::new(

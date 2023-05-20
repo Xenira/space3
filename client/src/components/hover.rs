@@ -23,6 +23,12 @@ pub struct Hovered;
 #[derive(Debug, Component, Clone)]
 pub struct BoundingBox(pub Vec3, pub Quat);
 
+impl From<Vec2> for BoundingBox {
+    fn from(size: Vec2) -> Self {
+        Self(size.extend(0.0), Quat::IDENTITY)
+    }
+}
+
 #[derive(Debug, Component, Clone)]
 pub struct Clickable;
 
@@ -43,6 +49,12 @@ impl BoundingBox {
 
 #[derive(Component, Debug, Clone)]
 pub struct Hoverable(pub String, pub String);
+
+impl Default for Hoverable {
+    fn default() -> Self {
+        Self("hover".to_string(), "leave".to_string())
+    }
+}
 
 fn check_hover(
     mut commands: Commands,

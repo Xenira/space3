@@ -15,11 +15,18 @@ use crate::{
     Database,
 };
 use chrono::{DateTime, NaiveDateTime, Utc};
-use diesel::{delete, insert_into, prelude::*, update};
+use diesel::{
+    delete,
+    dsl::{count_star, min},
+    insert_into,
+    prelude::*,
+    update,
+};
 use futures::stream::futures_unordered::FuturesUnordered;
 use futures::stream::StreamExt;
 use protocol::protocol::{GameResult, Protocol};
 use rand::seq::SliceRandom;
+use rocket::log::private::{debug, warn};
 
 pub async fn start_game(db: &Database, lobby: &Lobby) {
     let lobby = lobby.clone();
@@ -128,6 +135,7 @@ pub async fn next_turn(db: &Database, game: &Game) {
         get_next_turn_time(next_turn)
     };
 
+    let game_res = game.clone();
     let game = game.clone();
     if let Some(game) = db
         .run(move |con| {
@@ -182,10 +190,22 @@ pub async fn next_turn(db: &Database, game: &Game) {
         })
         .await
     {
+        update_player_placements(db, &game).await;
         notify_users(&game).await;
     } else {
         debug!("Game {} is over", game_id);
-        close_game(db, game_id).await;
+        update_player_placements(db, &game_res).await;
+        let winning_player = db
+            .run(move |con| {
+                game_users::table
+                    .filter(game_users::game_id.eq(game_id))
+                    .order(game_users::health.desc())
+                    .first::<GameUser>(con)
+                    .unwrap()
+            })
+            .await;
+        debug!("Winning player: {:?}", winning_player);
+        close_game(db, game_id, &winning_player).await;
     }
 }
 
@@ -213,6 +233,80 @@ async fn execute_combat(db: &Database, pairing: &(GameUser, GameUser)) -> usize 
     action_len
 }
 
+async fn update_player_placements(db: &Database, game: &Game) -> QueryResult<()> {
+    debug!("Updating player placements for game {:?}", game);
+    let game = game.clone();
+    let users = db
+        .run(move |con| {
+            let mut users = GameUser::belonging_to(&game)
+                .filter(
+                    game_users::health
+                        .le(0)
+                        .and(game_users::placement.is_null()),
+                )
+                .order(game_users::health.desc())
+                .load::<GameUser>(con)?;
+
+            if users.is_empty() {
+                return QueryResult::Ok(users);
+            }
+
+            debug!("Updating player placements for dead users {:?}", users);
+
+            let mut next_placement = GameUser::belonging_to(&game)
+                .select((count_star(), min(game_users::placement)))
+                .first::<(i64, Option<i32>)>(con)
+                .map(|(count, min)| {
+                    if let Some(min) = min {
+                        min - 1
+                    } else {
+                        count as i32
+                    }
+                })?;
+
+            debug!("Next placement: {}", next_placement);
+
+            for user in users.iter_mut() {
+                update(game_users::table)
+                    .filter(game_users::id.eq(user.id))
+                    .set(game_users::placement.eq(next_placement))
+                    .execute(con)
+                    .unwrap();
+                user.placement = Some(next_placement);
+                next_placement -= 1;
+            }
+
+            QueryResult::Ok(users)
+        })
+        .await;
+
+    match users {
+        Ok(users) => {
+            users
+                .iter()
+                .map(|user: &GameUser| {
+                    ActivePolls::notify(
+                        &user.user_id,
+                        Protocol::GameEndResponse(GameResult {
+                            place: user.placement.unwrap(),
+                            reward: 100,
+                            ranking: 1,
+                        }),
+                    )
+                })
+                .collect::<FuturesUnordered<_>>()
+                .collect::<Vec<_>>()
+                .await;
+
+            Ok(())
+        }
+        Err(e) => {
+            warn!("Error updating player placements: {:?}", e);
+            Err(e)
+        }
+    }
+}
+
 pub async fn notify_users(game: &Game) {
     let game = game.clone();
     ActivePolls::notify_channel(
@@ -225,7 +319,7 @@ pub async fn notify_users(game: &Game) {
     .await;
 }
 
-async fn close_game(db: &Database, game_id: i32) {
+async fn close_game(db: &Database, game_id: i32, winning_player: &GameUser) {
     debug!("Closing game {}", game_id);
     db.run(move |con| {
         delete(games::table)
@@ -236,8 +330,8 @@ async fn close_game(db: &Database, game_id: i32) {
     .await;
 
     // Notify users
-    ActivePolls::notify_channel(
-        &Channel::Game(game_id),
+    ActivePolls::notify(
+        &winning_player.user_id,
         Protocol::GameEndResponse(GameResult {
             place: 1,
             reward: 100,

@@ -1,10 +1,11 @@
 use crate::model::game_users::GameUser;
-use crate::schema::game_user_characters;
+use crate::model::users::User;
+use crate::schema::{game_user_characters, game_users};
 use crate::service::character_service;
 use crate::Database;
 use chrono::NaiveDateTime;
-use diesel::{prelude::*, update};
-use protocol::protocol::{Error, Protocol};
+use diesel::{delete, prelude::*, update};
+use protocol::protocol::{Error, GameUserInfo, Protocol};
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Outcome};
 use rocket::serde::json::Json;
@@ -199,6 +200,58 @@ pub async fn move_character(
 
         if let Ok(board) = character_service::get_board(&db, source_character.game_user_id).await {
             Json(Protocol::BoardResponse(board))
+        } else {
+            Json(Error::new_protocol_response(
+                Status::InternalServerError.code,
+                "Could not get board".to_string(),
+                Protocol::CharacterMoveRequest,
+            ))
+        }
+    } else {
+        Json(Error::new_protocol_response(
+            Status::NotFound.code,
+            "Character not found".to_string(),
+            Protocol::CharacterMoveRequest,
+        ))
+    }
+}
+
+#[delete("/games/characters/<character_idx>")]
+pub async fn sell_character(
+    db: Database,
+    user: &User,
+    game_user: GameUser,
+    game_user_characters: GameUserCharacters,
+    character_idx: u8,
+) -> Json<Protocol> {
+    if let Some(character) = game_user_characters.0[character_idx as usize].clone() {
+        db.run(move |con| {
+            con.transaction(|con| {
+                delete(game_user_characters::table)
+                    .filter(game_user_characters::id.eq(character.id))
+                    .execute(con)?;
+
+                update(game_users::table)
+                    .filter(game_users::id.eq(character.game_user_id))
+                    .set(game_users::credits.eq(game_users::credits + 1))
+                    .execute(con)?;
+
+                QueryResult::Ok(())
+            })
+        })
+        .await;
+
+        if let Ok(board) = character_service::get_board(&db, character.game_user_id).await {
+            Json(Protocol::SellResponse(
+                GameUserInfo {
+                    experience: game_user.experience,
+                    health: game_user.health,
+                    money: game_user.credits + 1,
+                    name: user.username.clone(),
+                    avatar: game_user.avatar_id,
+                },
+                board,
+            ))
         } else {
             Json(Error::new_protocol_response(
                 Status::InternalServerError.code,

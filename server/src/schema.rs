@@ -34,6 +34,7 @@ diesel::table! {
         experience -> Int4,
         health -> Int4,
         credits -> Int4,
+        placement -> Nullable<Int4>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

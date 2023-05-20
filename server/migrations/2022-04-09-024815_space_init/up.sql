@@ -60,6 +60,7 @@ CREATE TABLE game_users (
 	experience INT NOT NULL,
 	health INT NOT NULL,
 	credits INT NOT NULL,
+	placement INT,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT uq_game_user UNIQUE(game_id, user_id),

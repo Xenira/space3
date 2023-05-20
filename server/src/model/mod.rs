@@ -43,6 +43,7 @@ pub mod model {
             shop::buy_character,
             game_user_characters::get_board,
             game_user_characters::move_character,
+            game_user_characters::sell_character,
             polling::poll,
             polling::notify,
         ]

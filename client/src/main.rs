@@ -6,14 +6,12 @@ use dotenv::dotenv;
 use surf::http::Method;
 
 use crate::{
-    components::{
-        timer::{TimerPlugin, TimerUi},
-        ComponentsPlugin,
-    },
+    components::{timer::TimerUi, ComponentsPlugin},
     modules::game_user_info::GameUserRes,
     networking::networking::NetworkingPlugin,
     states::{
-        game_combat::BattleRes, game_commander_selection::GameCommanderSelection, game_states,
+        game_combat::BattleRes, game_commander_selection::GameCommanderSelection,
+        game_result::GameResultRes, game_states,
     },
 };
 use bevy::{
@@ -23,13 +21,12 @@ use bevy::{
     math::Vec3,
     pbr::PointLightBundle,
     prelude::*,
-    render::camera::ScalingMode,
 };
 use bevy_egui::{
     egui::{self, Color32},
     EguiContexts, EguiPlugin,
 };
-use chrono::{DateTime, Local, Utc};
+use chrono::Utc;
 use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
 use protocol::protocol::{Credentials, Protocol};
 use std::env;
@@ -53,7 +50,7 @@ enum AppState {
     GameCommanderSelection,
     GameShop,
     GameBattle,
-    _GameResult,
+    GameResult,
 }
 
 #[derive(Debug)]
@@ -201,8 +198,9 @@ fn networking_handler(
                 commands.insert_resource(BattleRes(battle.clone()));
                 ev_state_change.send(StateChangeEvent(AppState::GameBattle));
             }
-            Protocol::GameEndResponse(_) => {
-                ev_state_change.send(StateChangeEvent(AppState::MenuMain))
+            Protocol::GameEndResponse(result) => {
+                commands.insert_resource(GameResultRes(result.clone()));
+                ev_state_change.send(StateChangeEvent(AppState::GameResult))
             }
             Protocol::NetworkingError(e) => {
                 if e.status == 401 {

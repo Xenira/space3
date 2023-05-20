@@ -20,6 +20,7 @@ pub struct GameUser {
     pub experience: i32,
     pub health: i32,
     pub credits: i32,
+    pub placement: Option<i32>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

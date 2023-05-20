@@ -34,6 +34,7 @@ pub enum Protocol {
         Vec<Option<(u8, CharacterInstance)>>,
         Vec<Option<CharacterInstance>>,
     ),
+    SellResponse(GameUserInfo, Vec<Option<CharacterInstance>>),
     GameBattleResponse(BattleResponse),
     GameBattleResultResponse(BattleResult),
     GameEndResponse(GameResult),
