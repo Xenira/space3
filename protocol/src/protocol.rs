@@ -187,18 +187,42 @@ pub struct CharacterInstance {
     pub defense_bonus: i32,
 }
 
-impl From<&Character> for CharacterInstance {
-    fn from(character: &Character) -> Self {
+impl CharacterInstance {
+    pub fn from(character: &Character, upgraded: bool) -> Self {
+        let (upgrade_atk, upgrade_hp) = if let Some(upgrade) = &character.upgrade {
+            (upgrade.attack, upgrade.health)
+        } else {
+            (0, 0)
+        };
+
         Self {
             id: -1,
             character_id: character.id,
             position: -1,
-            upgraded: false,
-            attack: character.damage,
-            defense: character.health,
+            upgraded: upgraded,
+            attack: if upgraded {
+                upgrade_atk
+            } else {
+                character.attack
+            },
+            defense: if upgraded {
+                upgrade_hp
+            } else {
+                character.health
+            },
             attack_bonus: 0,
             defense_bonus: 0,
         }
+    }
+
+    pub fn with_position(mut self, position: i32) -> Self {
+        self.position = position;
+        self
+    }
+
+    pub fn with_id(mut self, id: i32) -> Self {
+        self.id = id;
+        self
     }
 }
 

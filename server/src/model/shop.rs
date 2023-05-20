@@ -1,9 +1,11 @@
+use std::f32::consts::E;
+
 use crate::{
     model::{
         game::Game, game_user_characters::GameUserCharacters, game_users::GameUser, users::User,
     },
     schema::{game_user_characters, game_users, shops},
-    service::character_service,
+    service::{character_service, shop_service},
     Database,
 };
 use chrono::NaiveDateTime;
@@ -15,7 +17,7 @@ use protocol::{
 use rand::seq::SliceRandom;
 use rocket::{
     http::Status,
-    request::{self, FromRequest, Outcome},
+    request::{FromRequest, Outcome},
     serde::json::Json,
     Request,
 };
@@ -86,7 +88,7 @@ pub enum ShopError {
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for Shop {
     type Error = ShopError;
-    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         if let Outcome::Success(game_user) = req.guard::<GameUser>().await {
             let game_user = game_user.clone();
             if let Some(db) = req.guard::<Database>().await.succeeded() {
@@ -138,17 +140,7 @@ pub async fn get_shop(db: crate::Database, game_user: GameUser) -> Json<Protocol
 
     Json(Protocol::GameShopResponse(
         shop.locked,
-        shop.character_ids
-            .into_iter()
-            .map(|c| {
-                c.and_then(|c| {
-                    Some((
-                        CHARACTERS[c as usize].cost,
-                        CharacterInstance::from(&CHARACTERS[c as usize]),
-                    ))
-                })
-            })
-            .collect::<Vec<_>>(),
+        shop_service::get_shop(&shop.character_ids),
     ))
 }
 
@@ -193,17 +185,7 @@ pub async fn reroll_shop(db: Database, game_user: GameUser) -> Json<Protocol> {
     {
         Json(Protocol::GameShopResponse(
             false,
-            shop.character_ids
-                .into_iter()
-                .map(|c| {
-                    c.and_then(|c| {
-                        Some((
-                            CHARACTERS[c as usize].cost,
-                            CharacterInstance::from(&CHARACTERS[c as usize]),
-                        ))
-                    })
-                })
-                .collect::<Vec<_>>(),
+            shop_service::get_shop(&shop.character_ids),
         ))
     } else {
         Json(Error::new_protocol_response(
@@ -225,17 +207,7 @@ pub async fn toggle_lock_shop(db: Database, shop: Shop) -> Json<Protocol> {
 
     Json(Protocol::GameShopResponse(
         !shop.locked,
-        shop.character_ids
-            .into_iter()
-            .map(|c| {
-                c.and_then(|c| {
-                    Some((
-                        CHARACTERS[c as usize].cost,
-                        CharacterInstance::from(&CHARACTERS[c as usize]),
-                    ))
-                })
-            })
-            .collect::<Vec<_>>(),
+        shop_service::get_shop(&shop.character_ids),
     ))
 }
 
@@ -244,7 +216,7 @@ pub async fn buy_character(
     db: Database,
     user: &User,
     game_user: GameUser,
-    shop: Shop,
+    mut shop: Shop,
     mut game_user_characters: GameUserCharacters,
     buy_request: Json<BuyRequest>,
 ) -> Json<Protocol> {
@@ -267,90 +239,98 @@ pub async fn buy_character(
             ));
         };
 
-    if let Some(Some(_)) = game_user_characters.0.get(buy_request.target_idx as usize) {
-        // TODO: Tyr to move current character to free slot
-        return Json(Error::new_protocol_response(
-            Status::UnprocessableEntity.code,
-            "Character slot alredy occupied".to_string(),
-            Protocol::BuyRequest(buy_request.into_inner()),
-        ));
-    }
-
-    game_user_characters.0.insert(
-        buy_request.target_idx.into(),
-        Some(GameUserCharacter::new(
-            game_user.id,
-            character.id,
-            buy_request.target_idx.into(),
-            false,
-            0,
-            0,
-        )),
-    );
-
-    let game_user_id = game_user.id;
-    let character_id = character.id;
-    let shop_id = shop.id;
-    let mut shop_character_ids = shop.character_ids.clone();
-    shop_character_ids[buy_request.character_idx as usize] = None;
-    let request = buy_request.clone();
-    if let Ok(shop_character_ids) = db
-        .run(move |c| {
-            c.build_transaction().run(move |c| {
-                insert_into(game_user_characters::table)
-                    .values(&NewGameUserCharacter {
-                        game_user_id,
-                        character_id,
-                        position: buy_request.target_idx as i32,
-                        upgraded: false,
-                        attack_bonus: 0,
-                        defense_bonus: 0,
-                    })
-                    .execute(c)?;
-
-                update(shops::table)
-                    .filter(shops::id.eq(shop_id))
-                    .set(shops::character_ids.eq(shop_character_ids.clone()))
-                    .execute(c)?;
-
-                update(game_users::table)
-                    .filter(game_users::id.eq(game_user_id))
-                    .set(game_users::credits.eq(game_users::credits - character.cost as i32))
-                    .execute(c)?;
-
-                QueryResult::Ok(shop_character_ids)
-            })
-        })
-        .await
+    if (game_user_characters
+        .0
+        .iter()
+        .filter_map(|c| c.as_ref())
+        .filter(|c| c.character_id == character.id && !c.upgraded)
+        .count()
+        == 2)
     {
-        Json(Protocol::BuyResponse(
-            GameUserInfo {
-                experience: game_user.experience,
-                health: game_user.health,
-                money: game_user.credits - character.cost as i32,
-                name: user.username.clone(),
-                avatar: game_user.avatar_id,
-            },
-            shop_character_ids
-                .iter()
-                .map(|c| {
-                    c.and_then(|c| {
-                        Some((
-                            CHARACTERS[c as usize].cost,
-                            CharacterInstance::from(&CHARACTERS[c as usize]),
-                        ))
-                    })
-                })
-                .collect::<Vec<_>>(),
-            character_service::get_board(&db, game_user_id)
-                .await
-                .unwrap(),
-        ))
+        // Upgrade character
+        match shop_service::upgrade_character(
+            &db,
+            &game_user,
+            &character,
+            shop,
+            buy_request.character_idx,
+            buy_request.target_idx,
+        )
+        .await
+        {
+            Ok(shop_character_ids) => Json(Protocol::BuyResponse(
+                GameUserInfo {
+                    experience: game_user.experience,
+                    health: game_user.health,
+                    money: game_user.credits - character.cost as i32,
+                    name: user.username.clone(),
+                    avatar: game_user.avatar_id,
+                },
+                shop_service::get_shop(&shop_character_ids),
+                character_service::get_board(&db, game_user.id)
+                    .await
+                    .unwrap(),
+            )),
+            Err(err) => {
+                warn!("Could not upgrade character: {:?}", err);
+                Json(Error::new_protocol_response(
+                    Status::InternalServerError.code,
+                    "Internal server error".to_string(),
+                    Protocol::BuyRequest(buy_request.into_inner()),
+                ))
+            }
+        }
     } else {
-        Json(Error::new_protocol_response(
-            Status::InternalServerError.code,
-            "Internal server error".to_string(),
-            Protocol::BuyRequest(request.into_inner()),
-        ))
+        if let Some(Some(_)) = game_user_characters.0.get(buy_request.target_idx as usize) {
+            // TODO: Tyr to move current character to free slot
+            return Json(Error::new_protocol_response(
+                Status::UnprocessableEntity.code,
+                "Character slot alredy occupied".to_string(),
+                Protocol::BuyRequest(buy_request.into_inner()),
+            ));
+        }
+
+        game_user_characters.0.insert(
+            buy_request.target_idx.into(),
+            Some(GameUserCharacter::new(
+                game_user.id,
+                character.id,
+                buy_request.target_idx.into(),
+                false,
+                0,
+                0,
+            )),
+        );
+
+        if let Ok(shop_character_ids) = shop_service::buy_character(
+            &db,
+            &game_user,
+            &character,
+            shop,
+            buy_request.character_idx,
+            buy_request.target_idx,
+        )
+        .await
+        {
+            Json(Protocol::BuyResponse(
+                GameUserInfo {
+                    experience: game_user.experience,
+                    health: game_user.health,
+                    money: game_user.credits - character.cost as i32,
+                    name: user.username.clone(),
+                    avatar: game_user.avatar_id,
+                },
+                shop_service::get_shop(&shop_character_ids),
+                character_service::get_board(&db, game_user.id)
+                    .await
+                    .unwrap(),
+            ))
+        } else {
+            Json(Error::new_protocol_response(
+                Status::InternalServerError.code,
+                "Internal server error".to_string(),
+                Protocol::BuyRequest(buy_request.into_inner()),
+            ))
+        }
     }
 }

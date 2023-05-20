@@ -25,17 +25,9 @@ pub async fn get_board(
                 .iter()
                 .find(|c| c.position == i)
                 .map(|c| {
-                    let character = CHARACTERS[c.character_id as usize].clone();
-                    CharacterInstance {
-                        id: c.id,
-                        character_id: c.character_id,
-                        position: c.position,
-                        attack: character.damage,
-                        attack_bonus: c.attack_bonus,
-                        defense: character.health,
-                        defense_bonus: c.defense_bonus,
-                        upgraded: c.upgraded,
-                    }
+                    CharacterInstance::from(&CHARACTERS[c.character_id as usize], c.upgraded)
+                        .with_id(c.id)
+                        .with_position(c.position)
                 })
         })
         .collect::<Vec<_>>())

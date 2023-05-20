@@ -3,21 +3,36 @@
         "name": "foo",
         "description": "foo",
         "health": 2,
-        "damage": 2,
-        "cost": 2
+        "attack": 2,
+        "cost": 2,
+        "upgrade": {
+            "name": "foo",
+            "attack": 4,
+            "health": 4
+        }
     },
     {
         "name": "bar",
         "description": "bar",
         "health": 3,
-        "damage": 2,
-        "cost": 2
+        "attack": 2,
+        "cost": 2,
+        "upgrade": {
+            "name": "bar",
+            "attack": 4,
+            "health": 6
+        }
     },
     {
         "name": "baz",
         "description": "baz",
         "health": 2,
-        "damage": 3,
-        "cost": 2
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "baz",
+            "attack": 6,
+            "health": 4
+        }
     }
 ]

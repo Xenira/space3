@@ -158,9 +158,10 @@ pub async fn next_turn(db: &Database, game: &Game) {
                 .execute(con)
                 .unwrap();
 
+            // TODO: Remove extra debugging money
             update(game_users::table)
                 .filter(game_users::game_id.eq(game.id))
-                .set(game_users::credits.eq((next_turn + 3) / 2))
+                .set(game_users::credits.eq((next_turn + 3) / 2 + 20))
                 .execute(con)
                 .unwrap();
 

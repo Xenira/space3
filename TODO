@@ -28,16 +28,17 @@ Service:
 		☐ Transition to End phase
 		☐ Add endpoint for opponent list
 		Shop:
-			☐ Set player money
-			☐ Remove old shop if not locked
+			✔ Set player money @done(23-05-20 00:40)
+			✔ Remove old shop if not locked @done(23-05-20 00:40)
 			✔ Buy Character @started(23-05-14 01:55) @done(23-05-14 03:34) @lasted(1h39m42s)
 			✔ Send updated shop and board to player after buy @started(23-05-15 19:19) @done(23-05-15 20:01) @lasted(42m16s)
 			☐ Sell Character
 			✔ Roll @done(23-05-11 21:03)
 			✔ Reroll @started(23-05-18 14:57) @done(23-05-18 15:26) @lasted(29m11s)
-			☐ Upgrade Character
+			✔ Upgrade Character @done(23-05-20 02:23)
 			✔ Lock Shop @started(23-05-19 23:20) @done(23-05-20 00:12) @lasted(52m14s)
 			✔ Move character @started(23-05-16 17:25) @done(23-05-16 18:12) @lasted(47m8s)
+			☐ Add guard to prevent shop actions when not in shop phase
 		Game:
 			☐ Delete non locked shops
 			✔ Calculate Combat @started(23-05-16 18:14) @done(23-05-17 17:07) @lasted(22h53m25s)
@@ -59,6 +60,7 @@ Service:
 		✔ Create periodic task to execute timed events @started(23-04-30 13:18) @done(23-04-30 14:29) @lasted(1h11m)
 		☐ Add version check
 		☐ Mask sensitive data
+		☐ Add session refresh
 
 Client:
 	Networking:
@@ -93,6 +95,7 @@ Client:
 	Main-Game:
 		☐ Player List
 		☐ Fix assets unloading
+		☐ Add upgraded character frame
 		Shop:
 			✔ Add character pedestal @started(23-05-11 19:35) @done(23-05-15 19:18) @lasted(3d23h43m54s)
 			✔ Add shop UI @started(23-05-11 19:35) @done(23-05-11 21:44) @lasted(2h9m59s)
@@ -111,7 +114,7 @@ Client:
 			✔ Display health and attack @done(23-05-19 22:22)
 			✔ Display price @started(23-05-20 00:15) @done(23-05-20 00:32) @lasted(17m51s)
 			☐ Add character sell
-			☐ Add character upgrade
+			✔ Add character upgrade @done(23-05-20 02:23)
 			✔ Fix buy position @started(23-05-19 22:16) @done(23-05-19 22:22) @lasted(6m32s)
 			✔ Initialy load board from server @started(23-05-19 22:07) @done(23-05-19 22:16) @lasted(9m7s)
 			☐ Add bank
@@ -127,6 +130,8 @@ Client:
 			✔ Fix last animation state not showing @done(23-05-19 22:06)
 			☐ Change target health on animation hit
 			☐ Change character health/attack color (white -> >= base, red -> less than base)
+			☐ Add transition animation to battle
+			☐ Add battle result animation
 	Settings:
 		Dev:
 			☐ Log Settings
@@ -143,6 +148,7 @@ Client:
 		☐ Add drag and drop animation
 		☐ Add version check
 		☐ Add bug report button
+		☐ Add anchor entities for elements
 
 
 Misc:

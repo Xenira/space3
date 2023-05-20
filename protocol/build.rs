@@ -1,4 +1,7 @@
-use protocol_types::{character::Character, heros::God};
+use protocol_types::{
+    character::{Character, CharacterUpgrade},
+    heros::God,
+};
 use serde::{de::DeserializeOwned, Deserialize};
 use serde_json;
 use std::{fs::File, io::BufReader};
@@ -28,20 +31,22 @@ struct CharacterJson {
     name: String,
     description: String,
     health: i32,
-    damage: i32,
+    attack: i32,
     cost: i32,
+    upgrade: Option<CharacterUpgrade>,
 }
 
 impl ToString for CharacterJson {
     fn to_string(&self, idx: usize) -> String {
         format!(
-            "Character {{ id: {}, name: std::borrow::Cow::Borrowed(\"{}\"), description: std::borrow::Cow::Borrowed(\"{}\"), health: {}, damage: {}, cost: {} }}",
+            "Character {{ id: {}, name: std::borrow::Cow::Borrowed(\"{}\"), description: std::borrow::Cow::Borrowed(\"{}\"), health: {}, attack: {}, cost: {}, upgrade: {}}}",
             idx,
             self.name,
             self.description,
             self.health,
-            self.damage,
-            self.cost
+            self.attack,
+            self.cost,
+            if let Some(upgrade) = &self.upgrade { format!("Some(protocol_types::character::CharacterUpgrade {{ name: std::borrow::Cow::Borrowed(\"{}\"), attack: {}, health: {} }})", upgrade.name, upgrade.attack, upgrade.health) } else { "None".to_string() }
         )
     }
 }
