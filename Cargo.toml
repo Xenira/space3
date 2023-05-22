@@ -1,5 +1,5 @@
 [workspace]
-members = [ "protocol", "protocol/protocol_types"]
+members = [ "protocol", "protocol/protocol_types", "protocol/protocol_data_types", "cli"]
 exclude = [ "server", "client"]
 
 [workspace.package]

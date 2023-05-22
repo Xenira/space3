@@ -1,3 +1,7 @@
 client/steam_sdk
+client/assets/generated
+client/dist
+cli/image_*.png
+cli/info.txt
 target
 .DS_Store

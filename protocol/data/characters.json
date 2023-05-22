@@ -1,36 +1,468 @@
 [
     {
-        "name": "foo",
-        "description": "foo",
+        "name": "Hydra",
+        "description": "A serpentine water monster with multiple heads. When one head was cut off, two would grow back in its place.",
         "health": 2,
         "attack": 2,
         "cost": 2,
         "upgrade": {
-            "name": "foo",
+            "name": "Hydra",
             "attack": 4,
             "health": 4
         }
     },
     {
-        "name": "bar",
-        "description": "bar",
+        "name": "Medusa",
+        "description": "A monstrous woman with snakes for hair and a gaze that turned anyone who looked at her into stone.",
         "health": 3,
         "attack": 2,
         "cost": 2,
         "upgrade": {
-            "name": "bar",
+            "name": "Medusa",
             "attack": 4,
             "health": 6
         }
     },
     {
-        "name": "baz",
-        "description": "baz",
+        "name": "Minotaur",
+        "description": "A creature with the head of a bull and the body of a man, residing in a labyrinth on the island of Crete.",
         "health": 2,
         "attack": 3,
         "cost": 2,
         "upgrade": {
-            "name": "baz",
+            "name": "Minotaur",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Centaur",
+        "description": "Half-human and half-horse creatures known for their wisdom and skill in archery.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Centaur",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Sphinx",
+        "description": "A creature with the head of a human and the body of a lion, often depicted as having wings. It posed riddles to travelers and would devour those who failed to answer correctly.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Hieracosphinx",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Pegasus",
+        "description": "A winged horse known for its beauty and speed, often associated with the Muses and heroic figures.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Pegasus",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Cyclops",
+        "description": "Gigantic, one-eyed beings who were skilled blacksmiths. They were often portrayed as fierce and monstrous creatures.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Cyclops",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Sirens",
+        "description": "Enchanting creatures, part-woman and part-bird, whose songs lured sailors to their doom on rocky shores.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Sirens",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Chimera",
+        "description": "A fire-breathing monster with the body of a lion, the head of a goat on its back, and a serpent's tail.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Chimera",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Harpies",
+        "description": "Female creatures with the bodies of birds and the faces of women, known for their role in punishing the guilty.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Harpies",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Ammut",
+        "description": " A fearsome creature depicted as part-lion, part-hippopotamus, and part-crocodile. It was believed to devour the hearts of the wicked in the afterlife.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Ammut",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Akhekh",
+        "description": "A giant serpent associated with chaos and destruction. It was often depicted as a coiled serpent or as a dragon-like creature.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Akhekh",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Uraeus",
+        "description": "A mythical serpent or cobra often depicted on the headdress of Egyptian pharaohs. It symbolized sovereignty and protection.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Uraeus",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Bennu",
+        "description": "A mythological bird associated with the sun, rebirth, and creation. It was often depicted as a heron or a stork.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Bennu",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Serpopard",
+        "description": "A mythical creature with the body of a leopard or lion and the long neck of a serpent. It was often depicted in Egyptian art and symbolism.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Serpopard",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Griffin",
+        "description": "A creature with the body of a lion and the head and wings of an eagle. It was associated with protection and guarding sacred places.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Griffin",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Benu Bird",
+        "description": "A mythical bird associated with the sun, rebirth, and creation. It was often associated with the god Ra and believed to be a symbol of eternal life.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Benu Bird",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Set Animal",
+        "description": "A mysterious creature with the body of an unknown animal, often associated with the god Set. It had a canine-like head, long ears, and a curved snout.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Set Animal",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Ogdoad",
+        "description": "A group of eight deities associated with creation and chaos. The members of the Ogdoad were often depicted as frog-headed beings.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Ogdoad",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Garuda",
+        "description": "A divine bird with the body of a human and the wings, beak, and talons of an eagle. Garuda is the mount of Lord Vishnu and is known for his speed and strength.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Garuda",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Naga",
+        "description": "Serpent-like creatures often depicted as divine beings with human upper bodies and snake lower bodies. They are associated with water and fertility.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Naga",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Hanuman",
+        "description": "A monkey-like humanoid creature known for his incredible strength, devotion, and loyalty to Lord Rama. Hanuman is a central character in the Hindu epic, Ramayana.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Hanuman",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Jatayu",
+        "description": "A giant bird in the form of an eagle or vulture who fought valiantly to save Sita, the wife of Lord Rama, from the demon king Ravana.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Jatayu",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Rakshasa",
+        "description": "Malevolent shape-shifting demons with supernatural powers. They are often depicted as fierce, grotesque beings associated with darkness and evil.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Rakshasa",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Gandharva",
+        "description": "Celestial beings known for their musical talents and association with beauty and charm. They are often depicted as part-human and part-animal.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Gandharva",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Yaksha",
+        "description": "Nature spirits associated with forests, lakes, and mountains. They are often depicted as benevolent and protective guardians of natural treasures.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Yaksha",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Apsara",
+        "description": "Beautiful female celestial beings known for their elegance and grace. Apsaras are often depicted as dancers and musicians in the courts of the gods.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Apsara",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Varaha",
+        "description": "A boar-headed incarnation of Lord Vishnu. Varaha is associated with rescuing the earth goddess, Bhudevi, from the depths of the cosmic ocean.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Varaha",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Makara",
+        "description": "A mythical creature depicted as a sea monster with the body of a crocodile, trunk of an elephant, and tail of a fish. Makara is often used as a decorative motif in Hindu art and architecture.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Makara",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Jormungandr",
+        "description": "Also known as the Midgard Serpent, it is a massive serpent that encircles the world, biting its own tail. It is one of the children of Loki and is destined to battle with Thor during Ragnarok, the Norse apocalypse.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Jormungandr",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Fenrir",
+        "description": "A monstrous wolf and one of the children of Loki. Fenrir is prophesied to be a great threat during Ragnarok, when it will break free and devour Odin, the All-Father.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Fenrir",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Valkyries",
+        "description": "Divine female figures who serve Odin. They choose warriors worthy of entering Valhalla, the great hall of fallen heroes in Asgard.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Valkyries",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Frost Giants",
+        "description": "A race of giant beings who dwell in the realm of Jotunheim. They are often depicted as powerful and antagonistic figures in Norse mythology.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Frost Giants",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Dwarves",
+        "description": "Skilled craftsmen known for their exceptional abilities in forging weapons and magical items. They play a significant role in Norse mythology and are associated with the underground realm of Svartalfheim.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Dwarves",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Norns",
+        "description": "Three female beings who govern the destiny of individuals and the cosmic order. They are responsible for weaving the threads of fate.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Norns",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Huldra",
+        "description": "A seductive, forest-dwelling creature in Norse folklore. Huldras are often depicted as beautiful women from the front but with a hollow tree trunk or animal tail from behind.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Huldra",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Sleipnir",
+        "description": "An eight-legged horse and the steed of Odin. Sleipnir is known for its incredible speed and is often portrayed as the most majestic and powerful horse in Norse mythology.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Sleipnir",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Draugr",
+        "description": "Undead creatures that inhabit burial grounds and protect their treasures. They are often depicted as decaying corpses and are known for their superhuman strength.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Draugr",
+            "attack": 6,
+            "health": 4
+        }
+    },
+    {
+        "name": "Jotnar",
+        "description": "A race of colossal beings who are often associated with chaos and primordial forces. They are depicted as powerful adversaries of the gods and appear in various forms and sizes.",
+        "health": 2,
+        "attack": 3,
+        "cost": 2,
+        "upgrade": {
+            "name": "Jotnar",
             "attack": 6,
             "health": 4
         }

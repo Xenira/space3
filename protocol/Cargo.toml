@@ -16,5 +16,7 @@ protocol_types = {path="protocol_types"}
 
 [build-dependencies]
 protocol_types = {path="protocol_types"}
+protocol_data_types = {path="protocol_data_types"}
 serde_json = "1.0"
 serde = {version="1.0", features=["derive"]}
+image = "0.24"

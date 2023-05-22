@@ -45,12 +45,10 @@ fn setup(
     let mut frame_animation = animation::simple(0, 0);
     animation::add_hover_state(&mut frame_animation, 0, 17);
 
-    let god_fallback = asset_server.load("textures/gods/god_fallback.png");
-
     commands
         .spawn((
             SpatialBundle {
-                transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 0.0)),
+                transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 5.0)),
                 ..Default::default()
             },
             Cleanup,
@@ -77,7 +75,10 @@ fn setup(
                 ))
                 .with_children(|parent| {
                     parent.spawn(SpriteBundle {
-                        texture: god_fallback.clone(),
+                        texture: asset_server
+                            .load(format!("generated/gods/{}.png", res_gods.0[0].id)),
+                        transform: Transform::from_scale(Vec3::splat(0.25))
+                            .with_translation(Vec3::new(0.0, 0.0, -1.0)),
                         ..Default::default()
                     });
                 });
@@ -103,10 +104,13 @@ fn setup(
                 ))
                 .with_children(|parent| {
                     parent.spawn(SpriteBundle {
-                        texture: god_fallback.clone(),
+                        texture: asset_server
+                            .load(format!("generated/gods/{}.png", res_gods.0[1].id)),
                         transform: Transform::from_rotation(Quat::from_rotation_z(
                             90.0f32.to_radians(),
-                        )),
+                        ))
+                        .with_scale(Vec3::splat(0.25))
+                        .with_translation(Vec3::new(0.0, 0.0, -1.0)),
                         ..Default::default()
                     });
                 });
@@ -132,10 +136,13 @@ fn setup(
                 ))
                 .with_children(|parent| {
                     parent.spawn(SpriteBundle {
-                        texture: god_fallback.clone(),
+                        texture: asset_server
+                            .load(format!("generated/gods/{}.png", res_gods.0[2].id)),
                         transform: Transform::from_rotation(Quat::from_rotation_z(
                             -90.0f32.to_radians(),
-                        )),
+                        ))
+                        .with_scale(Vec3::splat(0.25))
+                        .with_translation(Vec3::new(0.0, 0.0, -1.0)),
                         ..Default::default()
                     });
                 });
@@ -161,10 +168,13 @@ fn setup(
                 ))
                 .with_children(|parent| {
                     parent.spawn(SpriteBundle {
-                        texture: god_fallback.clone(),
+                        texture: asset_server
+                            .load(format!("generated/gods/{}.png", res_gods.0[3].id)),
                         transform: Transform::from_rotation(Quat::from_rotation_z(
                             180.0f32.to_radians(),
-                        )),
+                        ))
+                        .with_scale(Vec3::splat(0.25))
+                        .with_translation(Vec3::new(0.0, 0.0, -1.0)),
                         ..Default::default()
                     });
                 });

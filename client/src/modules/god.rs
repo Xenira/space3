@@ -19,9 +19,9 @@ fn on_spawn(
     q_added: Query<(&God, Entity), Added<God>>,
 ) {
     for (god, entity) in q_added.iter() {
-        let god_fallback = asset_server.load("textures/gods/god_fallback.png");
+        let god_fallback = asset_server.load(format!("generated/gods/{}.png", god.0.character_id));
         let god_atlas =
-            TextureAtlas::from_grid(god_fallback, Vec2::new(64.0, 64.0), 1, 1, None, None);
+            TextureAtlas::from_grid(god_fallback, Vec2::new(256.0, 256.0), 1, 1, None, None);
         let god_atlas_handle = texture_atlases.add(god_atlas);
 
         let god_frame = asset_server.load("textures/ui/god_frame2.png");
@@ -38,7 +38,8 @@ fn on_spawn(
                 .spawn((SpriteSheetBundle {
                     texture_atlas: god_frame_atlas_handle.clone(),
                     sprite: TextureAtlasSprite::new(if god.0.is_next_opponent { 17 } else { 0 }),
-                    transform: Transform::from_scale(Vec3::splat(1.0)),
+                    transform: Transform::from_scale(Vec3::splat(1.0))
+                        .with_translation(Vec3::new(0.0, 0.0, 5.0)),
                     ..Default::default()
                 },))
                 .with_children(|parent| {
@@ -46,6 +47,8 @@ fn on_spawn(
                     parent.spawn(SpriteSheetBundle {
                         texture_atlas: god_atlas_handle,
                         sprite: TextureAtlasSprite::new(0),
+                        transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0))
+                            .with_scale(Vec3::splat(0.25)),
                         ..Default::default()
                     });
                     // Health

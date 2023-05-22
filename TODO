@@ -12,12 +12,17 @@ Service:
 		☐ Leave Queue
 	Game:
 		✔ Add endpoint for opponent list @started(23-05-20 17:56) @done(23-05-20 18:32) @lasted(36m25s)
+		☐ Close games after 5 minutes of inactivity
 		Shop:
 			☐ Add guard to prevent shop actions when not in shop phase
+			Board DnD:
+				☐ Fix same possition bug
+				☐ Fix swap bug
 		Game:
 			☐ Add Action Stack
 			☐ Play final battle animations
 			☐ Add combined animation for multiple actions
+			☐ Fix turn timer
 	Bot Games:
 		☐ Add fill with bots option to lobby
 		☐ Simple Bots
@@ -57,6 +62,8 @@ Client:
 		☐ Fix assets unloading
 		☐ Add upgraded character frame
 		☐ Add hover "tooltip"
+		Shop:
+			☐ Fix drag and drop jittering on board
 		Battle:
 			☐ Add battle UI
 			☐ Add enemy god
@@ -73,6 +80,10 @@ Client:
 		☐ Add transform animations
 		☐ Text animation
 	Misc:
+		✔ Add character art @done(23-05-23 00:58)
+		✔ Add cli for character info and art @done(23-05-23 00:59)
+		☐ Add god art @done(23-05-23 00:58)
+		✔ Add cli for god info and art @done(23-05-23 00:59)
 		☐ Fix jittering between original and coursor position
 		☐ Add labels to drop targets
 		☐ Add drag and drop animation
@@ -82,6 +93,10 @@ Client:
 
 Misc:
 	☐ Intro video
+
+Hosting:
+	☐ Add preview server
+	☐ Add production server
 
 Stupid Ideas I prob won't be able (or want) to do:
 	☐ <epic> 2D or 3D Fight animation

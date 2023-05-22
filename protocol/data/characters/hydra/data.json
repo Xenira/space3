@@ -1,0 +1,12 @@
+{
+  "name": "Hydra",
+  "description": "A serpentine water monster with multiple heads. When one head was cut off, two would grow back in its place.",
+  "health": 2,
+  "attack": 2,
+  "cost": 2,
+  "upgrade": {
+    "name": "Hydra",
+    "attack": 2,
+    "health": 2
+  }
+}
