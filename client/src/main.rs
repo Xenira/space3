@@ -79,12 +79,10 @@ fn main() {
 
     app.add_state::<AppState>()
         .add_plugins(
-            DefaultPlugins
-                .set(LogPlugin {
-                    level: Level::DEBUG,
-                    ..Default::default()
-                })
-                .set(ImagePlugin::default_nearest()),
+            DefaultPlugins.set(LogPlugin {
+                level: Level::DEBUG,
+                ..Default::default()
+            }), // .set(ImagePlugin::default_nearest()),
         )
         .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())

@@ -61,80 +61,92 @@ fn on_spawn(
 
         commands.entity(entity).with_children(|parent| {
             parent
-                .spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: character_atlas_handle,
-                        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
-                            .with_scale(Vec3::splat(0.25)),
-                        ..Default::default()
-                    },
-                    character_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
-                ))
+                .spawn(SpriteBundle {
+                    texture: asset_server.load("textures/ui/character_frame.png"),
+                    transform: Transform::from_scale(Vec3::splat(0.1))
+                        .with_translation(Vec3::new(0.0, 0.0, 5.0)),
+                    ..Default::default()
+                })
                 .with_children(|parent| {
                     parent
-                        .spawn(SpatialBundle {
-                            transform: Transform::from_scale(Vec3::splat(4.0))
-                                .with_translation(Vec3::new(0.0, 0.0, 5.0)),
-                            ..Default::default()
-                        })
+                        .spawn((
+                            SpriteSheetBundle {
+                                texture_atlas: character_atlas_handle,
+                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0))
+                                    .with_scale(Vec3::splat(2.0)),
+                                ..Default::default()
+                            },
+                            character_animation.clone(),
+                            AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                        ))
                         .with_children(|parent| {
-                            // Attack
                             parent
-                                .spawn(SpriteBundle {
-                                    texture: asset_server.load("textures/ui/attack_orb.png"),
-                                    transform: Transform::from_translation(Vec3::new(
-                                        -24.0, -28.0, 0.0,
-                                    ))
-                                    .with_scale(Vec3::splat(0.75)),
+                                .spawn(SpatialBundle {
+                                    transform: Transform::from_scale(Vec3::splat(4.0))
+                                        .with_translation(Vec3::new(0.0, 0.0, 5.0)),
                                     ..Default::default()
                                 })
                                 .with_children(|parent| {
-                                    parent.spawn(Text2dBundle {
-                                        text: Text::from_section(
-                                            (character.0.attack + character.0.attack_bonus)
-                                                .to_string(),
-                                            TextStyle {
-                                                font: asset_server
-                                                    .load("fonts/monogram-extended.ttf"),
-                                                font_size: 28.0,
-                                                color: Color::WHITE,
-                                            },
-                                        ),
-                                        transform: Transform::from_translation(Vec3::new(
-                                            0.0, 0.0, 1.0,
-                                        )),
-                                        ..Default::default()
-                                    });
-                                });
+                                    // Attack
+                                    parent
+                                        .spawn(SpriteBundle {
+                                            texture: asset_server
+                                                .load("textures/ui/attack_orb.png"),
+                                            transform: Transform::from_translation(Vec3::new(
+                                                -24.0, -28.0, 0.0,
+                                            ))
+                                            .with_scale(Vec3::splat(0.75)),
+                                            ..Default::default()
+                                        })
+                                        .with_children(|parent| {
+                                            parent.spawn(Text2dBundle {
+                                                text: Text::from_section(
+                                                    (character.0.attack + character.0.attack_bonus)
+                                                        .to_string(),
+                                                    TextStyle {
+                                                        font: asset_server
+                                                            .load("fonts/monogram-extended.ttf"),
+                                                        font_size: 28.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                ),
+                                                transform: Transform::from_translation(Vec3::new(
+                                                    0.0, 0.0, 1.0,
+                                                )),
+                                                ..Default::default()
+                                            });
+                                        });
 
-                            // Health
-                            parent
-                                .spawn(SpriteBundle {
-                                    texture: asset_server.load("textures/ui/health_orb.png"),
-                                    transform: Transform::from_translation(Vec3::new(
-                                        24.0, -28.0, 0.0,
-                                    ))
-                                    .with_scale(Vec3::splat(0.75)),
-                                    ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    parent.spawn(Text2dBundle {
-                                        text: Text::from_section(
-                                            (character.0.defense + character.0.defense_bonus)
-                                                .to_string(),
-                                            TextStyle {
-                                                font: asset_server
-                                                    .load("fonts/monogram-extended.ttf"),
-                                                font_size: 24.0,
-                                                color: Color::WHITE,
-                                            },
-                                        ),
-                                        transform: Transform::from_translation(Vec3::new(
-                                            0.0, 0.0, 1.0,
-                                        )),
-                                        ..Default::default()
-                                    });
+                                    // Health
+                                    parent
+                                        .spawn(SpriteBundle {
+                                            texture: asset_server
+                                                .load("textures/ui/health_orb.png"),
+                                            transform: Transform::from_translation(Vec3::new(
+                                                24.0, -28.0, 0.0,
+                                            ))
+                                            .with_scale(Vec3::splat(0.75)),
+                                            ..Default::default()
+                                        })
+                                        .with_children(|parent| {
+                                            parent.spawn(Text2dBundle {
+                                                text: Text::from_section(
+                                                    (character.0.defense
+                                                        + character.0.defense_bonus)
+                                                        .to_string(),
+                                                    TextStyle {
+                                                        font: asset_server
+                                                            .load("fonts/monogram-extended.ttf"),
+                                                        font_size: 24.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                ),
+                                                transform: Transform::from_translation(Vec3::new(
+                                                    0.0, 0.0, 1.0,
+                                                )),
+                                                ..Default::default()
+                                            });
+                                        });
                                 });
                         });
                 });

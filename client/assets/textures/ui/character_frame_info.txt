@@ -1,0 +1,3 @@
+style of Anato Finnstark,iridescent, messy, streaks,Trading Card frame, modern, round
+Negative prompt: text
+Steps: 100, Sampler: DPM++ SDE Karras, CFG scale: 7, Seed: 3700522058, Size: 640x640, Model hash: a60cfaa90d, Model: dreamshaper_5BakedVae, Version: v1.2.1

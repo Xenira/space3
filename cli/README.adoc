@@ -1,0 +1,7 @@
+
+## Art generation
+To use the profile generation you need to have the stable diffusion web ui (https://github.com/AUTOMATIC1111/stable-diffusion-webui) running with the api enabled:
+
+```
+./webui.sh --api
+```

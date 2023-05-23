@@ -1,0 +1,10 @@
+
+
+## Art generation:
+Art was generated using stable diffusion. The parameters for each image are listed in the info.txt file next to the image.
+
+.Excample Prompt
+style of Anato Finnstark,iridescent, messy, streaks,[Mythology] [God/Goddess] [Name],[Element],dynamic pose
+
+### Background Removal:
+Used for card frame (https://github.com/danielgatis/rembg)

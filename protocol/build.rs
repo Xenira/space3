@@ -20,7 +20,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     generate_from_json::<CharacterJson, Character>(
         "./data/characters",
         "characters",
-        Some((256, 256)),
+        Some((512, 512)),
     )?;
 
     Ok(())
