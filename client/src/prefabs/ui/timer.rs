@@ -57,21 +57,25 @@ pub struct TimerTextBundle {
     pub timer_text: TimerTextComponent,
 
     #[bundle]
-    pub text: TextBundle,
+    pub text: Text2dBundle,
 }
 
 impl TimerTextBundle {
-    pub fn new(asset_server: &AssetServer) -> Self {
+    pub fn new(asset_server: &AssetServer, transform: Transform) -> Self {
         Self {
             timer_text: TimerTextComponent,
-            text: TextBundle::from_section(
-                "Timer",
-                TextStyle {
-                    font: asset_server.load("fonts/monogram-extended.ttf"),
-                    font_size: 50.0,
-                    color: Color::WHITE,
-                },
-            ),
+            text: Text2dBundle {
+                text: Text::from_section(
+                    "",
+                    TextStyle {
+                        font: asset_server.load("fonts/monogram-extended.ttf"),
+                        font_size: 50.0,
+                        color: Color::WHITE,
+                    },
+                ),
+                transform,
+                ..Default::default()
+            },
         }
     }
 }

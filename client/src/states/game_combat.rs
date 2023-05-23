@@ -88,7 +88,7 @@ fn setup(
 
 fn play_animation(
     mut commands: Commands,
-    state: Res<BattleRes>,
+    mut state: ResMut<BattleRes>,
     mut combat_state: ResMut<NextState<GameCombatState>>,
     q_board_character: Query<(
         Entity,
@@ -99,8 +99,10 @@ fn play_animation(
     )>,
     q_animation: Query<(Entity, &Animation)>,
     q_target: Query<(&GlobalTransform, &BoardCharacter)>,
+    mut ev_board_change: EventWriter<BattleBoardChangedEvent>,
 ) {
-    if let Some(current_action) = state.0.actions.first() {
+    let current_action = state.0.actions.first().cloned();
+    if let Some(current_action) = current_action {
         if let Some((entity, character, children, source_global_transform, source_transform)) =
             q_board_character
                 .iter()
@@ -120,7 +122,8 @@ fn play_animation(
                                     - source_transform.translation);
                             commands.entity(entity).insert(TransformAnimation {
                                 source: source_transform.clone(),
-                                target: Transform::from_translation(target_transform),
+                                target: Transform::from_translation(target_transform)
+                                    .with_scale(source_transform.scale),
                                 speed: 5.0,
                                 repeat: AnimationRepeatType::PingPongOnce,
                             });
@@ -142,6 +145,11 @@ fn play_animation(
                             .insert(animation.get_transition("die").unwrap());
                     } else {
                         warn!("No animation found for {:?}", character);
+                        state.0.actions.remove(0);
+                        ev_board_change.send(BattleBoardChangedEvent([
+                            current_action.result_own.clone(),
+                            current_action.result_opponent.clone(),
+                        ]));
                     }
                 }
             }
@@ -243,7 +251,8 @@ fn generate_board(
                                 136.0
                             },
                             0.0,
-                        )),
+                        ))
+                        .with_scale(Vec3::splat(2.0)),
                         ..Default::default()
                     },
                     Character(character.clone()),

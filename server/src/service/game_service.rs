@@ -125,7 +125,7 @@ pub async fn next_turn(db: &Database, game: &Game) {
                                 Some(curr)
                             }
                         } else {
-                            curr
+                            Some(next)
                         }
                     })
                     .unwrap_or(&5) as f64

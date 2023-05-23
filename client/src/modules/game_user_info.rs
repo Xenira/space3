@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use protocol::protocol::GameUserInfo;
 
+use crate::states::startup::UiAssets;
+
 pub(crate) struct GameUserInfoPlugin;
 
 impl Plugin for GameUserInfoPlugin {
@@ -25,7 +27,7 @@ pub struct UserExperience;
 
 fn on_user_info_added(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    ui_assets: Res<UiAssets>,
     game_user_info: Res<GameUserRes>,
 ) {
     info!("Game user info added");
@@ -34,7 +36,7 @@ fn on_user_info_added(
             text: Text::from_section(
                 format!("Health: {}", game_user_info.0.health),
                 TextStyle {
-                    font: asset_server.load("fonts/monogram-extended.ttf"),
+                    font: ui_assets.font.clone(),
                     font_size: 20.0,
                     color: Color::WHITE,
                 },
@@ -50,7 +52,7 @@ fn on_user_info_added(
             text: Text::from_section(
                 format!("Exp: {}", game_user_info.0.experience),
                 TextStyle {
-                    font: asset_server.load("fonts/monogram-extended.ttf"),
+                    font: ui_assets.font.clone(),
                     font_size: 20.0,
                     color: Color::WHITE,
                 },
@@ -66,7 +68,7 @@ fn on_user_info_added(
             text: Text::from_section(
                 format!("$: {}", game_user_info.0.money),
                 TextStyle {
-                    font: asset_server.load("fonts/monogram-extended.ttf"),
+                    font: ui_assets.font.clone(),
                     font_size: 20.0,
                     color: Color::WHITE,
                 },

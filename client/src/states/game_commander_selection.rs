@@ -16,6 +16,8 @@ use protocol::{
 };
 use surf::http::Method;
 
+use super::startup::{GodAssets, UiAssets};
+
 const STATE: AppState = AppState::GameCommanderSelection;
 
 pub(crate) struct GameCommanderSelectionPlugin;
@@ -33,15 +35,10 @@ pub(crate) struct GameCommanderSelection(pub Vec<God>);
 
 fn setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    god_assets: Res<GodAssets>,
+    ui_assets: Res<UiAssets>,
     res_gods: Res<GameCommanderSelection>,
 ) {
-    let god_frame = asset_server.load("textures/ui/god_frame2.png");
-    let god_frame_atlas =
-        TextureAtlas::from_grid(god_frame, Vec2::new(64.0, 64.0), 18, 1, None, None);
-    let god_frame_atlas_handle = texture_atlases.add(god_frame_atlas);
-
     let mut frame_animation = animation::simple(0, 0);
     animation::add_hover_state(&mut frame_animation, 0, 17);
 
@@ -57,7 +54,7 @@ fn setup(
             parent
                 .spawn((
                     SpriteSheetBundle {
-                        texture_atlas: god_frame_atlas_handle.clone(),
+                        texture_atlas: god_assets.god_frame.clone(),
                         sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_scale(Vec3::splat(4.0))
                             .with_translation(Vec3::new(0.0, 33.0 * 4.0, 1.0)),
@@ -74,9 +71,13 @@ fn setup(
                     Clickable,
                 ))
                 .with_children(|parent| {
-                    parent.spawn(SpriteBundle {
-                        texture: asset_server
-                            .load(format!("generated/gods/{}.png", res_gods.0[0].id)),
+                    parent.spawn(SpriteSheetBundle {
+                        texture_atlas: god_assets
+                            .god_portraits
+                            .get(&res_gods.0[0].id)
+                            .unwrap()
+                            .clone(),
+                        sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_scale(Vec3::splat(0.25))
                             .with_translation(Vec3::new(0.0, 0.0, -1.0)),
                         ..Default::default()
@@ -85,7 +86,7 @@ fn setup(
             parent
                 .spawn((
                     SpriteSheetBundle {
-                        texture_atlas: god_frame_atlas_handle.clone(),
+                        texture_atlas: god_assets.god_frame.clone(),
                         sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_scale(Vec3::splat(4.0))
                             .with_rotation(Quat::from_rotation_z(-90.0f32.to_radians()))
@@ -103,9 +104,13 @@ fn setup(
                     Clickable,
                 ))
                 .with_children(|parent| {
-                    parent.spawn(SpriteBundle {
-                        texture: asset_server
-                            .load(format!("generated/gods/{}.png", res_gods.0[1].id)),
+                    parent.spawn(SpriteSheetBundle {
+                        texture_atlas: god_assets
+                            .god_portraits
+                            .get(&res_gods.0[1].id)
+                            .unwrap()
+                            .clone(),
+                        sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_rotation(Quat::from_rotation_z(
                             90.0f32.to_radians(),
                         ))
@@ -117,7 +122,7 @@ fn setup(
             parent
                 .spawn((
                     SpriteSheetBundle {
-                        texture_atlas: god_frame_atlas_handle.clone(),
+                        texture_atlas: god_assets.god_frame.clone(),
                         sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_scale(Vec3::splat(4.0))
                             .with_rotation(Quat::from_rotation_z(90.0f32.to_radians()))
@@ -135,9 +140,13 @@ fn setup(
                     Clickable,
                 ))
                 .with_children(|parent| {
-                    parent.spawn(SpriteBundle {
-                        texture: asset_server
-                            .load(format!("generated/gods/{}.png", res_gods.0[2].id)),
+                    parent.spawn(SpriteSheetBundle {
+                        texture_atlas: god_assets
+                            .god_portraits
+                            .get(&res_gods.0[2].id)
+                            .unwrap()
+                            .clone(),
+                        sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_rotation(Quat::from_rotation_z(
                             -90.0f32.to_radians(),
                         ))
@@ -149,7 +158,7 @@ fn setup(
             parent
                 .spawn((
                     SpriteSheetBundle {
-                        texture_atlas: god_frame_atlas_handle.clone(),
+                        texture_atlas: god_assets.god_frame.clone(),
                         sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_scale(Vec3::splat(4.0))
                             .with_rotation(Quat::from_rotation_z(180.0f32.to_radians()))
@@ -167,9 +176,13 @@ fn setup(
                     Clickable,
                 ))
                 .with_children(|parent| {
-                    parent.spawn(SpriteBundle {
-                        texture: asset_server
-                            .load(format!("generated/gods/{}.png", res_gods.0[3].id)),
+                    parent.spawn(SpriteSheetBundle {
+                        texture_atlas: god_assets
+                            .god_portraits
+                            .get(&res_gods.0[3].id)
+                            .unwrap()
+                            .clone(),
+                        sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_rotation(Quat::from_rotation_z(
                             180.0f32.to_radians(),
                         ))
@@ -211,7 +224,7 @@ fn setup(
                         TextBundle::from_section(
                             "Select your deity",
                             TextStyle {
-                                font: asset_server.load("fonts/monogram-extended.ttf"),
+                                font: ui_assets.font.clone(),
                                 font_size: 50.0,
                                 color: Color::WHITE,
                             },
@@ -220,7 +233,7 @@ fn setup(
                     ));
                     parent.spawn((
                         TextBundle::from_sections([TextSection::from_style(TextStyle {
-                            font: asset_server.load("fonts/monogram-extended.ttf"),
+                            font: ui_assets.font.clone(),
                             font_size: 28.0,
                             color: Color::WHITE,
                         })]),
@@ -228,7 +241,7 @@ fn setup(
                     ));
                     parent.spawn((
                         TextBundle::from_sections([TextSection::from_style(TextStyle {
-                            font: asset_server.load("fonts/monogram-extended.ttf"),
+                            font: ui_assets.font.clone(),
                             font_size: 32.0,
                             color: Color::WHITE,
                         })]),

@@ -7,6 +7,7 @@ use surf::http::Method;
 use crate::{
     cleanup_system,
     components::{
+        anchors::{AnchorType, Anchors},
         animation::AnimationTimer,
         dragndrop::{Dragable, DropTagret},
         hover::{BoundingBox, Clickable, Hoverable},
@@ -42,6 +43,7 @@ fn logout(
     mut ev_polling_status: EventWriter<PollingStatus>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut res_anchors: Res<Anchors>,
 ) {
     debug!("Logout start");
     commands.remove_resource::<User>();
@@ -52,7 +54,15 @@ fn logout(
     //     &asset_server,
     //     texture_atlases.as_mut(),
     // ));
-    commands.spawn(TimerTextBundle::new(&asset_server));
+
+    commands
+        .entity(res_anchors.get(AnchorType::TOP_RIGHT).unwrap())
+        .with_children(|parent| {
+            parent.spawn((TimerTextBundle::new(
+                &asset_server,
+                Transform::from_translation(Vec3::new(-15.0, -15.0, 1.0)),
+            ),));
+        });
 
     let shop_frame = asset_server.load("textures/ui/user_frame.png");
     let shop_frame_atlas =

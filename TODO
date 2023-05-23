@@ -22,7 +22,7 @@ Service:
 			☐ Add Action Stack
 			☐ Play final battle animations
 			☐ Add combined animation for multiple actions
-			☐ Fix turn timer
+			✔ Fix turn timer @done(23-05-23 23:23)
 	Bot Games:
 		☐ Add fill with bots option to lobby
 		☐ Simple Bots
@@ -59,11 +59,14 @@ Client:
 		☐ Add confirmation button
 	Main-Game:
 		✔ Player List @started(23-05-20 18:32) @done(23-05-20 20:17) @lasted(1h45m59s)
-		☐ Fix assets unloading
+		✔ Fix assets unloading @done(23-05-23 22:51)
 		☐ Add upgraded character frame
 		☐ Add hover "tooltip"
+		☐ Attach opponent list to left side of screen
 		Shop:
 			☐ Fix drag and drop jittering on board
+			☐ Attach shop to top of screen
+			☐ Attach bench to bottom of screen
 		Battle:
 			☐ Add battle UI
 			☐ Add enemy god
@@ -84,12 +87,12 @@ Client:
 		✔ Add cli for character info and art @done(23-05-23 00:59)
 		☐ Add god art @done(23-05-23 00:58)
 		✔ Add cli for god info and art @done(23-05-23 00:59)
-		☐ Fix jittering between original and coursor position
+		☐ Fix jittering between original and coursor position (Create curser entity)
 		☐ Add labels to drop targets
 		☐ Add drag and drop animation
 		☐ Add version check
 		☐ Add bug report button
-		☐ Add anchor entities for elements
+		✔ Add anchor entities for elements @started(23-05-23 19:21) @done(23-05-23 22:51) @lasted(3h30m9s)
 
 Misc:
 	☐ Intro video

@@ -1,5 +1,7 @@
 use bevy::prelude::*;
-use protocol::protocol::GameOpponentInfo;
+use protocol::{protocol::GameOpponentInfo, protocol_types::character};
+
+use crate::states::startup::{CharacterAssets, GodAssets, UiAssets};
 
 pub(crate) struct GodPlugin;
 
@@ -14,21 +16,12 @@ pub struct God(pub GameOpponentInfo);
 
 fn on_spawn(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    ui_assets: Res<UiAssets>,
+    god_assets: Res<GodAssets>,
+    character_assets: Res<CharacterAssets>,
     q_added: Query<(&God, Entity), Added<God>>,
 ) {
     for (god, entity) in q_added.iter() {
-        let god_fallback = asset_server.load(format!("generated/gods/{}.png", god.0.character_id));
-        let god_atlas =
-            TextureAtlas::from_grid(god_fallback, Vec2::new(256.0, 256.0), 1, 1, None, None);
-        let god_atlas_handle = texture_atlases.add(god_atlas);
-
-        let god_frame = asset_server.load("textures/ui/god_frame2.png");
-        let god_frame_atlas =
-            TextureAtlas::from_grid(god_frame, Vec2::new(64.0, 64.0), 18, 1, None, None);
-        let god_frame_atlas_handle = texture_atlases.add(god_frame_atlas);
-
         // Not used as hover animation is used for next opponent instead
         // let mut frame_animation = animation::simple(0, 0);
         // animation::add_hover_state(&mut frame_animation, 0, 17);
@@ -36,7 +29,7 @@ fn on_spawn(
         commands.entity(entity).with_children(|parent| {
             parent
                 .spawn((SpriteSheetBundle {
-                    texture_atlas: god_frame_atlas_handle.clone(),
+                    texture_atlas: god_assets.god_frame.clone(),
                     sprite: TextureAtlasSprite::new(if god.0.is_next_opponent { 17 } else { 0 }),
                     transform: Transform::from_scale(Vec3::splat(1.0))
                         .with_translation(Vec3::new(0.0, 0.0, 5.0)),
@@ -45,7 +38,11 @@ fn on_spawn(
                 .with_children(|parent| {
                     // God Portrait
                     parent.spawn(SpriteSheetBundle {
-                        texture_atlas: god_atlas_handle,
+                        texture_atlas: god_assets
+                            .god_portraits
+                            .get(&god.0.character_id)
+                            .unwrap()
+                            .clone(),
                         sprite: TextureAtlasSprite::new(0),
                         transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0))
                             .with_scale(Vec3::splat(0.25)),
@@ -54,7 +51,7 @@ fn on_spawn(
                     // Health
                     parent
                         .spawn(SpriteBundle {
-                            texture: asset_server.load("textures/ui/health_orb.png"),
+                            texture: character_assets.health_orb.clone(),
                             transform: Transform::from_translation(Vec3::new(24.0, -28.0, 0.0))
                                 .with_scale(Vec3::splat(0.75)),
                             ..Default::default()
@@ -64,7 +61,7 @@ fn on_spawn(
                                 text: Text::from_section(
                                     (god.0.health).to_string(),
                                     TextStyle {
-                                        font: asset_server.load("fonts/monogram-extended.ttf"),
+                                        font: ui_assets.font.clone(),
                                         font_size: 24.0,
                                         color: Color::WHITE,
                                     },
@@ -75,7 +72,7 @@ fn on_spawn(
                         });
                     parent
                         .spawn(SpriteBundle {
-                            texture: asset_server.load("textures/ui/lvl_orb.png"),
+                            texture: god_assets.lvl_orb.clone(),
                             transform: Transform::from_translation(Vec3::new(-24.0, -28.0, 0.0))
                                 .with_scale(Vec3::splat(0.75)),
                             ..Default::default()
@@ -85,7 +82,7 @@ fn on_spawn(
                                 text: Text::from_section(
                                     (god.0.experience).to_string(),
                                     TextStyle {
-                                        font: asset_server.load("fonts/monogram-extended.ttf"),
+                                        font: ui_assets.font.clone(),
                                         font_size: 24.0,
                                         color: Color::WHITE,
                                     },

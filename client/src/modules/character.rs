@@ -7,6 +7,7 @@ use crate::{
         AnimationTransitionType,
     },
     prefabs::animation,
+    states::startup::{CharacterAssets, UiAssets},
 };
 
 pub(crate) struct CharacterPlugin;
@@ -28,25 +29,11 @@ pub struct Attack;
 
 fn on_spawn(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    character_assets: Res<CharacterAssets>,
+    ui_assets: Res<UiAssets>,
     q_added: Query<(&Character, Entity), Added<Character>>,
 ) {
     for (character, entity) in q_added.iter() {
-        let character_fallback = asset_server.load(format!(
-            "generated/characters/{}.png",
-            character.0.character_id
-        ));
-        let character_atlas = TextureAtlas::from_grid(
-            character_fallback,
-            Vec2::new(256.0, 256.0),
-            1,
-            1,
-            None,
-            None,
-        );
-        let character_atlas_handle = texture_atlases.add(character_atlas);
-
         let character_animation = animation::simple(0, 0)
             .with_state(
                 AnimationState::new("die", AnimationIndices::new(0, 0))
@@ -62,7 +49,7 @@ fn on_spawn(
         commands.entity(entity).with_children(|parent| {
             parent
                 .spawn(SpriteBundle {
-                    texture: asset_server.load("textures/ui/character_frame.png"),
+                    texture: character_assets.character_frame.clone(),
                     transform: Transform::from_scale(Vec3::splat(0.1))
                         .with_translation(Vec3::new(0.0, 0.0, 5.0)),
                     ..Default::default()
@@ -71,9 +58,13 @@ fn on_spawn(
                     parent
                         .spawn((
                             SpriteSheetBundle {
-                                texture_atlas: character_atlas_handle,
+                                texture_atlas: character_assets
+                                    .character_portraits
+                                    .get(&character.0.character_id)
+                                    .unwrap()
+                                    .clone(),
                                 transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0))
-                                    .with_scale(Vec3::splat(2.0)),
+                                    .with_scale(Vec3::splat(1.0)),
                                 ..Default::default()
                             },
                             character_animation.clone(),
@@ -90,8 +81,7 @@ fn on_spawn(
                                     // Attack
                                     parent
                                         .spawn(SpriteBundle {
-                                            texture: asset_server
-                                                .load("textures/ui/attack_orb.png"),
+                                            texture: character_assets.attack_orb.clone(),
                                             transform: Transform::from_translation(Vec3::new(
                                                 -24.0, -28.0, 0.0,
                                             ))
@@ -104,8 +94,7 @@ fn on_spawn(
                                                     (character.0.attack + character.0.attack_bonus)
                                                         .to_string(),
                                                     TextStyle {
-                                                        font: asset_server
-                                                            .load("fonts/monogram-extended.ttf"),
+                                                        font: ui_assets.font.clone(),
                                                         font_size: 28.0,
                                                         color: Color::WHITE,
                                                     },
@@ -120,8 +109,7 @@ fn on_spawn(
                                     // Health
                                     parent
                                         .spawn(SpriteBundle {
-                                            texture: asset_server
-                                                .load("textures/ui/health_orb.png"),
+                                            texture: character_assets.health_orb.clone(),
                                             transform: Transform::from_translation(Vec3::new(
                                                 24.0, -28.0, 0.0,
                                             ))
@@ -135,8 +123,7 @@ fn on_spawn(
                                                         + character.0.defense_bonus)
                                                         .to_string(),
                                                     TextStyle {
-                                                        font: asset_server
-                                                            .load("fonts/monogram-extended.ttf"),
+                                                        font: ui_assets.font.clone(),
                                                         font_size: 24.0,
                                                         color: Color::WHITE,
                                                     },

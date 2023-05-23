@@ -18,6 +18,8 @@ use crate::{
     AppState, Cleanup,
 };
 
+use super::startup::{CharacterAssets, UiAssets};
+
 const STATE: AppState = AppState::GameShop;
 
 pub(crate) struct GameShopPlugin;
@@ -416,6 +418,8 @@ fn generate_shop(
     mut commands: Commands,
     mut ev_shop_change: EventReader<ShopChangedEvent>,
     q_shop: Query<Entity, With<Shop>>,
+    character_assets: Res<CharacterAssets>,
+    ui_assets: Res<UiAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
 ) {
@@ -459,9 +463,9 @@ fn generate_shop(
                         .with_children(|parent| {
                             parent
                                 .spawn(SpriteBundle {
-                                    texture: asset_server.load("textures/ui/price_orb.png"),
+                                    texture: character_assets.price_orb.clone(),
                                     transform: Transform::from_translation(Vec3::new(
-                                        24.0, 28.0, 2.0,
+                                        24.0, 28.0, 7.0,
                                     ))
                                     .with_scale(Vec3::splat(0.75)),
                                     ..Default::default()
@@ -471,8 +475,7 @@ fn generate_shop(
                                         text: Text::from_section(
                                             cost.to_string(),
                                             TextStyle {
-                                                font: asset_server
-                                                    .load("fonts/monogram-extended.ttf"),
+                                                font: ui_assets.font.clone(),
                                                 font_size: 28.0,
                                                 color: Color::BLACK,
                                             },

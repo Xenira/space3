@@ -40,8 +40,8 @@ mod util;
 
 #[derive(States, Default, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
-    _Startup,
     #[default]
+    Startup,
     MenuLogin,
     MenuSetDisplayName,
     MenuMain,
