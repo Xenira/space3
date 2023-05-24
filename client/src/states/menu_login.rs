@@ -60,7 +60,7 @@ fn logout(
         .with_children(|parent| {
             parent.spawn((TimerTextBundle::new(
                 &asset_server,
-                Transform::from_translation(Vec3::new(-15.0, -15.0, 1.0)),
+                Transform::from_translation(Vec3::new(-30.0, -15.0, 100.0)),
             ),));
         });
 

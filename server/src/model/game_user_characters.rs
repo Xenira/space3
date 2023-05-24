@@ -159,43 +159,44 @@ pub async fn move_character(
     character_idx: u8,
     target_idx: u8,
 ) -> Json<Protocol> {
-    if character_idx == target_idx {
-        return Json(Error::new_protocol_response(
-            Status::BadRequest.code,
-            "Cannot move character to same position".to_string(),
-            Protocol::CharacterMoveRequest,
-        ));
-    }
-
     if let Some(source_character) = game_user_characters.0[character_idx as usize].clone() {
-        let source_character_id = source_character.id;
-        if let Some(target_character) = game_user_characters.0[target_idx as usize].clone() {
-            let target_character_id = target_character.id;
-            db.run(move |con| {
-                con.build_transaction().deferrable().run(|con| {
+        if character_idx == target_idx {
+            let source_character_id = source_character.id;
+            let db_result = if let Some(target_character) =
+                game_user_characters.0[target_idx as usize].clone()
+            {
+                let target_character_id = target_character.id;
+                db.run(move |con| {
+                    con.build_transaction().deferrable().run(|con| {
+                        update(game_user_characters::table)
+                            .filter(game_user_characters::id.eq(source_character_id))
+                            .set(game_user_characters::position.eq(target_idx as i32))
+                            .execute(con)?;
+
+                        update(game_user_characters::table)
+                            .filter(game_user_characters::id.eq(target_character_id))
+                            .set(game_user_characters::position.eq(character_idx as i32))
+                            .execute(con)?;
+
+                        QueryResult::Ok(())
+                    })
+                })
+                .await
+            } else {
+                db.run(move |con| {
                     update(game_user_characters::table)
-                        .filter(game_user_characters::id.eq(source_character_id))
+                        .filter(game_user_characters::id.eq(source_character.id))
                         .set(game_user_characters::position.eq(target_idx as i32))
-                        .execute(con)
-                        .unwrap();
-                    update(game_user_characters::table)
-                        .filter(game_user_characters::id.eq(target_character_id))
-                        .set(game_user_characters::position.eq(character_idx as i32))
-                        .execute(con)
-                        .unwrap();
+                        .execute(con)?;
+
                     QueryResult::Ok(())
                 })
-            })
-            .await;
-        } else {
-            db.run(move |con| {
-                update(game_user_characters::table)
-                    .filter(game_user_characters::id.eq(source_character.id))
-                    .set(game_user_characters::position.eq(target_idx as i32))
-                    .execute(con)
-                    .unwrap();
-            })
-            .await;
+                .await
+            };
+
+            if let Err(db_err) = db_result {
+                warn!("Could not move character: {}", db_err);
+            }
         }
 
         if let Ok(board) = character_service::get_board(&db, source_character.game_user_id).await {

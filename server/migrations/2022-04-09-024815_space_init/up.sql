@@ -95,7 +95,7 @@ create TABLE game_user_characters (
 	defense_bonus INT NOT NULL DEFAULT 0,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	UNIQUE(game_user_id, position),
+	UNIQUE(game_user_id, position) DEFERRABLE INITIALLY DEFERRED,
 	CONSTRAINT fk_game_user FOREIGN KEY(game_user_id) REFERENCES game_users(id) ON DELETE CASCADE,
 	CHECK (
 		position >= 0

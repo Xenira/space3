@@ -221,7 +221,7 @@ async fn execute_combat(db: &Database, pairing: &(GameUser, GameUser)) -> usize 
     let swapped_result = combat_result.swap_players();
     let action_len = combat_result.actions.len();
 
-    if pairing.0.placement.is_some() {
+    if pairing.0.placement.is_none() {
         ActivePolls::notify(
             &pairing.0.user_id,
             Protocol::GameBattleResponse(combat_result),
@@ -229,7 +229,7 @@ async fn execute_combat(db: &Database, pairing: &(GameUser, GameUser)) -> usize 
         .await;
     }
 
-    if pairing.1.placement.is_some() {
+    if pairing.1.placement.is_none() {
         ActivePolls::notify(
             &pairing.1.user_id,
             Protocol::GameBattleResponse(swapped_result),
