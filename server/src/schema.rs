@@ -96,6 +96,8 @@ diesel::table! {
         display_name -> Nullable<Varchar>,
         currency -> Int4,
         tutorial -> Bool,
+        session_token -> Nullable<Uuid>,
+        session_expires -> Nullable<Timestamp>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

@@ -3,10 +3,10 @@ use crate::diesel::RunQueryDsl;
 use crate::model::polling::Channel;
 use crate::schema::game_users;
 use crate::schema::lobby_users;
-use crate::util::jwt;
 use crate::{schema::users, Database};
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use chrono::NaiveDateTime;
+use diesel::update;
 use diesel::{insert_into, prelude::*, QueryDsl};
 
 use protocol::protocol::Credentials;
@@ -21,6 +21,7 @@ use rocket::request::FromRequest;
 use rocket::request::Outcome;
 use rocket::serde::json::Json;
 use rocket::Request;
+use uuid::Uuid;
 
 use super::lobbies::LobbyWithUsers;
 use super::polling::ActivePolls;
@@ -34,6 +35,8 @@ pub struct User {
     pub display_name: Option<String>,
     pub currency: i32,
     pub tutorial: bool,
+    pub session_token: Option<Uuid>,
+    pub session_expires: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -51,32 +54,43 @@ impl<'r> FromRequest<'r> for &'r User {
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
         let user = req
             .local_cache_async(async {
-                match req.headers().get_one("x-api-key") {
+                match req.headers().get_one("x-api-key").map(|s| s.to_string()) {
                     None => Err(ApiKeyError::Missing),
                     Some(key) => {
-                        trace!("Authenticating based on jwt");
-                        match jwt::validate(key) {
-                            Ok(token) => {
-                                trace!("Token is valid");
-                                if let Some(db) = req.guard::<Database>().await.succeeded() {
-                                    let user = db
-                                        .run(move |con| {
-                                            users::table
-                                                .filter(users::username.eq(token.claims.sub))
-                                                .first::<User>(con)
-                                        })
-                                        .await
-                                        .expect("Failed to retrieve user from db");
-                                    trace!("Setting user {:?}", user);
+                        if let Some(db) = req.guard::<Database>().await.succeeded() {
+                            db.run(move |con| {
+                                let user = users::table
+                                    .filter(
+                                        users::session_token
+                                            .eq(Some(Uuid::parse_str(&key).unwrap())),
+                                    )
+                                    .first::<User>(con)
+                                    .unwrap();
 
-                                    return Ok(user);
+                                if user.session_expires.is_none()
+                                    || (user.session_expires.unwrap()
+                                        - chrono::Utc::now().naive_utc())
+                                    .num_seconds()
+                                        < 0
+                                {
+                                    return Err(ApiKeyError::Invalid);
+                                } else {
+                                    update(users::table)
+                                        .filter(users::id.eq(user.id))
+                                        .set((users::session_expires.eq(Some(
+                                            chrono::Utc::now().naive_utc()
+                                                + chrono::Duration::hours(1),
+                                        )),))
+                                        .execute(con)
+                                        .unwrap();
                                 }
-                                Err(ApiKeyError::Other)
-                            }
-                            Err(err) => {
-                                warn!("Error during login: {}", err);
-                                Err(ApiKeyError::Invalid)
-                            }
+
+                                trace!("Setting user {:?}", user);
+                                Ok(user)
+                            })
+                            .await
+                        } else {
+                            Err(ApiKeyError::Other)
                         }
                     }
                 }
@@ -95,10 +109,12 @@ pub struct NewUser {
     pub username: String,
     pub password: String,
     pub salt: String,
+    pub session_token: Option<Uuid>,
+    pub session_expires: Option<NaiveDateTime>,
 }
 
 impl NewUser {
-    fn from_credentials(cred: &Credentials) -> Result<NewUser, ()> {
+    fn from_credentials(cred: &Credentials, session_token: Uuid) -> Result<NewUser, ()> {
         let salt = SaltString::generate(&mut OsRng);
         let username: String = cred.username.clone();
 
@@ -108,6 +124,8 @@ impl NewUser {
                 username,
                 password: password_hash,
                 salt: salt.to_string(),
+                session_token: Some(session_token),
+                session_expires: Some(chrono::Utc::now().naive_utc() + chrono::Duration::hours(1)),
             });
         }
         Err(())
@@ -126,7 +144,10 @@ fn hash_password(cred: &Credentials, salt: &SaltString) -> Result<String, ()> {
 
 #[put("/users", data = "<creds>")]
 pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
-    let new_user = NewUser::from_credentials(&creds).expect("Failed to hash password");
+    let session_token = Uuid::new_v4();
+
+    let new_user =
+        NewUser::from_credentials(&creds, session_token).expect("Failed to hash password");
 
     // TODO: return new user
     db.run(|con| insert_into(users::table).values(new_user).execute(con))
@@ -134,7 +155,7 @@ pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> 
         .expect("Failed to create user");
 
     Json(Protocol::LoginResponse(LoginResponse {
-        key: jwt::generate(&creds.username),
+        key: session_token.to_string(),
         user: UserData {
             username: creds.username.clone(),
             display_name: None,
@@ -159,12 +180,27 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
     assert_eq!(
         hash_password(
             &creds,
-            &SaltString::new(user.salt.as_str()).expect("User salt currupted")
+            &SaltString::from_b64(user.salt.as_str()).expect("User salt currupted")
         )
         .expect("Failed to verify login")
         .to_string(),
         user.password
     );
+
+    let session_token = Uuid::new_v4();
+
+    db.run(move |con| {
+        update(users::table)
+            .filter(users::id.eq(user.id))
+            .set((
+                users::session_token.eq(Some(session_token)),
+                users::session_expires
+                    .eq(chrono::Utc::now().naive_utc() + chrono::Duration::hours(1)),
+            ))
+            .execute(con)
+    })
+    .await
+    .expect("Failed to update session token");
 
     let channels = db
         .run(move |con| {
@@ -195,7 +231,7 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
     }
 
     Json(Protocol::LoginResponse(LoginResponse {
-        key: jwt::generate(&user.username),
+        key: session_token.to_string(),
         user: UserData {
             username: user.username,
             display_name: user.display_name,
