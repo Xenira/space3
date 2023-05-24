@@ -144,7 +144,7 @@ pub async fn next_turn(db: &Database, game: &Game) {
                 .load::<GameUser>(con)
                 .unwrap_or(vec![]);
 
-            if active_users.len() <= 1 {
+            if active_users.len() <= 1 && next_turn % 2 == 1 {
                 return None;
             }
 
@@ -190,7 +190,9 @@ pub async fn next_turn(db: &Database, game: &Game) {
         })
         .await
     {
-        update_player_placements(db, &game).await;
+        if next_turn % 2 != 0 {
+            update_player_placements(db, &game).await;
+        }
         notify_users(&game).await;
     } else {
         debug!("Game {} is over", game_id);
@@ -219,22 +221,28 @@ async fn execute_combat(db: &Database, pairing: &(GameUser, GameUser)) -> usize 
     let swapped_result = combat_result.swap_players();
     let action_len = combat_result.actions.len();
 
-    ActivePolls::notify(
-        &pairing.0.user_id,
-        Protocol::GameBattleResponse(combat_result),
-    )
-    .await;
-    ActivePolls::notify(
-        &pairing.1.user_id,
-        Protocol::GameBattleResponse(swapped_result),
-    )
-    .await;
+    if pairing.0.placement.is_some() {
+        ActivePolls::notify(
+            &pairing.0.user_id,
+            Protocol::GameBattleResponse(combat_result),
+        )
+        .await;
+    }
+
+    if pairing.1.placement.is_some() {
+        ActivePolls::notify(
+            &pairing.1.user_id,
+            Protocol::GameBattleResponse(swapped_result),
+        )
+        .await;
+    }
 
     action_len
 }
 
 async fn update_player_placements(db: &Database, game: &Game) -> QueryResult<()> {
     debug!("Updating player placements for game {:?}", game);
+    let game_id = game.id;
     let game = game.clone();
     let users = db
         .run(move |con| {
@@ -297,6 +305,9 @@ async fn update_player_placements(db: &Database, game: &Game) -> QueryResult<()>
                 .collect::<FuturesUnordered<_>>()
                 .collect::<Vec<_>>()
                 .await;
+            for user in users {
+                ActivePolls::leave_channel(&Channel::Game(game_id), &user.user_id);
+            }
 
             Ok(())
         }

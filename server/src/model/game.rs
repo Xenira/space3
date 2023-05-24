@@ -72,7 +72,11 @@ impl<'r> FromRequest<'r> for Game {
                             .filter(
                                 games::id.eq_any(
                                     game_users::table
-                                        .filter(game_users::user_id.eq(user.id))
+                                        .filter(
+                                            game_users::user_id
+                                                .eq(user.id)
+                                                .and(game_users::placement.is_null()),
+                                        )
                                         .select(game_users::game_id),
                                 ),
                             )

@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 pub(crate) mod anchors;
 pub(crate) mod animation;
+pub(crate) mod cursor;
 pub(crate) mod dragndrop;
 pub(crate) mod hover;
 pub(crate) mod on_screen_log;
@@ -32,6 +33,7 @@ impl Plugin for ComponentsPlugin {
         .add_plugin(dragndrop::DragNDropPlugin)
         .add_plugin(on_screen_log::OnScreenLogPlugin)
         .add_plugin(timer::TimerPlugin)
-        .add_plugin(anchors::AnchorsPlugin);
+        .add_plugin(anchors::AnchorsPlugin)
+        .add_plugin(cursor::CursorPlugin);
     }
 }

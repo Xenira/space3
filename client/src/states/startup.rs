@@ -18,6 +18,7 @@ impl Plugin for StartupPlugin {
 #[derive(Resource, Default)]
 pub struct UiAssets {
     pub font: Handle<Font>,
+    pub cursor: Handle<Image>,
 }
 
 #[derive(Resource, Default)]
@@ -48,6 +49,7 @@ fn setup(
 
     // UI
     ui_assets.font = asset_server.load("fonts/monogram-extended.ttf");
+    ui_assets.cursor = asset_server.load("textures/ui/cursor.png");
 
     // Gods
     for god in GODS.iter() {

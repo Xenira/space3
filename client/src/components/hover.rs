@@ -1,4 +1,4 @@
-use super::{animation::Animation, ChangeDetectionSystemSet};
+use super::{animation::Animation, cursor::Cursor, ChangeDetectionSystemSet};
 use crate::{components::animation::AnimationTransition, MainCamera};
 use bevy::{input::mouse::MouseButtonInput, prelude::*};
 use std::ops::Mul;
@@ -58,28 +58,27 @@ impl Default for Hoverable {
 
 fn check_hover(
     mut commands: Commands,
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut ev_cursor_move: EventReader<CursorMoved>,
     mut q_bounding_boxes: Query<
         (Entity, &BoundingBox, &GlobalTransform, Option<&Hovered>),
         With<Hoverable>,
     >,
+    q_cursor: Query<&mut Transform, With<Cursor>>,
 ) {
-    let (camera, camera_transform) = q_camera.single();
-
-    for cursor_event in ev_cursor_move.iter() {
-        if let Some(world_position) = camera
-            .viewport_to_world_2d(camera_transform, cursor_event.position)
-            .map(|r| r)
+    if ev_cursor_move.iter().next().is_some() {
+        if let Some(world_position) = q_cursor
+            .get_single()
+            .map(|cursor| cursor.translation.truncate())
+            .ok()
         {
             for (entity, bounding_box, transform, hovered) in q_bounding_boxes.iter_mut() {
                 if bounding_box.is_point_inside(world_position, &transform.compute_transform()) {
                     if hovered.is_none() {
-                        debug!("Hovering over entity: {:?}", entity);
+                        trace!("Hovering over entity: {:?}", entity);
                         commands.entity(entity).insert(Hovered);
                     }
                 } else if hovered.is_some() {
-                    debug!("No longer hovering over entity: {:?}", entity);
+                    trace!("No longer hovering over entity: {:?}", entity);
                     commands.entity(entity).remove::<Hovered>();
                 }
             }

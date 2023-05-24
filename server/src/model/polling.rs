@@ -114,6 +114,13 @@ impl ActivePolls {
         }
     }
 
+    pub fn leave_channel(channel: &Channel, user: &i32) {
+        let mut polls = Self::get().lock().unwrap();
+        if let Some(users) = polls.channels.get_mut(channel) {
+            users.remove(user);
+        }
+    }
+
     pub fn close_channel(channel: &Channel) {
         let mut polls = Self::get().lock().unwrap();
         polls.channels.remove(channel);

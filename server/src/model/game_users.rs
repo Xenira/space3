@@ -89,7 +89,11 @@ impl<'r> FromRequest<'r> for GameUser {
                 return db
                     .run(move |con| {
                         if let Ok(user) = game_users::table
-                            .filter(game_users::user_id.eq(user.id))
+                            .filter(
+                                game_users::user_id
+                                    .eq(user.id)
+                                    .and(game_users::placement.is_null()),
+                            )
                             .first::<GameUser>(con)
                         {
                             return Outcome::Success(user);
