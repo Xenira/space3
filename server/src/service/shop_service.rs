@@ -114,6 +114,10 @@ pub async fn buy_character(
         })
     })
     .await
+    .map_err(|e| {
+        debug!("buy_character error: {:?}", e);
+        e
+    })
 }
 
 pub fn get_shop(shop_character_ids: &Vec<Option<i32>>) -> Vec<Option<(u8, CharacterInstance)>> {

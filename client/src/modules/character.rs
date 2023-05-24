@@ -8,6 +8,7 @@ use crate::{
     },
     prefabs::animation,
     states::startup::{CharacterAssets, UiAssets},
+    Cleanup,
 };
 
 pub(crate) struct CharacterPlugin;
@@ -46,97 +47,103 @@ fn on_spawn(
                 transition_type: AnimationTransitionType::Imediate,
             });
 
-        commands.entity(entity).with_children(|parent| {
-            parent
-                .spawn(SpriteBundle {
-                    texture: character_assets.character_frame.clone(),
-                    transform: Transform::from_scale(Vec3::splat(0.1))
-                        .with_translation(Vec3::new(0.0, 0.0, 5.0)),
-                    ..Default::default()
-                })
-                .with_children(|parent| {
-                    parent
-                        .spawn((
-                            SpriteSheetBundle {
-                                texture_atlas: character_assets
-                                    .character_portraits
-                                    .get(&character.0.character_id)
-                                    .unwrap()
-                                    .clone(),
-                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0))
+        commands
+            .entity(entity)
+            .insert(Cleanup)
+            .with_children(|parent| {
+                parent
+                    .spawn(SpriteBundle {
+                        texture: character_assets.character_frame.clone(),
+                        transform: Transform::from_scale(Vec3::splat(0.1))
+                            .with_translation(Vec3::new(0.0, 0.0, 5.0)),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn((
+                                SpriteSheetBundle {
+                                    texture_atlas: character_assets
+                                        .character_portraits
+                                        .get(&character.0.character_id)
+                                        .unwrap()
+                                        .clone(),
+                                    transform: Transform::from_translation(Vec3::new(
+                                        0.0, 0.0, -1.0,
+                                    ))
                                     .with_scale(Vec3::splat(1.0)),
-                                ..Default::default()
-                            },
-                            character_animation.clone(),
-                            AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
-                        ))
-                        .with_children(|parent| {
-                            parent
-                                .spawn(SpatialBundle {
-                                    transform: Transform::from_scale(Vec3::splat(4.0))
-                                        .with_translation(Vec3::new(0.0, 0.0, 5.0)),
                                     ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    // Attack
-                                    parent
-                                        .spawn(SpriteBundle {
-                                            texture: character_assets.attack_orb.clone(),
-                                            transform: Transform::from_translation(Vec3::new(
-                                                -24.0, -28.0, 0.0,
-                                            ))
-                                            .with_scale(Vec3::splat(0.75)),
-                                            ..Default::default()
-                                        })
-                                        .with_children(|parent| {
-                                            parent.spawn(Text2dBundle {
-                                                text: Text::from_section(
-                                                    (character.0.attack + character.0.attack_bonus)
-                                                        .to_string(),
-                                                    TextStyle {
-                                                        font: ui_assets.font.clone(),
-                                                        font_size: 28.0,
-                                                        color: Color::WHITE,
-                                                    },
-                                                ),
+                                },
+                                character_animation.clone(),
+                                AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                            ))
+                            .with_children(|parent| {
+                                parent
+                                    .spawn(SpatialBundle {
+                                        transform: Transform::from_scale(Vec3::splat(6.0))
+                                            .with_translation(Vec3::new(0.0, 0.0, 5.0)),
+                                        ..Default::default()
+                                    })
+                                    .with_children(|parent| {
+                                        // Attack
+                                        parent
+                                            .spawn(SpriteBundle {
+                                                texture: character_assets.attack_orb.clone(),
                                                 transform: Transform::from_translation(Vec3::new(
-                                                    0.0, 0.0, 1.0,
-                                                )),
+                                                    -24.0, -28.0, 0.0,
+                                                ))
+                                                .with_scale(Vec3::splat(0.75)),
                                                 ..Default::default()
+                                            })
+                                            .with_children(|parent| {
+                                                parent.spawn(Text2dBundle {
+                                                    text: Text::from_section(
+                                                        (character.0.attack
+                                                            + character.0.attack_bonus)
+                                                            .to_string(),
+                                                        TextStyle {
+                                                            font: ui_assets.font.clone(),
+                                                            font_size: 28.0,
+                                                            color: Color::WHITE,
+                                                        },
+                                                    ),
+                                                    transform: Transform::from_translation(
+                                                        Vec3::new(0.0, 0.0, 1.0),
+                                                    ),
+                                                    ..Default::default()
+                                                });
                                             });
-                                        });
 
-                                    // Health
-                                    parent
-                                        .spawn(SpriteBundle {
-                                            texture: character_assets.health_orb.clone(),
-                                            transform: Transform::from_translation(Vec3::new(
-                                                24.0, -28.0, 0.0,
-                                            ))
-                                            .with_scale(Vec3::splat(0.75)),
-                                            ..Default::default()
-                                        })
-                                        .with_children(|parent| {
-                                            parent.spawn(Text2dBundle {
-                                                text: Text::from_section(
-                                                    (character.0.defense
-                                                        + character.0.defense_bonus)
-                                                        .to_string(),
-                                                    TextStyle {
-                                                        font: ui_assets.font.clone(),
-                                                        font_size: 24.0,
-                                                        color: Color::WHITE,
-                                                    },
-                                                ),
+                                        // Health
+                                        parent
+                                            .spawn(SpriteBundle {
+                                                texture: character_assets.health_orb.clone(),
                                                 transform: Transform::from_translation(Vec3::new(
-                                                    0.0, 0.0, 1.0,
-                                                )),
+                                                    24.0, -28.0, 0.0,
+                                                ))
+                                                .with_scale(Vec3::splat(0.75)),
                                                 ..Default::default()
+                                            })
+                                            .with_children(|parent| {
+                                                parent.spawn(Text2dBundle {
+                                                    text: Text::from_section(
+                                                        (character.0.defense
+                                                            + character.0.defense_bonus)
+                                                            .to_string(),
+                                                        TextStyle {
+                                                            font: ui_assets.font.clone(),
+                                                            font_size: 24.0,
+                                                            color: Color::WHITE,
+                                                        },
+                                                    ),
+                                                    transform: Transform::from_translation(
+                                                        Vec3::new(0.0, 0.0, 1.0),
+                                                    ),
+                                                    ..Default::default()
+                                                });
                                             });
-                                        });
-                                });
-                        });
-                });
-        });
+                                    });
+                            });
+                    });
+            });
     }
 }

@@ -1,18 +1,16 @@
-use std::f32::consts::E;
-
 use crate::{
     model::{
         game::Game, game_user_characters::GameUserCharacters, game_users::GameUser, users::User,
     },
-    schema::{game_user_characters, game_users, shops},
+    schema::{game_users, shops},
     service::{character_service, shop_service},
     Database,
 };
 use chrono::NaiveDateTime;
-use diesel::{delete, insert_into, prelude::*, update};
+use diesel::{delete, prelude::*, update};
 use protocol::{
     characters::CHARACTERS,
-    protocol::{BuyRequest, CharacterInstance, Error, GameUserInfo, Protocol},
+    protocol::{BuyRequest, Error, GameUserInfo, Protocol},
 };
 use rand::seq::SliceRandom;
 use rocket::{
@@ -23,7 +21,7 @@ use rocket::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::game_user_characters::{GameUserCharacter, NewGameUserCharacter};
+use super::game_user_characters::GameUserCharacter;
 
 #[derive(Queryable, Identifiable, Associations, Serialize, Deserialize, Clone, Debug)]
 #[diesel(belongs_to(GameUser))]
@@ -93,13 +91,15 @@ impl<'r> FromRequest<'r> for Shop {
             let game_user = game_user.clone();
             if let Some(db) = req.guard::<Database>().await.succeeded() {
                 return db
-                    .run(move |con| {
-                        if let Ok(shop) = Shop::belonging_to(&game_user).first::<Shop>(con) {
-                            return Outcome::Success(shop);
-                        } else {
-                            return Outcome::Forward(());
-                        }
-                    })
+                    .run(
+                        move |con| match Shop::belonging_to(&game_user).first::<Shop>(con) {
+                            Ok(shop) => Outcome::Success(shop),
+                            Err(err) => {
+                                warn!("Shop not found for game user {}: {}", game_user.id, err);
+                                Outcome::Forward(())
+                            }
+                        },
+                    )
                     .await;
             }
             return Outcome::Failure((Status::ServiceUnavailable, Self::Error::Internal));
@@ -216,8 +216,8 @@ pub async fn buy_character(
     db: Database,
     user: &User,
     game_user: GameUser,
-    mut shop: Shop,
-    mut game_user_characters: GameUserCharacters,
+    shop: Shop,
+    game_user_characters: GameUserCharacters,
     buy_request: Json<BuyRequest>,
 ) -> Json<Protocol> {
     let character =
@@ -239,13 +239,13 @@ pub async fn buy_character(
             ));
         };
 
-    if (game_user_characters
+    if game_user_characters
         .0
         .iter()
         .filter_map(|c| c.as_ref())
         .filter(|c| c.character_id == character.id && !c.upgraded)
         .count()
-        == 2)
+        == 2
     {
         // Upgrade character
         match shop_service::upgrade_character(
@@ -281,26 +281,31 @@ pub async fn buy_character(
             }
         }
     } else {
-        if let Some(Some(_)) = game_user_characters.0.get(buy_request.target_idx as usize) {
-            // TODO: Tyr to move current character to free slot
-            return Json(Error::new_protocol_response(
-                Status::UnprocessableEntity.code,
-                "Character slot alredy occupied".to_string(),
-                Protocol::BuyRequest(buy_request.into_inner()),
-            ));
+        if let Some(Some(existing_character)) =
+            game_user_characters.0.get(buy_request.target_idx as usize)
+        {
+            if let Some((idx, _)) = game_user_characters
+                .0
+                .iter()
+                .enumerate()
+                .find(|(_, c)| c.is_none())
+            {
+                debug!("Moving character {:?} to slot {}", existing_character, idx);
+                character_service::move_character(
+                    &db,
+                    (buy_request.target_idx, idx as u8),
+                    existing_character.id,
+                    &game_user_characters,
+                )
+                .await;
+            } else {
+                return Json(Error::new_protocol_response(
+                    Status::UnprocessableEntity.code,
+                    "Character slot alredy occupied".to_string(),
+                    Protocol::BuyRequest(buy_request.into_inner()),
+                ));
+            }
         }
-
-        game_user_characters.0.insert(
-            buy_request.target_idx.into(),
-            Some(GameUserCharacter::new(
-                game_user.id,
-                character.id,
-                buy_request.target_idx.into(),
-                false,
-                0,
-                0,
-            )),
-        );
 
         if let Ok(shop_character_ids) = shop_service::buy_character(
             &db,
