@@ -7,10 +7,12 @@ extern crate dotenv;
 
 use diesel::pg::Pg;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use game::game_instance::GameInstance;
 use scheduler::long_running_task;
+use uuid::Uuid;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
-use std::{env, error::Error};
+use std::{collections::HashMap, env, error::Error, sync::Arc};
 
 use dotenv::dotenv;
 use model::model::get_api;
@@ -21,10 +23,12 @@ use rocket::{
         value::{Map, Value},
     },
     fs::FileServer,
-    tokio, Build, Rocket,
+    tokio::{self, sync::Mutex},
+    Build, Rocket,
 };
 use rocket_sync_db_pools::database;
 
+pub mod game;
 pub mod model;
 pub mod models;
 pub(crate) mod scheduler;
@@ -34,6 +38,10 @@ pub mod util;
 
 #[database("db")]
 pub struct Database(diesel::PgConnection);
+
+pub struct RunningGames {
+    pub games: Arc<Mutex<HashMap<Uuid, Arc<Mutex<GameInstance>>>>>,
+}
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -60,20 +68,24 @@ async fn main() -> Result<(), rocket::Error> {
         .merge(("port", port))
         .merge(("databases", map!["db" => db]));
 
+    let games = Arc::new(Mutex::new(HashMap::new()));
+
     let r = rocket::custom(figment)
         .attach(Database::fairing())
         .attach(AdHoc::try_on_ignite(
             "Database Migrations",
             run_db_migrations,
         ))
+        .manage(RunningGames {
+            games: games.clone(),
+        })
         .mount("/api/v1", get_api())
         .mount("/", FileServer::from("./static"))
         .ignite()
         .await?;
 
     let conn = Database::get_one(&r).await.unwrap();
-
-    tokio::spawn(async move { long_running_task(conn).await });
+    tokio::spawn(async move { long_running_task(conn, &games).await });
 
     r.launch().await?;
 

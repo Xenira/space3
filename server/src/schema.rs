@@ -29,7 +29,7 @@ diesel::table! {
     game_users (id) {
         id -> Int4,
         game_id -> Int4,
-        user_id -> Int4,
+        user_id -> Nullable<Int4>,
         display_name -> Varchar,
         avatar_id -> Nullable<Int4>,
         experience -> Int4,

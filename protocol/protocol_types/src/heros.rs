@@ -5,7 +5,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct God {
     pub id: i32,
     pub name: Cow<'static, str>,
@@ -13,8 +13,9 @@ pub struct God {
     pub pantheon: Pantheon,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum Pantheon {
+    #[default]
     Greek,
     Norse,
     Egyptian,

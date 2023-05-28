@@ -26,9 +26,12 @@ use bevy_egui::{
     egui::{self, Color32},
     EguiContexts, EguiPlugin,
 };
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
-use protocol::protocol::{Credentials, Protocol};
+use protocol::{
+    gods::GODS,
+    protocol::{Credentials, Protocol, Turn},
+};
 use std::env;
 
 mod components;
@@ -171,23 +174,24 @@ fn networking_handler(
             }
             Protocol::GameStartResponse(gods) => {
                 commands.insert_resource(TimerUi(Some(Timer::from_seconds(30.0, TimerMode::Once))));
-                commands.insert_resource(GameCommanderSelection(gods.clone()));
+                commands.insert_resource(GameCommanderSelection(
+                    gods.iter()
+                        .map(|g| GODS[*g as usize].clone())
+                        .collect::<Vec<_>>(),
+                ));
                 ev_state_change.send(StateChangeEvent(AppState::GameCommanderSelection));
             }
             Protocol::GameUpdateResponse(update) => {
-                if let Some(timer) = update.next_turn_at {
-                    commands.insert_resource(TimerUi(Some(Timer::from_seconds(
-                        timer.signed_duration_since(Utc::now()).num_seconds() as f32,
-                        TimerMode::Once,
-                    ))));
-                }
+                let timer: DateTime<Utc> = update.turn.into();
 
-                if update.turn > 0 {
-                    if update.turn % 2 == 0 {
-                        // ev_state_change.send(StateChangeEvent(AppState::GameBattle));
-                    } else {
-                        ev_state_change.send(StateChangeEvent(AppState::GameShop));
-                    }
+                commands.insert_resource(TimerUi(Some(Timer::from_seconds(
+                    timer.signed_duration_since(Utc::now()).num_seconds() as f32,
+                    TimerMode::Once,
+                ))));
+
+                match update.turn {
+                    Turn::Combat(_, _) => (),
+                    Turn::Shop(_, _) => ev_state_change.send(StateChangeEvent(AppState::GameShop)),
                 }
             }
             Protocol::GameUserInfoResponse(user_info) => {

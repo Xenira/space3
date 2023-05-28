@@ -1,6 +1,9 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use protocol_types::{character::Character, heros::God};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+const START_TIME: i64 = 45;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Protocol {
@@ -25,14 +28,14 @@ pub enum Protocol {
     // Game
     // TODO: Change to [God; 4]
     GameUpdateResponse(GameUpdate),
-    GameStartResponse(Vec<God>),
+    GameStartResponse([i32; 4]),
     AvatarSelectResponse(God),
-    GameShopResponse(bool, Vec<Option<(u8, CharacterInstance)>>),
+    GameShopResponse(bool, Vec<Option<CharacterInstance>>),
     BuyRequest(BuyRequest),
     RerollShopRequest,
     BuyResponse(
         GameUserInfo,
-        Vec<Option<(u8, CharacterInstance)>>,
+        Vec<Option<CharacterInstance>>,
         Vec<Option<CharacterInstance>>,
     ),
     SellResponse(GameUserInfo, Vec<Option<CharacterInstance>>),
@@ -122,8 +125,8 @@ impl BattleResponse {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BattleAction {
     pub action: BattleActionType,
-    pub source: i32,
-    pub target: Option<i32>,
+    pub source: Uuid,
+    pub target: Option<Uuid>,
     pub result_own: Vec<Option<CharacterInstance>>,
     pub result_opponent: Vec<Option<CharacterInstance>>,
 }
@@ -144,6 +147,7 @@ impl BattleAction {
 pub enum BattleActionType {
     Attack,
     Die,
+    Ability,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -153,31 +157,30 @@ pub struct BattleResult {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct GameUpdate {
-    pub turn: i32,
-    pub next_turn_at: Option<DateTime<Utc>>,
+    pub turn: Turn,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct GameUserInfo {
     pub name: String,
-    pub experience: i32,
-    pub health: i32,
-    pub money: i32,
+    pub experience: u8,
+    pub health: i16,
+    pub money: u16,
     pub avatar: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct GameOpponentInfo {
     pub name: String,
-    pub experience: i32,
-    pub health: i32,
+    pub experience: u8,
+    pub health: i16,
     pub character_id: i32,
     pub is_next_opponent: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct GameResult {
-    pub place: i32,
+    pub place: u8,
     pub reward: i32,
     pub ranking: i32,
 }
@@ -190,14 +193,15 @@ pub struct BuyRequest {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CharacterInstance {
-    pub id: i32,
+    pub id: Uuid,
     pub character_id: i32,
     pub position: i32,
     pub upgraded: bool,
     pub attack: i32,
-    pub defense: i32,
+    pub health: i32,
     pub attack_bonus: i32,
-    pub defense_bonus: i32,
+    pub health_bonus: i32,
+    pub cost: u8,
 }
 
 impl CharacterInstance {
@@ -209,7 +213,7 @@ impl CharacterInstance {
         };
 
         Self {
-            id: -1,
+            id: Uuid::new_v4(),
             character_id: character.id,
             position: -1,
             upgraded: upgraded,
@@ -218,13 +222,14 @@ impl CharacterInstance {
             } else {
                 character.attack
             },
-            defense: if upgraded {
+            health: if upgraded {
                 upgrade_hp
             } else {
                 character.health
             },
             attack_bonus: 0,
-            defense_bonus: 0,
+            health_bonus: 0,
+            cost: character.cost,
         }
     }
 
@@ -233,9 +238,65 @@ impl CharacterInstance {
         self
     }
 
-    pub fn with_id(mut self, id: i32) -> Self {
+    pub fn with_id(mut self, id: Uuid) -> Self {
         self.id = id;
         self
+    }
+
+    pub fn with_attack_bonus(mut self, attack_bonus: i32) -> Self {
+        self.attack_bonus = attack_bonus;
+        self
+    }
+
+    pub fn with_health_bonus(mut self, health_bonus: i32) -> Self {
+        self.health_bonus = health_bonus;
+        self
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Turn {
+    Shop(u16, DateTime<Utc>),
+    Combat(u16, DateTime<Utc>),
+}
+
+impl Default for Turn {
+    fn default() -> Self {
+        Self::Combat(0, Utc::now() + Duration::seconds(START_TIME))
+    }
+}
+
+impl Into<u16> for Turn {
+    fn into(self) -> u16 {
+        match self {
+            Self::Shop(turn, _) => turn as u16,
+            Self::Combat(turn, _) => turn as u16,
+        }
+    }
+}
+
+impl Into<DateTime<Utc>> for Turn {
+    fn into(self) -> DateTime<Utc> {
+        match self {
+            Self::Shop(_, turn_time) => turn_time,
+            Self::Combat(_, turn_time) => turn_time,
+        }
+    }
+}
+
+impl Turn {
+    pub fn next(&mut self, next_turn: DateTime<Utc>) {
+        match self {
+            Self::Shop(turn, _) => *self = Self::Combat(*turn, next_turn),
+            Self::Combat(turn, _) => *self = Self::Shop(*turn + 1, next_turn),
+        }
+    }
+
+    pub fn is_next(&self) -> bool {
+        match self {
+            Self::Shop(_, turn_time) => Utc::now() >= *turn_time,
+            Self::Combat(_, turn_time) => Utc::now() >= *turn_time,
+        }
     }
 }
 

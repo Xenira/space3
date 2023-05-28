@@ -3598,6 +3598,7 @@ dependencies = [
  "protocol_types",
  "serde",
  "serde_json",
+ "uuid",
 ]
 
 [[package]]

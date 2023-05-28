@@ -79,7 +79,7 @@ pub struct Sell;
 pub struct GameUsers;
 
 #[derive(Debug)]
-pub struct ShopChangedEvent(pub Vec<Option<(u8, CharacterInstance)>>);
+pub struct ShopChangedEvent(pub Vec<Option<CharacterInstance>>);
 
 #[derive(Debug)]
 pub struct BoardChangedEvent(pub Vec<Option<CharacterInstance>>);
@@ -438,7 +438,7 @@ fn generate_shop(
 
         commands.entity(shop).with_children(|parent| {
             for (i, character) in ev.0.iter().enumerate() {
-                if let Some((cost, character)) = character {
+                if let Some(character) = character {
                     parent
                         .spawn((
                             SpriteSheetBundle {
@@ -473,7 +473,7 @@ fn generate_shop(
                                 .with_children(|parent| {
                                     parent.spawn(Text2dBundle {
                                         text: Text::from_section(
-                                            cost.to_string(),
+                                            character.cost.to_string(),
                                             TextStyle {
                                                 font: ui_assets.font.clone(),
                                                 font_size: 28.0,

@@ -14,7 +14,7 @@ macro_rules! warn {
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=./data/**");
+    println!("cargo:rerun-if-changed=./data/gods.json");
 
     generate_from_json::<GodJson, God>("./data/gods", "gods", Some((256, 256)))?;
     generate_from_json::<CharacterJson, Character>(

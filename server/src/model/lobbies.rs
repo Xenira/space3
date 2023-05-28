@@ -159,7 +159,7 @@ pub async fn join_lobby(
     db: Database,
 ) -> (Status, Option<Json<Protocol>>) {
     match lobby_service::join_lobby(&db, lobby.into_inner(), user).await {
-        Ok(lobby) => (Status::Ok, None),
+        Ok(_) => (Status::Ok, None),
         Err(LobbyError::Full) => (
             Status::Conflict,
             Some(Json(Error::new_protocol(

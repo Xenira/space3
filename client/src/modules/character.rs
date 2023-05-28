@@ -126,8 +126,8 @@ fn on_spawn(
                                             .with_children(|parent| {
                                                 parent.spawn(Text2dBundle {
                                                     text: Text::from_section(
-                                                        (character.0.defense
-                                                            + character.0.defense_bonus)
+                                                        (character.0.health
+                                                            + character.0.health_bonus)
                                                             .to_string(),
                                                         TextStyle {
                                                             font: ui_assets.font.clone(),

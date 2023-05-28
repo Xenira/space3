@@ -1,32 +1,20 @@
-use crate::diesel::ExpressionMethods;
-use crate::diesel::RunQueryDsl;
-use crate::model::polling::Channel;
-use crate::schema::game_users;
-use crate::schema::lobby_users;
-use crate::{schema::users, Database};
+use super::{lobbies::LobbyWithUsers, polling::ActivePolls};
+use crate::{model::polling::Channel, schema::lobby_users, schema::users, Database, RunningGames};
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use chrono::NaiveDateTime;
-use diesel::update;
-use diesel::{insert_into, prelude::*, QueryDsl};
-
-use protocol::protocol::Credentials;
-use protocol::protocol::Error;
-use protocol::protocol::LoginResponse;
-use protocol::protocol::Protocol;
-use protocol::protocol::UserData;
+use diesel::{dsl::now, insert_into, prelude::*, update, ExpressionMethods, QueryDsl, RunQueryDsl};
+use protocol::protocol::{Credentials, Error, LoginResponse, Protocol, UserData};
 use rand_core::OsRng;
-use rocket::http::Status;
-use rocket::request;
-use rocket::request::FromRequest;
-use rocket::request::Outcome;
-use rocket::serde::json::Json;
-use rocket::Request;
+use rocket::{
+    http::Status,
+    request::{self, FromRequest, Outcome},
+    serde::json::Json,
+    Request, State,
+};
+use std::fmt;
 use uuid::Uuid;
 
-use super::lobbies::LobbyWithUsers;
-use super::polling::ActivePolls;
-
-#[derive(Identifiable, Queryable, Clone, Debug)]
+#[derive(Identifiable, Queryable, Clone)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -39,6 +27,25 @@ pub struct User {
     pub session_expires: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+impl fmt::Debug for User {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("User")
+            .field("id", &self.id)
+            .field("username", &self.username)
+            .field("display_name", &self.display_name)
+            .field("password", &"[REDACTED]".to_string())
+            .field("salt", &"[REDACTED]".to_string())
+            .field("display_name", &self.display_name)
+            .field("currency", &self.currency)
+            .field("tutorial", &self.tutorial)
+            .field("session_token", &"[REDACTED]".to_string())
+            .field("session_expires", &self.session_expires)
+            .field("created_at", &self.created_at)
+            .field("updated_at", &self.updated_at)
+            .finish()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -62,28 +69,19 @@ impl<'r> FromRequest<'r> for &'r User {
                                 let user = users::table
                                     .filter(
                                         users::session_token
-                                            .eq(Some(Uuid::parse_str(&key).unwrap())),
+                                            .eq(Some(Uuid::parse_str(&key).unwrap()))
+                                            .and(users::session_expires.gt(now)),
                                     )
                                     .first::<User>(con)
                                     .unwrap();
 
-                                if user.session_expires.is_none()
-                                    || (user.session_expires.unwrap()
-                                        - chrono::Utc::now().naive_utc())
-                                    .num_seconds()
-                                        < 0
-                                {
-                                    return Err(ApiKeyError::Invalid);
-                                } else {
-                                    update(users::table)
-                                        .filter(users::id.eq(user.id))
-                                        .set((users::session_expires.eq(Some(
-                                            chrono::Utc::now().naive_utc()
-                                                + chrono::Duration::hours(1),
-                                        )),))
-                                        .execute(con)
-                                        .unwrap();
-                                }
+                                update(users::table)
+                                    .filter(users::id.eq(user.id))
+                                    .set((users::session_expires.eq(Some(
+                                        chrono::Utc::now().naive_utc() + chrono::Duration::hours(1),
+                                    )),))
+                                    .execute(con)
+                                    .unwrap();
 
                                 trace!("Setting user {:?}", user);
                                 Ok(user)
@@ -166,7 +164,11 @@ pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> 
 }
 
 #[post("/users", data = "<creds>")]
-pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
+pub async fn login(
+    creds: Json<Credentials>,
+    db: Database,
+    games: &State<RunningGames>,
+) -> Json<Protocol> {
     let username = creds.username.clone();
     let user = db
         .run(move |con| {
@@ -202,27 +204,27 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
     .await
     .expect("Failed to update session token");
 
-    let channels = db
-        .run(move |con| {
-            let lobby = lobby_users::table
+    let mut game = None;
+
+    for (id, g) in games.games.lock().await.iter() {
+        if g.lock().await.has_user(user.id) {
+            game = Some(Channel::Game(*id));
+            break;
+        }
+    }
+
+    let channels = vec![
+        db.run(move |con| {
+            lobby_users::table
                 .filter(lobby_users::user_id.eq(user.id))
                 .select(lobby_users::lobby_id)
                 .first::<i32>(con)
                 .map(|id| Channel::Lobby(id))
-                .ok();
-            let game = game_users::table
-                .filter(
-                    game_users::user_id
-                        .eq(user.id)
-                        .and(game_users::health.gt(0)),
-                )
-                .select(game_users::game_id)
-                .first::<i32>(con)
-                .map(|id| Channel::Game(id))
-                .ok();
-            vec![lobby, game]
+                .ok()
         })
-        .await;
+        .await,
+        game,
+    ];
 
     for channel in channels {
         if let Some(channel) = channel {
