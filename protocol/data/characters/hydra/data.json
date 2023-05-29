@@ -8,7 +8,7 @@
     {
       "name": "Regenerate",
       "description": "If this character survives damage, it doubles its current health.",
-      "trigger": "OnSruvive",
+      "trigger": "OnSurvive",
       "effect": {
         "Buff": [
           {
@@ -20,7 +20,7 @@
           false
         ]
       },
-      "target": "Self"
+      "target": "SelfTarget"
     }
   ],
   "upgrade": {
@@ -31,7 +31,7 @@
       {
         "name": "Regenerate",
         "description": "If this character survives damage, it tripple its current health.",
-        "trigger": "OnSruvive",
+        "trigger": "OnSurvive",
         "effect": {
           "Buff": [
             {
@@ -43,7 +43,7 @@
             false
           ]
         },
-        "target": "Self"
+        "target": "SelfTarget"
       }
     ]
   }

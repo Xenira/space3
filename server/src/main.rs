@@ -45,6 +45,7 @@ pub struct RunningGames {
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
+    println!("Starting server...");
     if let Err(err) = dotenv() {
         warn!("Failed to read dotenv: {}", err);
     }

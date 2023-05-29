@@ -14,7 +14,7 @@ use protocol::{
     protocol::Protocol,
     protocol_types::heros::{self, God},
 };
-use surf::http::Method;
+use reqwest::Method;
 
 use super::startup::{GodAssets, UiAssets};
 
@@ -292,7 +292,7 @@ fn god_click(
 ) {
     for ev in ev_clicked.iter() {
         q_god.get(ev.0).ok().map(|(god, transform)| {
-            network.request(Method::Put, format!("games/avatar/{}", god.0.id).as_str());
+            network.request(Method::PUT, format!("games/avatar/{}", god.0.id).as_str());
         });
     }
 }

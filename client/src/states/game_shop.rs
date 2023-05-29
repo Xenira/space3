@@ -1,7 +1,3 @@
-use bevy::prelude::*;
-use protocol::protocol::{BuyRequest, CharacterInstance, GameOpponentInfo, GameUserInfo, Protocol};
-use surf::http::Method;
-
 use crate::{
     cleanup_system,
     components::{
@@ -17,6 +13,9 @@ use crate::{
     prefabs::animation,
     AppState, Cleanup,
 };
+use bevy::prelude::*;
+use protocol::protocol::{BuyRequest, CharacterInstance, GameOpponentInfo, GameUserInfo, Protocol};
+use reqwest::Method;
 
 use super::startup::{CharacterAssets, UiAssets};
 
@@ -94,10 +93,10 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     // root node
-    networking.request(Method::Get, "games/shops");
-    networking.request(Method::Get, "games/characters");
-    networking.request(Method::Get, "games/users/me");
-    networking.request(Method::Get, "games/users");
+    networking.request(Method::GET, "games/shops");
+    networking.request(Method::GET, "games/characters");
+    networking.request(Method::GET, "games/users/me");
+    networking.request(Method::GET, "games/users");
     commands.spawn((
         SpatialBundle {
             transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 200.0, 0.0)),
@@ -315,7 +314,7 @@ fn on_network(
                     match *reference {
                         Protocol::BuyRequest(_) => {
                             debug!("BuyRequest failed: {:?}", err);
-                            networking.request(Method::Get, "games/shops");
+                            networking.request(Method::GET, "games/shops");
                         }
                         _ => {}
                     }
@@ -338,7 +337,7 @@ fn on_buy(
             if let Ok(god) = q_god.get(ev.entity) {
                 debug!("on_buy: {:?} {:?}", pedestal, god);
                 networking.request_data(
-                    Method::Post,
+                    Method::POST,
                     "games/shops/buy",
                     &BuyRequest {
                         character_idx: god.idx,
@@ -359,7 +358,7 @@ fn on_reroll(
 ) {
     for ev in ev_cklicked.iter() {
         if let Ok(_) = q_reroll.get(ev.0) {
-            networking.request(Method::Post, "games/shops");
+            networking.request(Method::POST, "games/shops");
         }
     }
 }
@@ -371,7 +370,7 @@ fn on_lock(
 ) {
     for ev in ev_cklicked.iter() {
         if let Ok(_) = q_lock.get(ev.0) {
-            networking.request(Method::Patch, "games/shops");
+            networking.request(Method::PATCH, "games/shops");
         }
     }
 }
@@ -386,7 +385,7 @@ fn on_sell(
         if let Ok(character) = q_sell.get(ev.target).and(q_character.get(ev.entity)) {
             debug!("on_sell: {:?}", character);
             networking.request(
-                Method::Delete,
+                Method::DELETE,
                 format!("games/characters/{}", character.0).as_str(),
             );
         }
@@ -405,7 +404,7 @@ fn on_move(
             if let Ok(god) = q_god.get(ev.entity) {
                 debug!("on_move: {:?} {:?}", pedestal, god);
                 networking.request(
-                    Method::Put,
+                    Method::PUT,
                     format!("games/characters/{}/{}", god.0, pedestal.0).as_str(),
                 );
                 commands.entity(ev.entity).despawn_recursive();

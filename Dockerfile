@@ -3,7 +3,7 @@
 ##################################################
 FROM rust:alpine AS chef
 USER root
-RUN apk update && apk add --no-cache openssl-dev musl-dev libpq && cargo install cargo-chef
+RUN apk update && apk add --no-cache openssl-dev musl-dev libpq-dev && cargo install cargo-chef
 WORKDIR /app
 
 ##################################################
@@ -22,43 +22,38 @@ WORKDIR /client
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM trunk AS builder-client
-ARG BASE_URL
-ENV BASE_URL=$BASE_URL
 COPY --from=planner-client /client/recipe.json /client/recipe.json
 COPY ./protocol /protocol
 COPY Cargo.toml /
 RUN cargo chef cook --target wasm32-unknown-unknown --recipe-path recipe.json
 COPY ./client /client
+ARG BASE_URL
+ENV BASE_URL=$BASE_URL
 RUN trunk build
 
 ##################################################
 # Server
 ##################################################
 
-FROM chef AS planner-server
-COPY Cargo.toml /
-COPY ./server /server
-COPY ./protocol /protocol
-RUN cd /server && cargo chef prepare --recipe-path recipe.json
-
 FROM chef AS builder-server
 COPY Cargo.toml /
-COPY --from=planner-server /server/recipe.json /server/recipe.json
 COPY ./protocol /protocol
-RUN cd /server && cargo chef cook --target x86_64-unknown-linux-musl --release --recipe-path recipe.json
 COPY ./server /server
-RUN cargo build --target x86_64-unknown-linux-musl --release
+RUN cd /server && RUSTFLAGS="-C target-feature=-crt-static" cargo build --target x86_64-unknown-linux-musl --release
 
 ##################################################
 # Final Image
 ##################################################
-FROM alpine as server
+FROM chef as server
 WORKDIR /usr/local/bin
-RUN addgroup -S serveruser && adduser -S serveruser -G serveruser
-COPY --from=builder-server /server/target/x86_64-unknown-linux-musl/release/server .
+RUN apk add libgcc && addgroup -S serveruser && adduser -S serveruser -G serveruser
+COPY --from=builder-server /server/target/x86_64-unknown-linux-musl/release/rog-server .
 COPY --from=builder-client /client/dist ./static
 COPY ./server/static ./static
 COPY ./client/assets ./static/assets
-USER serveruser
+COPY ./protocol /protocol
+COPY ./server /server
+COPY Cargo.toml /
+USER root
 EXPOSE 8000/tcp
-CMD ["server"]
+CMD ["rog-server"]

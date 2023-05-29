@@ -152,6 +152,7 @@ fn play_animation(
                         ]));
                     }
                 }
+                _ => (),
             }
             debug!("Changing state to PlayAnimation");
             combat_state.set(GameCombatState::PlayAnimation);

@@ -1,8 +1,7 @@
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{egui, EguiContexts};
 use protocol::protocol::{Credentials, Protocol, UserData};
-
-use surf::http::Method;
+use reqwest::{header::HeaderValue, Method};
 
 use crate::{
     cleanup_system,
@@ -140,10 +139,10 @@ fn ui_login(
         ui.separator();
         ui.horizontal(|ui| {
             if ui.button("Login").clicked() {
-                network.request_data(Method::Post, "users", &credentials.0);
+                network.request_data(Method::POST, "users", &credentials.0);
             }
             if ui.button("Register").clicked() {
-                network.request_data(Method::Put, "users", &credentials.0);
+                network.request_data(Method::PUT, "users", &credentials.0);
             }
         });
         if ui.button("Exit").clicked() {
@@ -161,22 +160,11 @@ fn on_login(
 ) {
     for ev in ev_networking.iter() {
         if let Protocol::LoginResponse(login) = &ev.0 {
-            network.client = network
-                .client
-                .config()
-                .clone()
-                .add_header("x-api-key", login.key.clone())
-                .unwrap()
-                .try_into()
-                .unwrap();
-            network.polling_client = network
-                .polling_client
-                .config()
-                .clone()
-                .add_header("x-api-key", login.key.clone())
-                .unwrap()
-                .try_into()
-                .unwrap();
+            network.headers.insert(
+                "x-api-key",
+                HeaderValue::from_str(login.key.as_str()).unwrap(),
+            );
+
             commands.insert_resource(User(login.user.clone()));
             debug!("Logged in as {}", login.user.username);
 

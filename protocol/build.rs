@@ -32,7 +32,7 @@ fn generate_from_json<T, U>(
     image: Option<(u32, u32)>,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
-    T: protocol_data_types::ToString + Named + DeserializeOwned,
+    T: protocol_data_types::ToString + Named + DeserializeOwned + std::fmt::Debug,
 {
     let out_dir = std::env::var_os("OUT_DIR").unwrap();
     let rs_path = std::path::Path::new(&out_dir).join(format!("{}.rs", name));
@@ -56,7 +56,18 @@ where
             if data_path.exists() {
                 File::open(data_path)
                     .ok()
-                    .and_then(|f| serde_json::from_reader(BufReader::new(f)).ok())
+                    .and_then(|f| {
+                        serde_json::from_reader(BufReader::new(f))
+                            .or_else(|e| {
+                                warn!(
+                                    "Failed to parse data.json for {:?}: {}",
+                                    p.join("data.json"),
+                                    e
+                                );
+                                Err(e)
+                            })
+                            .ok()
+                    })
                     .map(|d: T| (p, d))
             } else {
                 warn!("No data.json for {:?}", p);

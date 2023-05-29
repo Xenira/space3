@@ -1,8 +1,7 @@
 use bevy::prelude::*;
-
 use bevy_egui::{egui, EguiContexts};
 use protocol::protocol::{LobbyInfo, Protocol};
-use surf::http::Method;
+use reqwest::Method;
 
 use crate::{
     cleanup_system,
@@ -42,13 +41,13 @@ fn ui_lobby(
         ui.separator();
         ui.horizontal(|ui| {
             if ui.button("Leave").clicked() {
-                network.request_data(Method::Delete, "lobbies", &lobby.0);
+                network.request_data(Method::DELETE, "lobbies", &lobby.0);
             }
             if ui.button("Ready").clicked() {
-                network.request_data(Method::Patch, "lobbies/ready", &lobby.0);
+                network.request_data(Method::PATCH, "lobbies/ready", &lobby.0);
             }
             if ui.button("Play").clicked() {
-                network.request_data(Method::Patch, "lobbies/start", &lobby.0);
+                network.request_data(Method::PATCH, "lobbies/start", &lobby.0);
             }
         });
     });

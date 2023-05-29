@@ -1,6 +1,6 @@
 [workspace]
-members = [ "protocol", "protocol/protocol_types", "protocol/protocol_data_types", "cli"]
-exclude = [ "server", "client"]
+members = [ "protocol", "protocol/protocol_types", "protocol/protocol_data_types"]
+exclude = [ "server", "client", "cli"]
 
 [workspace.package]
 version = "0.1.0"

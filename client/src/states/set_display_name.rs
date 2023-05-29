@@ -1,7 +1,7 @@
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{egui, EguiContexts};
 use protocol::protocol::Protocol;
-use surf::http::Method;
+use reqwest::Method;
 
 use crate::{
     cleanup_system,
@@ -42,7 +42,7 @@ fn ui_main_menu(
         });
         ui.horizontal(|ui| {
             if ui.button("Set Display Name").clicked() {
-                networking.request_data(Method::Put, "users/display_name", &display_name.0.clone());
+                networking.request_data(Method::PUT, "users/display_name", &display_name.0.clone());
             }
         });
     });

@@ -3,7 +3,7 @@ extern crate dotenv;
 use components::on_screen_log::{LogEntry, LogLevel};
 #[cfg(not(target_family = "wasm"))]
 use dotenv::dotenv;
-use surf::http::Method;
+use reqwest::Method;
 
 use crate::{
     components::{timer::TimerUi, ComponentsPlugin},
@@ -21,6 +21,8 @@ use bevy::{
     math::Vec3,
     pbr::PointLightBundle,
     prelude::*,
+    window::Cursor,
+    winit::WinitPlugin,
 };
 use bevy_egui::{
     egui::{self, Color32},
@@ -80,13 +82,27 @@ fn main() {
     #[cfg(target_family = "wasm")]
     let base_url = env!("BASE_URL", "BASE_URL needs to be set for wasm builds").to_string();
 
-    app.add_state::<AppState>()
-        .add_plugins(
-            DefaultPlugins.set(LogPlugin {
-                level: Level::DEBUG,
+    let mut cursor = Cursor::default();
+    cursor.visible = false;
+
+    let default_plugins = DefaultPlugins
+        .set(LogPlugin {
+            level: Level::DEBUG,
+            ..Default::default()
+        })
+        .set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "<name>".to_string(),
+                resizable: true,
+                cursor,
+                fit_canvas_to_parent: true,
                 ..Default::default()
-            }), // .set(ImagePlugin::default_nearest()),
-        )
+            }),
+            ..Default::default()
+        });
+
+    app.add_state::<AppState>()
+        .add_plugins(default_plugins) // .set(ImagePlugin::default_nearest()),
         .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(EntityCountDiagnosticsPlugin::default())
@@ -134,7 +150,7 @@ fn setup(
                 user,
             );
             networking.request_data(
-                Method::Post,
+                Method::POST,
                 "users",
                 &Credentials {
                     username: user,

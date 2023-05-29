@@ -7,6 +7,8 @@
   "upgrade": {
     "name": "Minotaur",
     "attack": 3,
-    "health": 2
-  }
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
 }
