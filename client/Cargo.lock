@@ -3133,6 +3133,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "prettyplease"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b69d39aab54d069e7f2fe8cb970493e7834601ca2d8c65fd7bbd183578080d1"
+dependencies = [
+ "proc-macro2",
+ "syn 2.0.18",
+]
+
+[[package]]
 name = "proc-macro-crate"
 version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3164,10 +3174,13 @@ dependencies = [
  "chrono",
  "enum-iterator",
  "image",
+ "prettyplease",
  "protocol_data_types",
  "protocol_types",
+ "quote",
  "serde",
  "serde_json",
+ "syn 2.0.18",
  "uuid",
 ]
 
@@ -3176,6 +3189,7 @@ name = "protocol_data_types"
 version = "0.1.0"
 dependencies = [
  "protocol_types",
+ "quote",
  "serde",
 ]
 

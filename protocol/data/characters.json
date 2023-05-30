@@ -8,8 +8,10 @@
         "upgrade": {
             "name": "Hydra",
             "attack": 4,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Medusa",
@@ -20,8 +22,10 @@
         "upgrade": {
             "name": "Medusa",
             "attack": 4,
-            "health": 6
-        }
+            "health": 6,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Minotaur",
@@ -32,8 +36,10 @@
         "upgrade": {
             "name": "Minotaur",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Centaur",
@@ -44,8 +50,10 @@
         "upgrade": {
             "name": "Centaur",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Sphinx",
@@ -56,8 +64,10 @@
         "upgrade": {
             "name": "Hieracosphinx",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Pegasus",
@@ -68,8 +78,10 @@
         "upgrade": {
             "name": "Pegasus",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Cyclops",
@@ -80,8 +92,10 @@
         "upgrade": {
             "name": "Cyclops",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Sirens",
@@ -92,8 +106,10 @@
         "upgrade": {
             "name": "Sirens",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Chimera",
@@ -104,8 +120,10 @@
         "upgrade": {
             "name": "Chimera",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Harpies",
@@ -116,8 +134,10 @@
         "upgrade": {
             "name": "Harpies",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Ammut",
@@ -128,8 +148,10 @@
         "upgrade": {
             "name": "Ammut",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Akhekh",
@@ -140,8 +162,10 @@
         "upgrade": {
             "name": "Akhekh",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Uraeus",
@@ -152,8 +176,10 @@
         "upgrade": {
             "name": "Uraeus",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Bennu",
@@ -164,8 +190,10 @@
         "upgrade": {
             "name": "Bennu",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Serpopard",
@@ -176,8 +204,10 @@
         "upgrade": {
             "name": "Serpopard",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Griffin",
@@ -188,8 +218,10 @@
         "upgrade": {
             "name": "Griffin",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Benu Bird",
@@ -200,8 +232,10 @@
         "upgrade": {
             "name": "Benu Bird",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Set Animal",
@@ -212,8 +246,10 @@
         "upgrade": {
             "name": "Set Animal",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Ogdoad",
@@ -224,8 +260,10 @@
         "upgrade": {
             "name": "Ogdoad",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Garuda",
@@ -236,8 +274,10 @@
         "upgrade": {
             "name": "Garuda",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Naga",
@@ -248,8 +288,10 @@
         "upgrade": {
             "name": "Naga",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Hanuman",
@@ -260,8 +302,10 @@
         "upgrade": {
             "name": "Hanuman",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Jatayu",
@@ -272,8 +316,10 @@
         "upgrade": {
             "name": "Jatayu",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Rakshasa",
@@ -284,8 +330,10 @@
         "upgrade": {
             "name": "Rakshasa",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Gandharva",
@@ -296,8 +344,10 @@
         "upgrade": {
             "name": "Gandharva",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Yaksha",
@@ -308,8 +358,10 @@
         "upgrade": {
             "name": "Yaksha",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Apsara",
@@ -320,8 +372,10 @@
         "upgrade": {
             "name": "Apsara",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Varaha",
@@ -332,8 +386,10 @@
         "upgrade": {
             "name": "Varaha",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Makara",
@@ -344,8 +400,10 @@
         "upgrade": {
             "name": "Makara",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Jormungandr",
@@ -356,8 +414,10 @@
         "upgrade": {
             "name": "Jormungandr",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Fenrir",
@@ -368,8 +428,10 @@
         "upgrade": {
             "name": "Fenrir",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Valkyries",
@@ -380,8 +442,10 @@
         "upgrade": {
             "name": "Valkyries",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Frost Giants",
@@ -392,8 +456,10 @@
         "upgrade": {
             "name": "Frost Giants",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Dwarves",
@@ -404,8 +470,10 @@
         "upgrade": {
             "name": "Dwarves",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Norns",
@@ -416,8 +484,10 @@
         "upgrade": {
             "name": "Norns",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Huldra",
@@ -428,8 +498,10 @@
         "upgrade": {
             "name": "Huldra",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Sleipnir",
@@ -440,8 +512,10 @@
         "upgrade": {
             "name": "Sleipnir",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Draugr",
@@ -452,8 +526,10 @@
         "upgrade": {
             "name": "Draugr",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     },
     {
         "name": "Jotnar",
@@ -464,7 +540,9 @@
         "upgrade": {
             "name": "Jotnar",
             "attack": 6,
-            "health": 4
-        }
+            "health": 4,
+            "abilities": []
+        },
+        "abilities": []
     }
 ]

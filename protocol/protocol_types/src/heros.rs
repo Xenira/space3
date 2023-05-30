@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct God {
     pub id: i32,
-    pub name: Cow<'static, str>,
-    pub description: Cow<'static, str>,
+    pub name: String,
+    pub description: String,
     pub pantheon: Pantheon,
 }
 

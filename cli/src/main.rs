@@ -157,6 +157,7 @@ async fn generate_god(god: GodInput) -> Result<(), Box<dyn Error>> {
     };
 
     let god = GodJson {
+        id: None,
         name: titlecase(&mut god.name.ok_or(()).or_else(|_| {
             inquire::Text::new("God name")
                 .with_default(
@@ -251,6 +252,7 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
     };
 
     let character = CharacterJson {
+        id: None,
         name: titlecase(&mut character.name.clone().ok_or(()).or_else(|_| {
             inquire::Text::new("Character name")
                 .with_default(
@@ -299,7 +301,7 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
                 .unwrap()
                 .parse()
         })?,
-        cost: character.cost.ok_or(()).map(|a| a as i32).or_else(|_| {
+        cost: character.cost.ok_or(()).map(|a| a as u8).or_else(|_| {
             inquire::Text::new("Character cost:")
                 .with_default(
                     existing
@@ -322,7 +324,7 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
             .prompt()?
         {
             Some(CharacterUpgrade {
-                name: Cow::Owned(titlecase(
+                name: titlecase(
                     &mut character
                         .name
                         .as_ref()
@@ -344,7 +346,7 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
                         })
                         .unwrap()
                         .to_string(),
-                )),
+                ),
                 attack: character
                     .attack
                     .ok_or(())
@@ -359,7 +361,7 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
                                             .map(|u| u.attack.to_string())
                                             .unwrap_or(character.attack.unwrap_or(0).to_string())
                                     })
-                                    .unwrap_or(character.attack.unwrap_or(0).to_string()),
+                                    .unwrap_or((character.attack.unwrap_or(0) * 2).to_string()),
                             )
                             .prompt()
                     })
@@ -380,17 +382,19 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
                                             .map(|u| u.attack.to_string())
                                             .unwrap_or(character.attack.unwrap_or(0).to_string())
                                     })
-                                    .unwrap_or(character.attack.unwrap_or(0).to_string()),
+                                    .unwrap_or((character.attack.unwrap_or(0) * 2).to_string()),
                             )
                             .prompt()
                     })
                     .unwrap()
                     .parse()
                     .unwrap(),
+                abilities: vec![], // TODO
             })
         } else {
             None
         },
+        abilities: vec![], // TODO
     };
     let character_json = serde_json::to_string_pretty(&character)?;
 

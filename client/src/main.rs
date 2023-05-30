@@ -31,7 +31,7 @@ use bevy_egui::{
 use chrono::{DateTime, Utc};
 use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
 use protocol::{
-    gods::GODS,
+    gods::get_gods,
     protocol::{Credentials, Protocol, Turn},
 };
 use std::env;
@@ -192,7 +192,7 @@ fn networking_handler(
                 commands.insert_resource(TimerUi(Some(Timer::from_seconds(30.0, TimerMode::Once))));
                 commands.insert_resource(GameCommanderSelection(
                     gods.iter()
-                        .map(|g| GODS[*g as usize].clone())
+                        .map(|g| get_gods()[*g as usize].clone())
                         .collect::<Vec<_>>(),
                 ));
                 ev_state_change.send(StateChangeEvent(AppState::GameCommanderSelection));

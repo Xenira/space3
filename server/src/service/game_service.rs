@@ -11,7 +11,7 @@ use crate::{
 use diesel::{delete, prelude::*};
 use futures::stream::{futures_unordered::FuturesUnordered, StreamExt};
 use protocol::{
-    gods::GODS,
+    gods::get_gods,
     protocol::{GameResult, Protocol},
 };
 use rand::seq::SliceRandom;
@@ -20,7 +20,7 @@ use rocket::log::private::debug;
 pub async fn start_game(db: &Database, lobby: &Lobby) -> GameInstance {
     let lobby_id = lobby.id;
     let lobby = lobby.clone();
-    let mut heros = GODS.to_vec();
+    let mut heros = get_gods().to_vec();
     heros.shuffle(&mut rand::thread_rng());
 
     // Get players from db
@@ -102,7 +102,7 @@ pub async fn start_game(db: &Database, lobby: &Lobby) -> GameInstance {
 }
 
 pub async fn next_turn(game: &mut GameInstance) -> bool {
-    debug!("Next turn for game {:?}", game);
+    debug!("Next turn for game {:?}", game.game_id);
 
     let ended = game.next_turn().await;
 
@@ -112,7 +112,7 @@ pub async fn next_turn(game: &mut GameInstance) -> bool {
 }
 
 pub async fn update_player_placements(game: &mut GameInstance) -> QueryResult<()> {
-    debug!("Updating player placements for game {:?}", game);
+    debug!("Updating player placements for game {:?}", game.game_id);
     let game_id = game.game_id;
 
     let mut next_placement = game.players.iter().fold(9, |acc, user| {

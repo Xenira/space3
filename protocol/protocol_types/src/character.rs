@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Character {
     pub id: i32,
-    pub name: Cow<'static, str>,
-    pub description: Cow<'static, str>,
+    pub name: String,
+    pub description: String,
     pub health: i32,
     pub attack: i32,
     pub cost: u8,
@@ -16,30 +16,31 @@ pub struct Character {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CharacterUpgrade {
-    pub name: Cow<'static, str>,
+    pub name: String,
     pub attack: i32,
     pub health: i32,
     pub abilities: Vec<Ability>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Ability {
-    pub name: Cow<'static, str>,
-    pub description: Cow<'static, str>,
+    pub name: String,
+    pub description: String,
     pub trigger: AbilityTrigger,
     pub effect: AbilityEffect,
     pub target: AbilityTarget,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum AbilityTrigger {
     OnAttack,
+    OnDefend,
     OnDeath,
     OnSurvive,
     Passive,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum AbilityEffect {
     // Summon a character with the given id
     Summon(i32),
@@ -63,7 +64,7 @@ pub enum AbilityEffect {
     Ranged,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum AbilityTarget {
     SelfTarget,
     EnemyTarget,
@@ -73,7 +74,7 @@ pub enum AbilityTarget {
     AllTarget,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum AbilityValue {
     Plain(i32),
     PercentHealth(i32),

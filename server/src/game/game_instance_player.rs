@@ -1,6 +1,6 @@
 use super::{shop::Shop, BOARD_SIZE, EXP_PER_LVL, MAX_LVL, START_EXP, START_HEALTH, START_MONEY};
 use protocol::{
-    characters::CHARACTERS,
+    characters::get_characters,
     protocol::{CharacterInstance, GameOpponentInfo},
     protocol_types::prelude::God,
 };
@@ -187,7 +187,7 @@ impl GameInstancePlayer {
         }
 
         Ok(
-            CharacterInstance::from(&CHARACTERS[character_id as usize], true)
+            CharacterInstance::from(&get_characters()[character_id as usize], true)
                 .with_attack_bonus(attack_bonus)
                 .with_health_bonus(health_bonus),
         )

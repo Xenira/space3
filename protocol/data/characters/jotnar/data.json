@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Jotnar",
+  "description": "A race of colossal beings who are often associated with chaos and primordial forces. They are depicted as powerful adversaries of the gods and appear in various forms and sizes.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Jotnar",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

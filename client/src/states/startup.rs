@@ -1,5 +1,5 @@
 use bevy::{prelude::*, render::render_resource::Texture, utils::HashMap};
-use protocol::{characters::CHARACTERS, gods::GODS};
+use protocol::{characters::get_characters, gods::get_gods};
 
 use crate::{modules::character, AppState, StateChangeEvent};
 
@@ -52,7 +52,7 @@ fn setup(
     ui_assets.cursor = asset_server.load("textures/ui/cursor.png");
 
     // Gods
-    for god in GODS.iter() {
+    for god in get_gods().iter() {
         let god_handle = asset_server.load(format!("generated/gods/{}.png", god.id));
         let god_atlas =
             TextureAtlas::from_grid(god_handle, Vec2::new(256.0, 256.0), 1, 1, None, None);
@@ -69,7 +69,7 @@ fn setup(
     god_assets.lvl_orb = asset_server.load("textures/ui/lvl_orb.png");
 
     // Characters
-    for character in CHARACTERS.iter() {
+    for character in get_characters().iter() {
         let character_handle =
             asset_server.load(format!("generated/characters/{}.png", character.id));
         let character_atlas =

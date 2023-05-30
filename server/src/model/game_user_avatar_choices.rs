@@ -7,7 +7,7 @@ use crate::{
     schema::game_user_avatar_choices,
     service::game_service::notify_users,
 };
-use protocol::gods::GODS;
+use protocol::gods::get_gods;
 use rocket::{http::Status, serde::json::Json};
 
 use super::game::{Game, GameGuard};
@@ -59,7 +59,7 @@ pub async fn select_avatar(game: GameGuard, user: &User, avatar_id: i32) -> Json
         }
 
         if game_user.god_choices.contains(&avatar_id) {
-            let god = GODS[avatar_id as usize].clone();
+            let god = get_gods()[avatar_id as usize].clone();
             game_user.god = Some(god.clone());
 
             if !game.players.iter().any(|p| p.god.is_none()) {

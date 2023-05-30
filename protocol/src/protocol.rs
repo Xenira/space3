@@ -1,5 +1,5 @@
 use chrono::{DateTime, Duration, Utc};
-use protocol_types::{character::Character, heros::God};
+use protocol_types::{character::Character, heros::God, prelude::Ability};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -191,7 +191,7 @@ pub struct BuyRequest {
     pub target_idx: u8,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct CharacterInstance {
     pub id: Uuid,
     pub character_id: i32,
@@ -202,14 +202,16 @@ pub struct CharacterInstance {
     pub attack_bonus: i32,
     pub health_bonus: i32,
     pub cost: u8,
+    pub abilities: Vec<Ability>,
 }
 
 impl CharacterInstance {
     pub fn from(character: &Character, upgraded: bool) -> Self {
-        let (upgrade_atk, upgrade_hp) = if let Some(upgrade) = &character.upgrade {
-            (upgrade.attack, upgrade.health)
+        let (upgrade_atk, upgrade_hp, upgrade_abilities) = if let Some(upgrade) = &character.upgrade
+        {
+            (upgrade.attack, upgrade.health, upgrade.abilities.clone())
         } else {
-            (0, 0)
+            (0, 0, vec![])
         };
 
         Self {
@@ -230,6 +232,11 @@ impl CharacterInstance {
             attack_bonus: 0,
             health_bonus: 0,
             cost: character.cost,
+            abilities: if upgraded {
+                upgrade_abilities
+            } else {
+                character.abilities.clone()
+            },
         }
     }
 
@@ -251,6 +258,14 @@ impl CharacterInstance {
     pub fn with_health_bonus(mut self, health_bonus: i32) -> Self {
         self.health_bonus = health_bonus;
         self
+    }
+
+    pub fn get_total_attack(&self) -> i32 {
+        self.attack + self.attack_bonus
+    }
+
+    pub fn get_total_health(&self) -> i32 {
+        self.health + self.health_bonus
     }
 }
 

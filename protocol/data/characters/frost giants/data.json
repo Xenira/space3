@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Frost Giants",
+  "description": "A race of giant beings who dwell in the realm of Jotunheim. They are often depicted as powerful and antagonistic figures in Norse mythology.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Frost Giants",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

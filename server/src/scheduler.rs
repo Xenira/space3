@@ -48,9 +48,12 @@ pub async fn long_running_task(
                 continue;
             }
 
-            debug!("Next turn for game {:?}", game);
+            debug!("Next turn for game {:?}", game.lock().await.game_id);
             if game_service::next_turn(game.lock().await.borrow_mut()).await {
-                debug!("Game {:?} is over, removing from active games list", game);
+                debug!(
+                    "Game {:?} is over, removing from active games list",
+                    game.lock().await.game_id
+                );
                 games.lock().await.remove(&game.lock().await.game_id);
             }
         }

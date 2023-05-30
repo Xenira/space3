@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Jatayu",
+  "description": "A giant bird in the form of an eagle or vulture who fought valiantly to save Sita, the wife of Lord Rama, from the demon king Ravana.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Jatayu",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

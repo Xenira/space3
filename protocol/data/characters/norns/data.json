@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Norns",
+  "description": "Three female beings who govern the destiny of individuals and the cosmic order. They are responsible for weaving the threads of fate.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Norns",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

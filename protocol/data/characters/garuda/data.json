@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Garuda",
+  "description": "A divine bird with the body of a human and the wings, beak, and talons of an eagle. Garuda is the mount of Lord Vishnu and is known for his speed and strength.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Garuda",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

@@ -12,10 +12,10 @@
       "effect": {
         "Buff": [
           {
-            "Plain": 0
+            "PercentAttack": 100
           },
           {
-            "PercentHealth": 100
+            "Plain": 0
           },
           false
         ]
@@ -35,10 +35,10 @@
         "effect": {
           "Buff": [
             {
-              "Plain": 0
+              "PercentAttack": 200
             },
             {
-              "PercentHealth": 200
+              "Plain": 0
             },
             false
           ]

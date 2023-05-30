@@ -106,6 +106,7 @@ Client:
 		Shop:
 			☐ Attach shop to top of screen
 			☐ Attach bench to bottom of screen
+			☐ Update gold on reroll and sell
 		Battle:
 			☐ Add battle UI
 			☐ Add enemy character to top right of screen

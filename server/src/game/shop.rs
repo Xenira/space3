@@ -1,5 +1,5 @@
 use super::SHOP_SIZE;
-use protocol::{characters::CHARACTERS, protocol::CharacterInstance};
+use protocol::{characters::get_characters, protocol::CharacterInstance};
 use rand::seq::SliceRandom;
 
 #[derive(Debug, Default)]
@@ -28,7 +28,7 @@ impl Shop {
     }
 
     pub fn get_new_characters(count: usize) -> Vec<Option<CharacterInstance>> {
-        CHARACTERS
+        get_characters()
             .choose_multiple(&mut rand::thread_rng(), count as usize)
             .cloned()
             .map(|c| Some(CharacterInstance::from(&c, false)))

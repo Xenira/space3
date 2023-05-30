@@ -1,7 +1,9 @@
 use core::panic;
 use image::{GenericImageView, RgbaImage};
-use protocol_data_types::{CharacterJson, GodJson, Named};
+use protocol_data_types::{CharacterJson, Entity, GodJson};
 use protocol_types::{character::Character, heros::God};
+use quote::quote;
+use quote::{format_ident, ToTokens};
 use serde::de::DeserializeOwned;
 use serde_json;
 use std::{fs::File, io::BufReader, path::Path};
@@ -32,7 +34,7 @@ fn generate_from_json<T, U>(
     image: Option<(u32, u32)>,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
-    T: protocol_data_types::ToString + Named + DeserializeOwned + std::fmt::Debug,
+    T: ToTokens + Entity + DeserializeOwned + std::fmt::Debug,
 {
     let out_dir = std::env::var_os("OUT_DIR").unwrap();
     let rs_path = std::path::Path::new(&out_dir).join(format!("{}.rs", name));
@@ -75,7 +77,7 @@ where
             }
         })
         .enumerate()
-        .map(|(idx, item)| {
+        .map(|(idx, mut item)| {
             if image.is_some() {
                 if let Err(e) = generate_masked_img(path, &item.0, image.unwrap(), name, idx) {
                     panic!("Failed to generate masked image for {:?}: {}", item.0, e)
@@ -88,7 +90,7 @@ where
             }
             names.push(item.1.get_name().to_string());
 
-            item.1.to_string(idx)
+            item.1.with_id(idx as i32)
         })
         .collect::<Vec<_>>();
 
@@ -96,15 +98,36 @@ where
         warn!("No {} entries in {:?}", name, path);
     }
 
-    generated_rs.push(format!(
-        "pub static {}: [{};{}] = [{}];",
-        name.to_uppercase(),
-        type_name,
-        entities.len(),
-        entities.join(", ")
-    ));
+    let static_name = format_ident!("{}_ENTITIES", name.to_uppercase());
+    let len = entities.len();
+    let get_function = format_ident!("get_{}", name);
+    let type_name = syn::parse_str::<syn::Type>(&type_name).unwrap();
+    let tokens = quote! {
+        use std::rc::Rc;
+        use protocol_types::prelude::*;
 
-    std::fs::write(&rs_path, generated_rs.join("\n")).unwrap();
+        static mut #static_name: Option<Rc<[#type_name;#len]>> = None;
+
+        pub fn #get_function() -> Rc<[#type_name;#len]> {
+            unsafe {
+                if let Some(values) = &#static_name {
+                    values.clone()
+                } else {
+                    let values = [#(#entities),*];
+                    #static_name = Some(Rc::new(values));
+                    #static_name.clone().unwrap()
+                }
+            }
+        }
+    };
+
+    std::fs::write(
+        &rs_path,
+        prettyplease::unparse(&syn::parse_file(tokens.to_string().as_str()).unwrap()),
+    )
+    .unwrap();
+
+    warn!("Generated {:?}", rs_path);
 
     Ok(())
 }

@@ -1,7 +1,62 @@
+use std::{
+    cell::{Ref, RefCell, RefMut},
+    rc::Rc,
+};
+
 use crate::game::game_instance_player::GameInstancePlayer;
-use protocol::protocol::{BattleAction, BattleActionType, BattleResponse};
+use protocol::{
+    protocol::{BattleAction, BattleActionType, BattleResponse, CharacterInstance},
+    protocol_types::prelude::{Ability, AbilityTrigger, AbilityValue},
+};
 use rand::seq::IteratorRandom;
+use rocket::log::private::debug;
 use uuid::Uuid;
+
+#[derive(Debug)]
+pub struct AbilityStackEntry {
+    pub ability: Ability,
+    pub target: Rc<RefCell<CharacterInstance>>,
+    pub source: Rc<RefCell<CharacterInstance>>,
+}
+
+#[derive(Debug)]
+pub struct Battle<'r> {
+    pub board: &'r mut Vec<Option<Rc<RefCell<CharacterInstance>>>>,
+    pub op_board: &'r mut Vec<Option<Rc<RefCell<CharacterInstance>>>>,
+    pub current_player: &'r mut bool,
+}
+
+impl<'r> Battle<'r> {
+    pub fn clone_board(&self) -> Vec<Option<CharacterInstance>> {
+        self.board
+            .iter()
+            .map(|c| c.as_ref().map(|c| c.borrow().clone()))
+            .collect()
+    }
+
+    pub fn clone_op_board(&self) -> Vec<Option<CharacterInstance>> {
+        self.op_board
+            .iter()
+            .map(|c| c.as_ref().map(|c| c.borrow().clone()))
+            .collect()
+    }
+
+    pub fn clone_player_a_board(&self) -> Vec<Option<CharacterInstance>> {
+        if *self.current_player {
+            self.clone_board()
+        } else {
+            self.clone_op_board()
+        }
+    }
+
+    pub fn clone_player_b_board(&self) -> Vec<Option<CharacterInstance>> {
+        if *self.current_player {
+            self.clone_op_board()
+        } else {
+            self.clone_board()
+        }
+    }
+}
 
 pub fn get_pairing(round: u16, mut players: Vec<&GameInstancePlayer>) -> Vec<(Uuid, Uuid)> {
     players.sort_by_key(|p| p.placement);
@@ -47,39 +102,81 @@ fn shifted(round: u16, players: u16) -> (Vec<i32>, Vec<i32>) {
 pub async fn calculate_combat(
     players: &mut (&mut GameInstancePlayer, &mut GameInstancePlayer),
 ) -> BattleResponse {
-    let mut player_a_board = players.0.board[0..7].to_vec();
-    let mut player_b_board = players.1.board[0..7].to_vec();
-    let start_own = player_a_board.clone();
-    let start_opponent = player_b_board.clone();
+    debug!("Calculating combat for {:?}", players);
+    let start_own = players.0.board[0..7].to_vec();
+    let start_opponent = players.1.board[0..7].to_vec();
+    let player_a_board = &mut players.0.board[0..7]
+        .iter()
+        .map(|c| {
+            c.as_ref()
+                .and_then(|c| Some(Rc::new(RefCell::new(c.clone()))))
+        })
+        .collect::<Vec<_>>();
+    let player_b_board = &mut players.1.board[0..7]
+        .iter()
+        .map(|c| {
+            c.as_ref()
+                .and_then(|c| Some(Rc::new(RefCell::new(c.clone()))))
+        })
+        .collect::<Vec<_>>();
 
-    let mut current_player = rand::random::<bool>();
+    let current_player = &mut rand::random::<bool>();
     let mut player_a_index = 0;
     let mut player_b_index = 0;
 
     let mut actions = vec![];
 
+    let (board, op_board) = if *current_player {
+        (player_a_board, player_b_board)
+    } else {
+        (player_b_board, player_a_board)
+    };
+    let mut battle = Battle {
+        board,
+        op_board,
+        current_player,
+    };
     // While there are still characters with attack on the board
-    while player_a_board
+    while battle
+        .board
         .iter()
-        .any(|c| c.is_some() && c.as_ref().unwrap().attack + c.as_ref().unwrap().attack_bonus > 0)
-        && player_b_board.iter().any(|c| {
-            c.is_some() && c.as_ref().unwrap().attack + c.as_ref().unwrap().attack_bonus > 0
-        })
+        .filter_map(|c| c.as_ref())
+        .any(|c| (*c).borrow().get_total_attack() > 0)
+        && battle
+            .op_board
+            .iter()
+            .filter_map(|c| c.as_ref())
+            .any(|c| c.borrow().get_total_attack() > 0)
     {
+        debug!("Calculating turn for {:?}", battle.current_player);
+
         execute_turn(
-            current_player,
             &mut player_a_index,
-            &mut player_a_board,
-            &mut player_b_board,
             &mut player_b_index,
             &mut actions,
+            &mut battle,
         );
 
-        current_player = !current_player;
+        // Change current player
+        let board = battle.board;
+        battle.board = battle.op_board;
+        battle.op_board = board;
+
+        *battle.current_player = !*battle.current_player;
     }
 
-    let player_a_survived = player_a_board.iter().filter(|c| c.is_some()).count();
-    let player_b_survived = player_b_board.iter().filter(|c| c.is_some()).count();
+    debug!("Calculating game result for {:?}", players);
+
+    let player_a_survived = battle
+        .clone_player_a_board()
+        .iter()
+        .filter(|c| c.is_some())
+        .count();
+    let player_b_survived = battle
+        .clone_player_b_board()
+        .iter()
+        .filter(|c| c.is_some())
+        .count();
     let player_a_lvl = players.0.get_lvl();
     let player_b_lvl = players.1.get_lvl();
 
@@ -97,39 +194,37 @@ pub async fn calculate_combat(
 }
 
 fn execute_turn(
-    current_player: bool,
     player_a_index: &mut usize,
-    player_a_board: &mut Vec<Option<protocol::protocol::CharacterInstance>>,
-    player_b_board: &mut Vec<Option<protocol::protocol::CharacterInstance>>,
     player_b_index: &mut usize,
     actions: &mut Vec<BattleAction>,
+    battle: &mut Battle,
 ) {
     // Get current player
-    let (index, board, op_board) = if current_player {
-        (player_a_index, player_a_board, player_b_board)
+    let index = if *battle.current_player {
+        player_a_index
     } else {
-        (player_b_index, player_b_board, player_a_board)
+        player_b_index
     };
 
     // Get attacking creature
-    while board[*index].is_none() {
+    while battle.board[*index].is_none() {
         if *index < 6 {
             *index += 1;
         } else {
             *index = 0;
         }
     }
-    let attacker = board[*index].as_mut().unwrap();
+    let attacker = battle.board[*index].clone().unwrap();
 
     // Get defending character
-    let mut opponent_clone = op_board.clone();
-    let mut oponent = if op_board[0..4].iter().any(|c| c.is_some()) {
+    let mut opponent_clone = battle.op_board.clone();
+    let oponent = if battle.op_board[0..4].iter().any(|c| c.is_some()) {
         // Front row first
         opponent_clone[0..4]
-            .iter_mut()
+            .iter()
             .enumerate()
             .filter(|(_, c)| c.is_some())
-            .map(|(i, c)| (i, c.as_mut().unwrap()))
+            .map(|(i, c)| (i, c.clone().unwrap()))
             .choose(&mut rand::thread_rng())
             .unwrap()
     } else {
@@ -138,7 +233,7 @@ fn execute_turn(
             .iter_mut()
             .enumerate()
             .filter(|(_, c)| c.is_some())
-            .map(|(i, c)| (i + 4, c.as_mut().unwrap()))
+            .map(|(i, c)| (i + 4, c.clone().unwrap()))
             .choose(&mut rand::thread_rng())
             .unwrap()
     };
@@ -146,83 +241,225 @@ fn execute_turn(
     // Trigger on attack effects
 
     // Calculate damage
-    perform_attack(attacker, &mut oponent);
-
-    let attacker = attacker.clone();
+    perform_attack(attacker.clone(), oponent.clone());
 
     // Add battle action
     actions.push(BattleAction {
         action: BattleActionType::Attack,
-        source: attacker.id,
-        target: Some(oponent.1.id),
-        result_own: if current_player {
-            board.clone()
-        } else {
-            op_board.clone()
-        },
-        result_opponent: if current_player {
-            op_board.clone()
-        } else {
-            board.clone()
-        },
+        source: attacker.borrow().id,
+        target: Some(oponent.1.borrow().id),
+        result_own: battle.clone_player_a_board(),
+        result_opponent: battle.clone_player_b_board(),
     });
 
     // Check for death
-    if attacker.health + attacker.health_bonus <= 0 {
-        board[*index] = None;
+    if attacker.borrow().get_total_health() <= 0 {
+        debug!("Character {:?} died", attacker.borrow().id);
+        battle.board[*index] = None;
 
         // Add attacker death event
         actions.push(BattleAction {
             action: BattleActionType::Die,
-            source: attacker.id,
+            source: attacker.borrow().id,
             target: None,
-            result_own: if current_player {
-                board.clone()
-            } else {
-                op_board.clone()
-            },
-            result_opponent: if current_player {
-                op_board.clone()
-            } else {
-                board.clone()
-            },
+            result_own: battle.clone_player_a_board(),
+            result_opponent: battle.clone_player_b_board(),
         });
     } else {
-        // Trigger on survive effects
+        *index += 1;
     }
 
-    if oponent.1.health + oponent.1.health_bonus <= 0 {
-        op_board[oponent.0] = None;
+    if oponent.1.borrow().get_total_health() <= 0 {
+        debug!("Character {:?} died", oponent.1.borrow().id);
+        battle.op_board[oponent.0] = None;
 
         // Add defender death event
         actions.push(BattleAction {
             action: BattleActionType::Die,
-            source: oponent.1.id,
+            source: oponent.1.borrow().id,
             target: None,
-            result_own: if current_player {
-                board.clone()
-            } else {
-                op_board.clone()
-            },
-            result_opponent: if current_player {
-                op_board.clone()
-            } else {
-                board.clone()
-            },
+            result_own: battle.clone_player_a_board(),
+            result_opponent: battle.clone_player_b_board(),
         });
-    } else {
-        op_board[oponent.0] = Some(oponent.1.clone());
-
-        // Trigger on survive effects
     }
 }
 
 fn perform_attack(
-    attacker: &mut protocol::protocol::CharacterInstance,
-    oponent: &mut (usize, &mut protocol::protocol::CharacterInstance),
+    attacker: Rc<RefCell<CharacterInstance>>,
+    oponent: (usize, Rc<RefCell<CharacterInstance>>),
 ) {
-    attacker.health -= oponent.1.attack + oponent.1.attack_bonus;
-    oponent.1.health -= attacker.attack + attacker.attack_bonus;
+    let mut stack = Vec::new();
+    // On attack triggers
+    for abilty in &attacker
+        .borrow()
+        .abilities
+        .iter()
+        .filter(|a| a.trigger == AbilityTrigger::OnAttack)
+        .cloned()
+        .collect::<Vec<_>>()
+    {
+        stack.push(AbilityStackEntry {
+            ability: abilty.clone(),
+            source: attacker.clone(),
+            target: oponent.1.clone(),
+        });
+    }
+
+    // On defend triggers
+    for abilty in &oponent
+        .1
+        .borrow()
+        .abilities
+        .iter()
+        .filter(|a| a.trigger == AbilityTrigger::OnDefend)
+        .cloned()
+        .collect::<Vec<_>>()
+    {
+        stack.push(AbilityStackEntry {
+            ability: abilty.clone(),
+            source: oponent.1.clone(),
+            target: attacker.clone(),
+        });
+    }
+
+    execute_stack_actions(&mut stack);
+
+    stack.append(&mut damage(
+        Some(attacker.clone()),
+        oponent.1.clone(),
+        attacker.borrow().get_total_attack(),
+    ));
+    stack.append(&mut damage(
+        Some(oponent.1.clone()),
+        attacker,
+        oponent.1.borrow().get_total_attack(),
+    ));
+
+    execute_stack_actions(&mut stack);
+}
+
+fn damage(
+    source: Option<Rc<RefCell<protocol::protocol::CharacterInstance>>>,
+    target: Rc<RefCell<protocol::protocol::CharacterInstance>>,
+    ammount: i32,
+) -> Vec<AbilityStackEntry> {
+    let mut result = Vec::new();
+
+    // Apply damage
+    target.borrow_mut().health -= ammount;
+
+    // On survive/death triggers
+    if let Some(source) = source.as_ref() {
+        for ability in source
+            .borrow()
+            .abilities
+            .iter()
+            .filter(|a| {
+                if target.borrow().get_total_health() > 0 {
+                    a.trigger == AbilityTrigger::OnSurvive
+                } else {
+                    a.trigger == AbilityTrigger::OnDeath
+                }
+            })
+            .cloned()
+            .collect::<Vec<_>>()
+        {
+            result.push(AbilityStackEntry {
+                ability: ability.clone(),
+                source: target.clone(),
+                target: source.clone(),
+            });
+        }
+    }
+    for abilty in &target
+        .borrow()
+        .abilities
+        .iter()
+        .filter(|a| {
+            if target.borrow().get_total_health() > 0 {
+                a.trigger == AbilityTrigger::OnSurvive
+            } else {
+                a.trigger == AbilityTrigger::OnDeath
+            }
+        })
+        .cloned()
+        .collect::<Vec<_>>()
+    {
+        result.push(AbilityStackEntry {
+            ability: abilty.clone(),
+            source: source.as_ref().unwrap_or(&target).clone(),
+            target: target.clone(),
+        });
+    }
+
+    result
+}
+
+fn execute_stack_actions(stack: &mut Vec<AbilityStackEntry>) {
+    while let Some(entry) = stack.pop() {
+        let targets = get_ability_targets(&entry);
+        for target in targets {
+            let mut result = apply_ability(&entry, target);
+            stack.append(&mut result);
+        }
+    }
+}
+
+fn apply_ability(
+    entry: &AbilityStackEntry,
+    target: Rc<RefCell<CharacterInstance>>,
+) -> Vec<AbilityStackEntry> {
+    match &entry.ability.effect {
+        protocol::protocol_types::prelude::AbilityEffect::Summon(_) => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Transform(_) => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Buff(attack, health, _) => {
+            let attack_bonus = calculate_ammount(attack, entry);
+            let health_bonus = calculate_ammount(health, entry);
+
+            target.borrow_mut().attack_bonus += attack_bonus;
+            target.borrow_mut().health_bonus += health_bonus;
+
+            Vec::new()
+        }
+        protocol::protocol_types::prelude::AbilityEffect::Set(_, _) => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Damage(_) => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Slience(_) => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Stun(_) => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Stealth => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Taunt(_) => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Ranged => todo!(),
+    }
+}
+
+fn calculate_ammount(value: &AbilityValue, entry: &AbilityStackEntry) -> i32 {
+    match value {
+        AbilityValue::Plain(value) => value.clone(),
+        AbilityValue::PercentHealth(value) => {
+            (entry.target.borrow().get_total_health() as f32 / 100.0 * *value as f32) as i32
+        }
+        AbilityValue::PercentAttack(value) => {
+            (entry.target.borrow().get_total_attack() as f32 / 100.0 * *value as f32) as i32
+        }
+        AbilityValue::PercentMaxHealth(_) => todo!(),
+        AbilityValue::PercentMaxAttack(_) => todo!(),
+        AbilityValue::PercentTargetHealth(_) => todo!(),
+        AbilityValue::PercentTargetAttack(_) => todo!(),
+        AbilityValue::PercentTargetMaxHealth(_) => todo!(),
+        AbilityValue::PercentTargetMaxAttack(_) => todo!(),
+    }
+}
+
+fn get_ability_targets(ability: &AbilityStackEntry) -> Vec<Rc<RefCell<CharacterInstance>>> {
+    match ability.ability.target {
+        protocol::protocol_types::prelude::AbilityTarget::SelfTarget => {
+            vec![ability.target.clone()]
+        }
+        protocol::protocol_types::prelude::AbilityTarget::EnemyTarget => todo!(),
+        protocol::protocol_types::prelude::AbilityTarget::AllyTarget => todo!(),
+        protocol::protocol_types::prelude::AbilityTarget::AllEnemyTarget => todo!(),
+        protocol::protocol_types::prelude::AbilityTarget::AllAllyTarget => todo!(),
+        protocol::protocol_types::prelude::AbilityTarget::AllTarget => todo!(),
+    }
 }
 
 #[test]
