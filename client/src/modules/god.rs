@@ -52,8 +52,8 @@ fn on_spawn(
                     parent
                         .spawn(SpriteBundle {
                             texture: character_assets.health_orb.clone(),
-                            transform: Transform::from_translation(Vec3::new(24.0, -28.0, 0.0))
-                                .with_scale(Vec3::splat(0.75)),
+                            transform: Transform::from_translation(Vec3::new(18.0, -28.0, 0.0))
+                                .with_scale(Vec3::splat(0.5)),
                             ..Default::default()
                         })
                         .with_children(|parent| {
@@ -70,17 +70,18 @@ fn on_spawn(
                                 ..Default::default()
                             });
                         });
+                    // Level
                     parent
                         .spawn(SpriteBundle {
                             texture: god_assets.lvl_orb.clone(),
-                            transform: Transform::from_translation(Vec3::new(-24.0, -28.0, 0.0))
-                                .with_scale(Vec3::splat(0.75)),
+                            transform: Transform::from_translation(Vec3::new(-18.0, -28.0, 0.0))
+                                .with_scale(Vec3::splat(0.5)),
                             ..Default::default()
                         })
                         .with_children(|parent| {
                             parent.spawn(Text2dBundle {
                                 text: Text::from_section(
-                                    (god.0.experience).to_string(),
+                                    (god.0.get_lvl()).to_string(),
                                     TextStyle {
                                         font: ui_assets.font.clone(),
                                         font_size: 24.0,

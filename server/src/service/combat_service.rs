@@ -101,7 +101,11 @@ fn shifted(round: u16, players: u16) -> (Vec<i32>, Vec<i32>) {
 
 pub async fn calculate_combat(
     players: &mut (&mut GameInstancePlayer, &mut GameInstancePlayer),
-) -> BattleResponse {
+) -> (
+    Vec<BattleAction>,
+    Vec<Option<CharacterInstance>>,
+    Vec<Option<CharacterInstance>>,
+) {
     debug!("Calculating combat for {:?}", players);
     let start_own = players.0.board[0..7].to_vec();
     let start_opponent = players.1.board[0..7].to_vec();
@@ -186,11 +190,7 @@ pub async fn calculate_combat(
         players.0.health -= player_b_survived as i16 + player_b_lvl as i16;
     }
 
-    BattleResponse {
-        actions,
-        start_own,
-        start_opponent,
-    }
+    (actions, start_own, start_opponent)
 }
 
 fn execute_turn(

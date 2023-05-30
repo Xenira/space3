@@ -1,13 +1,14 @@
 use crate::{
     cleanup_system,
-    components::animation::{
-        Animation, AnimationFinished, AnimationRepeatType, TransformAnimation,
+    components::{
+        anchors::{AnchorType, Anchors},
+        animation::{Animation, AnimationFinished, AnimationRepeatType, TransformAnimation},
     },
-    modules::character::Character,
+    modules::{character::Character, god::God},
     AppState, Cleanup,
 };
 use bevy::prelude::*;
-use protocol::protocol::{BattleResponse, CharacterInstance};
+use protocol::protocol::{BattleResponse, CharacterInstance, GameOpponentInfo};
 
 use super::game_shop::BoardCharacter;
 
@@ -50,6 +51,9 @@ pub struct BoardOwn;
 #[derive(Component, Debug)]
 pub struct BoardOpponent;
 
+#[derive(Component, Debug)]
+pub struct OpponentProfile;
+
 #[derive(Resource, Debug)]
 pub struct BattleRes(pub BattleResponse);
 
@@ -60,6 +64,7 @@ fn setup(
     mut commands: Commands,
     state: Res<BattleRes>,
     mut ev_board_change: EventWriter<BattleBoardChangedEvent>,
+    res_anchor: Res<Anchors>,
 ) {
     info!("Setting up game combat state");
 
@@ -79,6 +84,22 @@ fn setup(
         BoardOpponent,
         Cleanup,
     ));
+
+    // Spawn enemy profile
+    commands
+        .entity(res_anchor.get(AnchorType::TOP_RIGHT).unwrap())
+        .with_children(|parent| {
+            parent.spawn((
+                SpatialBundle {
+                    transform: Transform::from_translation(Vec3::new(-128.0, -128.0, 10.0))
+                        .with_scale(Vec3::splat(3.0)),
+                    ..Default::default()
+                },
+                God(state.0.opponent.clone()),
+                OpponentProfile,
+                Cleanup,
+            ));
+        });
 
     ev_board_change.send(BattleBoardChangedEvent([
         state.0.start_own.clone(),

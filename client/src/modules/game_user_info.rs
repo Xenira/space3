@@ -1,7 +1,11 @@
 use bevy::prelude::*;
-use protocol::protocol::GameUserInfo;
+use protocol::protocol::{GameOpponentInfo, GameUserInfo};
 
-use crate::states::startup::UiAssets;
+use crate::{
+    components::anchors::{AnchorType, Anchors},
+    modules::god::God,
+    states::startup::UiAssets,
+};
 
 pub(crate) struct GameUserInfoPlugin;
 
@@ -25,10 +29,14 @@ pub struct UserMoney;
 #[derive(Component, Debug)]
 pub struct UserExperience;
 
+#[derive(Component, Debug)]
+pub struct UserProfile;
+
 fn on_user_info_added(
     mut commands: Commands,
     ui_assets: Res<UiAssets>,
     game_user_info: Res<GameUserRes>,
+    res_anchor: Res<Anchors>,
 ) {
     info!("Game user info added");
     commands.spawn((
@@ -78,15 +86,37 @@ fn on_user_info_added(
         },
         UserMoney,
     ));
+
+    commands
+        .entity(res_anchor.get(AnchorType::BOTTOM_RIGHT).unwrap())
+        .with_children(|parent| {
+            parent.spawn((
+                SpatialBundle {
+                    transform: Transform::from_translation(Vec3::new(-128.0, 128.0, 10.0))
+                        .with_scale(Vec3::splat(3.0)),
+                    ..Default::default()
+                },
+                God(GameOpponentInfo {
+                    name: game_user_info.0.name.clone(),
+                    experience: game_user_info.0.experience,
+                    health: game_user_info.0.health,
+                    character_id: game_user_info.0.avatar.unwrap_or_default(),
+                    is_next_opponent: true,
+                }),
+                UserProfile,
+            ));
+        });
 }
 
 fn on_user_info_update(
+    mut commands: Commands,
     game_user_info: Res<GameUserRes>,
     mut q_set: ParamSet<(
         Query<&mut Text, With<UserHealth>>,
         Query<&mut Text, With<UserExperience>>,
         Query<&mut Text, With<UserMoney>>,
     )>,
+    q_profile: Query<Entity, With<UserProfile>>,
 ) {
     info!("Game user info updated: {:?}", game_user_info);
     for mut text in q_set.p0().iter_mut() {
@@ -98,11 +128,31 @@ fn on_user_info_update(
     for mut text in q_set.p2().iter_mut() {
         text.sections[0].value = format!("$: {}", game_user_info.0.money);
     }
+
+    if let Ok(profile) = q_profile.get_single() {
+        commands.entity(profile).remove::<God>();
+        commands.entity(profile).despawn_descendants();
+        commands.entity(profile).insert(God(GameOpponentInfo {
+            name: game_user_info.0.name.clone(),
+            experience: game_user_info.0.experience,
+            health: game_user_info.0.health,
+            character_id: game_user_info.0.avatar.unwrap_or_default(),
+            is_next_opponent: true,
+        }));
+    }
 }
 
 fn on_user_info_removed(
     mut commands: Commands,
-    q_info: Query<Entity, Or<(With<UserHealth>, With<UserExperience>, With<UserMoney>)>>,
+    q_info: Query<
+        Entity,
+        Or<(
+            With<UserHealth>,
+            With<UserExperience>,
+            With<UserMoney>,
+            With<UserProfile>,
+        )>,
+    >,
 ) {
     info!("Game user info removed");
     for entity in q_info.iter() {

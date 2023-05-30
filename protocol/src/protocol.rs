@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 const START_TIME: i64 = 45;
+const EXP_PER_LEVEL: u8 = 3;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Protocol {
@@ -106,6 +107,7 @@ pub struct BattleResponse {
     pub actions: Vec<BattleAction>,
     pub start_own: Vec<Option<CharacterInstance>>,
     pub start_opponent: Vec<Option<CharacterInstance>>,
+    pub opponent: GameOpponentInfo,
 }
 
 impl BattleResponse {
@@ -118,6 +120,7 @@ impl BattleResponse {
                 .collect::<Vec<_>>(),
             start_own: self.start_opponent.clone(),
             start_opponent: self.start_own.clone(),
+            opponent: self.opponent.clone(),
         }
     }
 }
@@ -176,6 +179,12 @@ pub struct GameOpponentInfo {
     pub health: i16,
     pub character_id: i32,
     pub is_next_opponent: bool,
+}
+
+impl GameOpponentInfo {
+    pub fn get_lvl(&self) -> u8 {
+        self.experience / EXP_PER_LEVEL
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

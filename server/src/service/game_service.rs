@@ -163,8 +163,20 @@ pub async fn update_player_placements(game: &mut GameInstance) -> QueryResult<()
         .collect::<Vec<_>>()
         .await;
 
-    if !game.players.iter().any(|user| user.placement.is_none()) {
-        // Game is over
+    if game.is_game_over() {
+        let winner = game.players.iter().find(|user| user.health > 0).unwrap();
+
+        if winner.user_id.is_some() {
+            ActivePolls::notify(
+                winner.user_id.unwrap(),
+                Protocol::GameEndResponse(GameResult {
+                    place: 1,
+                    reward: 100,
+                    ranking: 1,
+                }),
+            )
+            .await;
+        }
         ActivePolls::close_channel(&Channel::Game(game_id));
     }
 

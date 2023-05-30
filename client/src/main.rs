@@ -218,6 +218,7 @@ fn networking_handler(
                 ev_state_change.send(StateChangeEvent(AppState::GameBattle));
             }
             Protocol::GameEndResponse(result) => {
+                commands.remove_resource::<GameUserRes>();
                 commands.insert_resource(GameResultRes(result.clone()));
                 ev_state_change.send(StateChangeEvent(AppState::GameResult))
             }

@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use protocol::protocol::{Protocol, Turn};
+use protocol::protocol::{BattleResponse, GameOpponentInfo, Protocol, Turn};
 use uuid::Uuid;
 
 use crate::{
@@ -126,8 +126,33 @@ impl GameInstance {
         mut pairing: (&mut GameInstancePlayer, &mut GameInstancePlayer),
     ) -> usize {
         let user_b_id = pairing.1.user_id;
-        let combat_result = combat_service::calculate_combat(&mut pairing).await;
-        let swapped_result = combat_result.swap_players();
+        let player_a_op_info = GameOpponentInfo {
+            name: pairing.0.display_name.clone(),
+            health: pairing.0.health,
+            experience: pairing.0.experience,
+            character_id: pairing.0.god.clone().unwrap().id,
+            is_next_opponent: false,
+        };
+        let player_b_op_info = GameOpponentInfo {
+            name: pairing.1.display_name.clone(),
+            health: pairing.1.health,
+            experience: pairing.1.experience,
+            character_id: pairing.1.god.clone().unwrap().id,
+            is_next_opponent: false,
+        };
+
+        let (actions, start_own, start_opponent) =
+            combat_service::calculate_combat(&mut pairing).await;
+        let combat_result = BattleResponse {
+            actions,
+            start_own,
+            start_opponent,
+            opponent: player_b_op_info,
+        };
+
+        let mut swapped_result = combat_result.swap_players();
+        swapped_result.opponent = player_a_op_info;
+
         let action_len = combat_result.actions.len();
 
         if pairing.0.placement.is_none() && pairing.0.user_id.is_some() {
@@ -149,7 +174,7 @@ impl GameInstance {
         action_len
     }
 
-    fn is_game_over(&self) -> bool {
+    pub fn is_game_over(&self) -> bool {
         self.players
             .iter()
             .filter(|player| player.health > 0)

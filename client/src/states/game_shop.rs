@@ -1,6 +1,7 @@
 use crate::{
     cleanup_system,
     components::{
+        anchors::{AnchorType, Anchors},
         animation::{
             Animation, AnimationDirection, AnimationIndices, AnimationRepeatType, AnimationState,
             AnimationTimer, AnimationTransition, AnimationTransitionType,
@@ -14,7 +15,7 @@ use crate::{
     AppState, Cleanup,
 };
 use bevy::prelude::*;
-use protocol::protocol::{BuyRequest, CharacterInstance, GameOpponentInfo, GameUserInfo, Protocol};
+use protocol::protocol::{BuyRequest, CharacterInstance, GameOpponentInfo, Protocol};
 use reqwest::Method;
 
 use super::startup::{CharacterAssets, UiAssets};
@@ -91,6 +92,7 @@ fn setup(
     mut networking: ResMut<NetworkingRessource>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
+    mut res_anchor: Res<Anchors>,
 ) {
     // root node
     networking.request(Method::GET, "games/shops");
@@ -254,14 +256,18 @@ fn setup(
     ));
 
     // Opponent Anchor
-    commands.spawn((
-        SpatialBundle {
-            transform: Transform::from_translation(Vec3::new(-64.0 * 8.0, 200.0, 0.0)),
-            ..Default::default()
-        },
-        GameUsers,
-        Cleanup,
-    ));
+    commands
+        .entity(res_anchor.get(AnchorType::LEFT).unwrap())
+        .with_children(|parent| {
+            parent.spawn((
+                SpatialBundle {
+                    transform: Transform::from_translation(Vec3::new(80.0, 256.0, 0.0)),
+                    ..Default::default()
+                },
+                GameUsers,
+                Cleanup,
+            ));
+        });
 }
 
 fn on_network(
