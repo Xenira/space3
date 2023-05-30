@@ -275,8 +275,9 @@ fn on_network(
 ) {
     for ev in ev_networking.iter() {
         match &ev.0 {
-            Protocol::GameShopResponse(locked, shop) => {
+            Protocol::GameShopResponse(user_info, locked, shop) => {
                 debug!("GameShopResponse: {:?}", shop);
+                commands.insert_resource(GameUserRes(user_info.clone()));
                 ev_shop_change.send(ShopChangedEvent(shop.clone()));
                 for (entity, animation) in q_lock.iter_mut() {
                     if *locked {

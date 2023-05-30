@@ -30,7 +30,7 @@ pub enum Protocol {
     GameUpdateResponse(GameUpdate),
     GameStartResponse([i32; 4]),
     AvatarSelectResponse(God),
-    GameShopResponse(bool, Vec<Option<CharacterInstance>>),
+    GameShopResponse(GameUserInfo, bool, Vec<Option<CharacterInstance>>),
     BuyRequest(BuyRequest),
     RerollShopRequest,
     BuyResponse(

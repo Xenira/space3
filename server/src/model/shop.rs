@@ -76,6 +76,13 @@ pub async fn get_shop(game: GameGuard, user: &User) -> Json<Protocol> {
     let game = game.0.lock().await;
     if let Some(game_user) = game.get_user(user.id) {
         Json(Protocol::GameShopResponse(
+            GameUserInfo {
+                experience: game_user.experience,
+                health: game_user.health,
+                money: game_user.money,
+                name: game_user.display_name.to_string(),
+                avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+            },
             game_user.shop.locked,
             game_user.shop.characters.clone(),
         ))
@@ -94,6 +101,13 @@ pub async fn reroll_shop(game: GameGuard, user: &User) -> Json<Protocol> {
         // TODO: Handle error
         if game_user.reroll().is_ok() {
             Json(Protocol::GameShopResponse(
+                GameUserInfo {
+                    experience: game_user.experience,
+                    health: game_user.health,
+                    money: game_user.money,
+                    name: game_user.display_name.to_string(),
+                    avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+                },
                 false,
                 game_user.shop.characters.clone(),
             ))
@@ -120,6 +134,13 @@ pub async fn toggle_lock_shop(game: GameGuard, user: &User) -> Json<Protocol> {
         user.shop.locked = !user.shop.locked;
 
         Json(Protocol::GameShopResponse(
+            GameUserInfo {
+                experience: user.experience,
+                health: user.health,
+                money: user.money,
+                name: user.display_name.to_string(),
+                avatar: user.god.clone().and_then(|g| Some(g.id)),
+            },
             user.shop.locked,
             user.shop.characters.clone(),
         ))
