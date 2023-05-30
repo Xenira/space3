@@ -148,13 +148,20 @@ pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> 
         NewUser::from_credentials(&creds, session_token).expect("Failed to hash password");
 
     // TODO: return new user
-    db.run(|con| insert_into(users::table).values(new_user).execute(con))
+    let user_id = db
+        .run(|con| {
+            insert_into(users::table)
+                .values(new_user)
+                .returning(users::id)
+                .get_result(con)
+        })
         .await
         .expect("Failed to create user");
 
     Json(Protocol::LoginResponse(LoginResponse {
         key: session_token.to_string(),
         user: UserData {
+            id: user_id,
             username: creds.username.clone(),
             display_name: None,
             currency: 0,
@@ -235,6 +242,7 @@ pub async fn login(
     Json(Protocol::LoginResponse(LoginResponse {
         key: session_token.to_string(),
         user: UserData {
+            id: user.id,
             username: user.username,
             display_name: user.display_name,
             currency: user.currency,
@@ -246,6 +254,7 @@ pub async fn login(
 #[get("/users/@me")]
 pub fn me(user: &User, lobby: Option<LobbyWithUsers>) -> Json<Protocol> {
     Json(Protocol::UserResponse(UserData {
+        id: user.id,
         username: user.username.to_string(),
         display_name: user.display_name.clone(),
         currency: user.currency,

@@ -428,6 +428,8 @@ fn apply_ability(
         protocol::protocol_types::prelude::AbilityEffect::Stealth => todo!(),
         protocol::protocol_types::prelude::AbilityEffect::Taunt(_) => todo!(),
         protocol::protocol_types::prelude::AbilityEffect::Ranged => todo!(),
+        protocol::protocol_types::prelude::AbilityEffect::Flying => Vec::new(),
+        protocol::protocol_types::prelude::AbilityEffect::FirstStrike => Vec::new(),
     }
 }
 

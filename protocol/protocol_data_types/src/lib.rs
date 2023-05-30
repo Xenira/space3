@@ -196,6 +196,12 @@ fn ability_effect_as_tokens(effect: &AbilityEffect) -> TokenStream {
         AbilityEffect::Stealth => todo!(),
         AbilityEffect::Taunt(_) => todo!(),
         AbilityEffect::Ranged => todo!(),
+        AbilityEffect::Flying => quote! {
+            AbilityEffect::Flying
+        },
+        AbilityEffect::FirstStrike => quote! {
+            AbilityEffect::FirstStrike
+        },
     }
 }
 

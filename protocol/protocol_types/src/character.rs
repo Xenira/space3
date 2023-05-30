@@ -62,6 +62,10 @@ pub enum AbilityEffect {
     Taunt(u8),
     // Character doesn't take damage from attacking
     Ranged,
+    // Flying characters attack the back row first
+    Flying,
+    // Character attacks first, not receiving damage if it kills the target
+    FirstStrike,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]

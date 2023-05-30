@@ -1,7 +1,7 @@
 use fs_extra::dir::CopyOptions;
 
 fn main() {
-    std::fs::remove_dir_all("assets/generated").unwrap();
+    std::fs::remove_dir_all("assets/generated");
     std::fs::create_dir_all("assets/generated").unwrap();
     fs_extra::copy_items(
         &[

@@ -35,7 +35,7 @@ impl Plugin for MenuLoginPlugin {
 struct LoginCredentials(Credentials);
 
 #[derive(Resource)]
-struct User(UserData);
+pub struct User(pub UserData);
 
 fn logout(
     mut commands: Commands,

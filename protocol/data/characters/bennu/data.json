@@ -9,7 +9,23 @@
     "name": "Bennu",
     "attack": 3,
     "health": 2,
-    "abilities": []
+    "abilities": [
+      {
+        "name": "Flying",
+        "description": "",
+        "trigger": "Passive",
+        "effect": "Flying",
+        "target": "SelfTarget"
+      }
+    ]
   },
-  "abilities": []
+  "abilities": [
+    {
+      "name": "Flying",
+      "description": "",
+      "trigger": "Passive",
+      "effect": "Flying",
+      "target": "SelfTarget"
+    }
+  ]
 }

@@ -9,6 +9,8 @@ use crate::{
     AppState, Cleanup, StateChangeEvent,
 };
 
+use super::menu_login::User;
+
 const STATE: AppState = AppState::MenuSetDisplayName;
 pub(crate) struct SetDisplayNamePlugin;
 
@@ -27,6 +29,7 @@ fn ui_main_menu(
     mut contexts: EguiContexts,
     mut display_name: ResMut<DisplayName>,
     mut networking: ResMut<NetworkingRessource>,
+    mut res_user: ResMut<User>,
 ) {
     let ctx = contexts.ctx_mut();
 
@@ -42,6 +45,7 @@ fn ui_main_menu(
         });
         ui.horizontal(|ui| {
             if ui.button("Set Display Name").clicked() {
+                res_user.0.display_name = Some(display_name.0.clone());
                 networking.request_data(Method::PUT, "users/display_name", &display_name.0.clone());
             }
         });

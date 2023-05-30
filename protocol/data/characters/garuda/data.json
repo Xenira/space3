@@ -9,7 +9,23 @@
     "name": "Garuda",
     "attack": 3,
     "health": 2,
-    "abilities": []
+    "abilities": [
+      {
+        "name": "First Strike",
+        "description": "",
+        "trigger": "Passive",
+        "effect": "FirstStrike",
+        "target": "SelfTarget"
+      }
+    ]
   },
-  "abilities": []
+  "abilities": [
+    {
+      "name": "First Strike",
+      "description": "",
+      "trigger": "Passive",
+      "effect": "FirstStrike",
+      "target": "SelfTarget"
+    }
+  ]
 }

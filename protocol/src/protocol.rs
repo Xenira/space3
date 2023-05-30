@@ -69,6 +69,7 @@ pub struct Status {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserData {
+    pub id: i32,
     pub username: String,
     pub display_name: Option<String>,
     pub currency: i32,
