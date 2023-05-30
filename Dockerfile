@@ -47,7 +47,7 @@ RUN cd /server && RUSTFLAGS="-C target-feature=-crt-static" cargo build --target
 FROM chef as server
 WORKDIR /usr/local/bin
 RUN apk add libgcc && addgroup -S serveruser && adduser -S serveruser -G serveruser
-COPY --from=builder-server /server/target/x86_64-unknown-linux-musl/release/rog-server .
+COPY --from=builder-server /target/x86_64-unknown-linux-musl/release/rog-server .
 COPY --from=builder-client /client/dist ./static
 COPY ./server/static ./static
 COPY ./client/assets ./static/assets
