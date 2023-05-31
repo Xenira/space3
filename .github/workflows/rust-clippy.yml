@@ -73,16 +73,19 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: rust-clippy-results-server.sarif
+          category: clippy-server
           wait-for-processing: true
         
       - name: Upload Client analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: rust-clippy-results-client.sarif
+          category: clippy-client
           wait-for-processing: true
 
       - name: Upload Protocol analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: rust-clippy-results-protocol.sarif
+          category: clippy-protocol
           wait-for-processing: true
