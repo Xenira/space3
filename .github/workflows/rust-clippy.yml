@@ -46,7 +46,7 @@ jobs:
           cargo clippy
           --all-features
           --manifest-path=server/Cargo.toml
-          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+          --message-format=json | clippy-sarif | tee rust-clippy-results-server.sarif | sarif-fmt
         continue-on-error: true
         
       - name: Run rust-clippy (/client)
@@ -54,19 +54,31 @@ jobs:
           cargo clippy
           --all-features
           --manifest-path=client/Cargo.toml
-          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
-        continue-on-error: true
+          --message-format=json | clippy-sarif | tee rust-clippy-results-client.sarif | sarif-fmt
+        continue-on-error: true  
       
       - name: Run rust-clippy (/protocol)
         run:
           cargo clippy
           --all-features
           --manifest-path=protocol/Cargo.toml
-          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+          --message-format=json | clippy-sarif | tee rust-clippy-results-protocol.sarif | sarif-fmt
         continue-on-error: true
-
-      - name: Upload analysis results to GitHub
+        
+      - name: Upload Server analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: rust-clippy-results.sarif
+          sarif_file: rust-clippy-results-server.sarif
+          wait-for-processing: true
+        
+      - name: Upload Client analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: rust-clippy-results-client.sarif
+          wait-for-processing: true
+
+      - name: Upload Protocol analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: rust-clippy-results-protocol.sarif
           wait-for-processing: true
