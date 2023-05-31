@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Serpopard",
+  "description": "A mythical creature with the body of a leopard or lion and the long neck of a serpent. It was often depicted in Egyptian art and symbolism.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Serpopard",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

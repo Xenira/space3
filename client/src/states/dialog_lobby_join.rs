@@ -1,14 +1,13 @@
-use bevy::prelude::*;
-use bevy_egui::{egui, EguiContexts};
-use protocol::protocol::{LobbyJoinRequest, Protocol};
-use surf::http::Method;
-
 use crate::{
     cleanup_system,
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
     states::lobby::CurrentLobby,
     AppState, Cleanup, StateChangeEvent,
 };
+use bevy::prelude::*;
+use bevy_egui::{egui, EguiContexts};
+use protocol::protocol::{LobbyJoinRequest, Protocol};
+use reqwest::Method;
 
 const STATE: AppState = AppState::DialogLobbyJoin;
 pub(crate) struct DialogLobbyJoinPlugin;
@@ -45,7 +44,7 @@ fn ui_lobby_join_dialog(
         ui.separator();
         ui.horizontal(|ui| {
             if ui.button("Join").clicked() {
-                network.request_data(Method::Put, "lobbies", &lobby.0);
+                network.request_data(Method::PUT, "lobbies", &lobby.0);
             }
             if ui.button("Cancel").clicked() {
                 ev_state_change.send(StateChangeEvent(AppState::MenuMain));

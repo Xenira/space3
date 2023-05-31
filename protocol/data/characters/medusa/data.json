@@ -1,0 +1,14 @@
+{
+  "name": "Medusa",
+  "description": "A monstrous woman with snakes for hair and a gaze that turned anyone who looked at her into stone.",
+  "health": 3,
+  "attack": 2,
+  "cost": 2,
+  "upgrade": {
+    "name": "Medusa",
+    "attack": 2,
+    "health": 3,
+    "abilities": []
+  },
+  "abilities": []
+}

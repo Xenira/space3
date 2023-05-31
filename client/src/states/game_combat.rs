@@ -1,17 +1,15 @@
+use super::game_shop::BoardCharacter;
 use crate::{
     cleanup_system,
-    components::animation::{
-        Animation, AnimationFinished, AnimationIndices, AnimationRepeatType, AnimationState,
-        AnimationTimer, AnimationTransition, AnimationTransitionType, TransformAnimation,
+    components::{
+        anchors::{AnchorType, Anchors},
+        animation::{Animation, AnimationFinished, AnimationRepeatType, TransformAnimation},
     },
-    modules::character::Character,
-    prefabs::animation,
-    AppState, Cleanup, StateChangeEvent,
+    modules::{character::Character, god::God},
+    AppState, Cleanup,
 };
-use bevy::{prelude::*, transform::commands};
+use bevy::prelude::*;
 use protocol::protocol::{BattleResponse, CharacterInstance};
-
-use super::game_shop::BoardCharacter;
 
 const STATE: AppState = AppState::GameBattle;
 
@@ -52,6 +50,9 @@ pub struct BoardOwn;
 #[derive(Component, Debug)]
 pub struct BoardOpponent;
 
+#[derive(Component, Debug)]
+pub struct OpponentProfile;
+
 #[derive(Resource, Debug)]
 pub struct BattleRes(pub BattleResponse);
 
@@ -62,6 +63,7 @@ fn setup(
     mut commands: Commands,
     state: Res<BattleRes>,
     mut ev_board_change: EventWriter<BattleBoardChangedEvent>,
+    res_anchor: Res<Anchors>,
 ) {
     info!("Setting up game combat state");
 
@@ -82,6 +84,22 @@ fn setup(
         Cleanup,
     ));
 
+    // Spawn enemy profile
+    commands
+        .entity(res_anchor.get(AnchorType::TOP_RIGHT).unwrap())
+        .with_children(|parent| {
+            parent.spawn((
+                SpatialBundle {
+                    transform: Transform::from_translation(Vec3::new(-128.0, -128.0, 10.0))
+                        .with_scale(Vec3::splat(3.0)),
+                    ..Default::default()
+                },
+                God(state.0.opponent.clone()),
+                OpponentProfile,
+                Cleanup,
+            ));
+        });
+
     ev_board_change.send(BattleBoardChangedEvent([
         state.0.start_own.clone(),
         state.0.start_opponent.clone(),
@@ -90,19 +108,22 @@ fn setup(
 
 fn play_animation(
     mut commands: Commands,
-    state: Res<BattleRes>,
+    mut state: ResMut<BattleRes>,
     mut combat_state: ResMut<NextState<GameCombatState>>,
     q_board_character: Query<(
         Entity,
         &BoardCharacter,
-        &Animation,
+        &Children,
         &GlobalTransform,
         &Transform,
     )>,
+    q_animation: Query<(Entity, &Animation)>,
     q_target: Query<(&GlobalTransform, &BoardCharacter)>,
+    mut ev_board_change: EventWriter<BattleBoardChangedEvent>,
 ) {
-    if let Some(current_action) = state.0.actions.first() {
-        if let Some((entity, character, animation, source_global_transform, source_transform)) =
+    let current_action = state.0.actions.first().cloned();
+    if let Some(current_action) = current_action {
+        if let Some((entity, character, children, source_global_transform, source_transform)) =
             q_board_character
                 .iter()
                 .find(|(_, board_character, _, _, _)| board_character.1.id == current_action.source)
@@ -121,7 +142,8 @@ fn play_animation(
                                     - source_transform.translation);
                             commands.entity(entity).insert(TransformAnimation {
                                 source: source_transform.clone(),
-                                target: Transform::from_translation(target_transform),
+                                target: Transform::from_translation(target_transform)
+                                    .with_scale(source_transform.scale),
                                 speed: 5.0,
                                 repeat: AnimationRepeatType::PingPongOnce,
                             });
@@ -134,10 +156,23 @@ fn play_animation(
                 }
                 protocol::protocol::BattleActionType::Die => {
                     debug!("Playing animation for {:?}", character);
-                    commands
-                        .entity(entity)
-                        .insert(animation.get_transition("die").unwrap());
+                    if let Some((entity, animation)) = children
+                        .iter()
+                        .find_map(|entity| q_animation.get(*entity).ok())
+                    {
+                        commands
+                            .entity(entity)
+                            .insert(animation.get_transition("die").unwrap());
+                    } else {
+                        warn!("No animation found for {:?}", character);
+                        state.0.actions.remove(0);
+                        ev_board_change.send(BattleBoardChangedEvent([
+                            current_action.result_own.clone(),
+                            current_action.result_opponent.clone(),
+                        ]));
+                    }
                 }
+                _ => (),
             }
             debug!("Changing state to PlayAnimation");
             combat_state.set(GameCombatState::PlayAnimation);
@@ -152,17 +187,26 @@ fn play_animation(
 
 fn animation_finished(
     mut battle: ResMut<BattleRes>,
-    q_board_character: Query<(Entity, &BoardCharacter)>,
+    q_board_character: Query<(Entity, &Children, &BoardCharacter)>,
     mut ev_animation_finished: EventReader<AnimationFinished>,
     mut ev_board_change: EventWriter<BattleBoardChangedEvent>,
 ) {
     if let Some(current_action) = battle.0.actions.first().cloned() {
         for ev in ev_animation_finished.iter() {
             debug!("Animation finished for {:?}", ev.0);
-            if let Some(character) = q_board_character.iter().find(|(entity, board_character)| {
-                *entity == ev.0 && board_character.1.id == current_action.source
-            }) {
-                debug!("Animation finished for {:?}", character);
+            if q_board_character
+                .iter()
+                .any(|(entity, children, board_character)| {
+                    (ev.0 == entity || children.contains(&ev.0))
+                        && (board_character.1.id == current_action.source
+                            || (current_action.target.is_some()
+                                && board_character.1.id == current_action.target.unwrap()))
+                })
+            {
+                debug!(
+                    "Animation finished for {:?} on entity {:?}",
+                    current_action, ev.0
+                );
                 battle.0.actions.remove(0);
                 ev_board_change.send(BattleBoardChangedEvent([
                     current_action.result_own.clone(),
@@ -217,17 +261,21 @@ fn generate_board(
         {
             commands.entity(board).with_children(|parent| {
                 parent.spawn((
-                    Transform::from_translation(Vec3::new(
-                        68.0 * 2.0 * (idx % 4) as f32 + if idx < 4 { 0.0 } else { 68.0 } as f32,
-                        if idx < 4 {
-                            0.0
-                        } else if player_idx == 0 {
-                            -136.0
-                        } else {
-                            136.0
-                        },
-                        1.0,
-                    )),
+                    SpatialBundle {
+                        transform: Transform::from_translation(Vec3::new(
+                            68.0 * 2.0 * (idx % 4) as f32 + if idx < 4 { 0.0 } else { 68.0 } as f32,
+                            if idx < 4 {
+                                0.0
+                            } else if player_idx == 0 {
+                                -136.0
+                            } else {
+                                136.0
+                            },
+                            0.0,
+                        ))
+                        .with_scale(Vec3::splat(2.0)),
+                        ..Default::default()
+                    },
                     Character(character.clone()),
                     BoardCharacter(idx as u8, character.clone()),
                 ));

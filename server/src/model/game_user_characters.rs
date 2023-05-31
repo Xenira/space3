@@ -1,14 +1,12 @@
+use super::game::GameGuard;
 use crate::model::game_users::GameUser;
+use crate::model::users::User;
 use crate::schema::game_user_characters;
-use crate::service::character_service;
-use crate::Database;
 use chrono::NaiveDateTime;
-use diesel::{prelude::*, update};
-use protocol::protocol::{Error, Protocol};
+use diesel::prelude::*;
+use protocol::protocol::{Error, GameUserInfo, Protocol};
 use rocket::http::Status;
-use rocket::request::{self, FromRequest, Outcome};
 use rocket::serde::json::Json;
-use rocket::Request;
 
 #[derive(Identifiable, Associations, Queryable, Clone, Debug)]
 #[diesel(belongs_to(GameUser))]
@@ -103,96 +101,69 @@ pub enum GameUserCharacterError {
     Internal,
 }
 
-#[derive(Debug)]
-pub struct GameUserCharacters(pub Vec<Option<GameUserCharacter>>);
-
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for GameUserCharacters {
-    type Error = GameUserCharacterError;
-    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        if let Outcome::Success(game_user) = req.guard::<GameUser>().await {
-            let game_user = game_user.clone();
-            if let Some(db) = req.guard::<Database>().await.succeeded() {
-                return db
-                    .run(move |con| {
-                        if let Ok(shop) = GameUserCharacter::belonging_to(&game_user)
-                            .load::<GameUserCharacter>(con)
-                        {
-                            let character_idx = 0..12;
-                            Outcome::Success(GameUserCharacters(
-                                character_idx
-                                    .map(|i| {
-                                        shop.iter().find(|c| c.position == i).map(|c| c.clone())
-                                    })
-                                    .collect::<Vec<_>>(),
-                            ))
-                        } else {
-                            return Outcome::Forward(());
-                        }
-                    })
-                    .await;
-            }
-            return Outcome::Failure((Status::ServiceUnavailable, Self::Error::Internal));
-        }
-        Outcome::Failure((Status::Unauthorized, Self::Error::Internal))
+#[get("/games/characters")]
+pub async fn get_board(game: GameGuard, user: &User) -> Json<Protocol> {
+    let game = game.0.lock().await;
+    if let Some(game_user) = game.get_user(user.id) {
+        Json(Protocol::BoardResponse(game_user.board.to_vec()))
+    } else {
+        Json(Error::new_protocol_response(
+            Status::NotFound.code,
+            "Character not found".to_string(),
+            Protocol::CharacterMoveRequest,
+        ))
     }
 }
 
-#[put("/games/character/<character_idx>/<target_idx>")]
+#[put("/games/characters/<character_idx>/<target_idx>")]
 pub async fn move_character(
-    db: Database,
-    game_user_characters: GameUserCharacters,
-    character_idx: u8,
-    target_idx: u8,
+    game: GameGuard,
+    user: &User,
+    character_idx: usize,
+    target_idx: usize,
 ) -> Json<Protocol> {
-    if character_idx == target_idx {
-        return Json(Error::new_protocol_response(
-            Status::BadRequest.code,
-            "Cannot move character to same position".to_string(),
-            Protocol::CharacterMoveRequest,
-        ));
-    }
-
-    if let Some(source_character) = game_user_characters.0[character_idx as usize].clone() {
-        let source_character_id = source_character.id;
-        if let Some(target_character) = game_user_characters.0[target_idx as usize].clone() {
-            let target_character_id = target_character.id;
-            db.run(move |con| {
-                con.build_transaction().deferrable().run(|con| {
-                    update(game_user_characters::table)
-                        .filter(game_user_characters::id.eq(source_character_id))
-                        .set(game_user_characters::position.eq(target_idx as i32))
-                        .execute(con)
-                        .unwrap();
-                    update(game_user_characters::table)
-                        .filter(game_user_characters::id.eq(target_character_id))
-                        .set(game_user_characters::position.eq(character_idx as i32))
-                        .execute(con)
-                        .unwrap();
-                    QueryResult::Ok(())
-                })
-            })
-            .await;
-        } else {
-            db.run(move |con| {
-                update(game_user_characters::table)
-                    .filter(game_user_characters::id.eq(source_character.id))
-                    .set(game_user_characters::position.eq(target_idx as i32))
-                    .execute(con)
-                    .unwrap();
-            })
-            .await;
-        }
-
-        if let Ok(board) = character_service::get_board(&db, source_character.game_user_id).await {
-            Json(Protocol::BoardResponse(board))
+    let mut game = game.0.lock().await;
+    if let Some(game_user) = game.get_user_mut(user.id) {
+        if game_user.move_character(character_idx, target_idx).is_ok() {
+            Json(Protocol::BoardResponse(game_user.board.to_vec()))
         } else {
             Json(Error::new_protocol_response(
-                Status::InternalServerError.code,
-                "Could not get board".to_string(),
+                Status::NotFound.code,
+                "Character not found".to_string(),
                 Protocol::CharacterMoveRequest,
             ))
         }
+    } else {
+        Json(Error::new_protocol_response(
+            Status::NotFound.code,
+            "Character not found".to_string(),
+            Protocol::CharacterMoveRequest,
+        ))
+    }
+}
+
+#[delete("/games/characters/<character_idx>")]
+pub async fn sell_character(user: &User, game: GameGuard, character_idx: usize) -> Json<Protocol> {
+    let mut game = game.0.lock().await;
+    let Some(game_user) = game.get_user_mut(user.id) else {
+        return Json(Error::new_protocol_response(
+            Status::NotFound.code,
+            "Character not found".to_string(),
+            Protocol::CharacterMoveRequest,
+        ))
+    };
+
+    if game_user.sell(character_idx).is_ok() {
+        Json(Protocol::SellResponse(
+            GameUserInfo {
+                experience: game_user.experience,
+                health: game_user.health,
+                money: game_user.money,
+                name: user.username.clone(),
+                avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+            },
+            game_user.board.to_vec(),
+        ))
     } else {
         Json(Error::new_protocol_response(
             Status::NotFound.code,

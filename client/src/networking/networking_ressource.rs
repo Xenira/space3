@@ -4,8 +4,8 @@ use bevy::{
     log::debug,
     prelude::{FromWorld, Resource, World},
 };
+use reqwest::{header::HeaderMap, Client, ClientBuilder, Method, Request, RequestBuilder, Url};
 use serde::Serialize;
-use surf::{http::Method, Client, Config, Request, RequestBuilder, Url};
 
 #[derive(Resource)]
 pub struct ServerUrl(pub Url);
@@ -21,6 +21,8 @@ pub struct NetworkingRessource {
     pub client: Client,
     pub polling_client: Client,
     pub requests: Vec<Request>,
+    pub base_url: Url,
+    pub headers: HeaderMap,
 }
 
 impl FromWorld for NetworkingRessource {
@@ -29,19 +31,27 @@ impl FromWorld for NetworkingRessource {
             .get_resource::<ServerUrl>()
             .expect("Base path is missing. ServerUrl resource not found");
 
-        NetworkingRessource::new(&base_url.0)
+        NetworkingRessource::new(base_url.0.clone())
     }
 }
 
 impl NetworkingRessource {
-    pub fn new(base_url: &Url) -> NetworkingRessource {
-        let client = Config::new()
-            .set_timeout(Some(Duration::from_secs(5)))
-            .set_base_url(base_url.clone());
+    pub fn new(base_url: Url) -> NetworkingRessource {
+        #[cfg(not(target_family = "wasm"))]
+        let client = ClientBuilder::new()
+            .timeout(Duration::from_secs(5))
+            .build()
+            .unwrap();
+        #[cfg(target_family = "wasm")]
+        let client = ClientBuilder::new().build().unwrap();
 
-        let polling_client = Config::new()
-            .set_timeout(Some(Duration::from_secs(60)))
-            .set_base_url(base_url.clone());
+        #[cfg(not(target_family = "wasm"))]
+        let polling_client = ClientBuilder::new()
+            .timeout(Duration::from_secs(60))
+            .build()
+            .unwrap();
+        #[cfg(target_family = "wasm")]
+        let polling_client = ClientBuilder::new().build().unwrap();
 
         NetworkingRessource {
             client: client.try_into().expect("Failed to construct client"),
@@ -49,11 +59,17 @@ impl NetworkingRessource {
                 .try_into()
                 .expect("Failed to construct polling client"),
             requests: vec![],
+            base_url,
+            headers: HeaderMap::new(),
         }
     }
 
     pub fn request(&mut self, method: Method, url: &str) {
-        self.requests.push(self.get_request(method, url).build())
+        self.requests.push(
+            self.get_request(method, self.base_url.join(url).unwrap().as_str())
+                .build()
+                .unwrap(),
+        )
     }
 
     pub fn request_data<T: Serialize + Debug>(&mut self, method: Method, url: &str, data: &T) {
@@ -62,14 +78,16 @@ impl NetworkingRessource {
             method, url, data
         );
         self.requests.push(
-            self.get_request(method, url)
-                .body_json(data)
-                .expect("Failed to parse json request body")
-                .build(),
+            self.get_request(method, self.base_url.join(url).unwrap().as_str())
+                .json(data)
+                .build()
+                .expect("Failed to parse json request body"),
         )
     }
 
     pub fn get_request(&self, method: Method, url: &str) -> RequestBuilder {
-        self.client.request(method, url)
+        self.client
+            .request(method, self.base_url.join(url).unwrap().as_str())
+            .headers(self.headers.clone())
     }
 }

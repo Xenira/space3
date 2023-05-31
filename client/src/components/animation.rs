@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, ops::Range, time::Duration};
 
 use bevy::{
     prelude::*,
@@ -30,6 +30,15 @@ pub struct AnimationBundle {
 pub struct AnimationIndices {
     pub first: usize,
     pub last: usize,
+}
+
+impl From<Range<usize>> for AnimationIndices {
+    fn from(range: Range<usize>) -> Self {
+        Self {
+            first: range.start,
+            last: range.end,
+        }
+    }
 }
 
 impl AnimationIndices {
@@ -265,6 +274,9 @@ fn animate_sprite(
                     AnimationRepeatType::Once => {
                         trace!("Animation {} finished", current_state.name);
                         ev_animation_finished.send(AnimationFinished(entity));
+                        if let Some(on_finish) = &current_state.on_finish {
+                            animation.current_state = animation.states.get(on_finish).cloned();
+                        }
                         sprite.index
                     }
                     AnimationRepeatType::PingPong => {
@@ -286,6 +298,9 @@ fn animate_sprite(
                         if current_state.direction == AnimationDirection::Forward {
                             trace!("Animation {} finished", current_state.name);
                             ev_animation_finished.send(AnimationFinished(entity));
+                            if let Some(on_finish) = &current_state.on_finish {
+                                animation.current_state = animation.states.get(on_finish).cloned();
+                            }
                         }
 
                         sprite.index

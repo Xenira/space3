@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Naga",
+  "description": "Serpent-like creatures often depicted as divine beings with human upper bodies and snake lower bodies. They are associated with water and fertility.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Naga",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

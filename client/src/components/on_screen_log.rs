@@ -11,7 +11,6 @@ impl Plugin for OnScreenLogPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LogEntry>()
             .insert_resource(LogEntries(Vec::new()))
-            .add_system(setup.on_startup())
             .add_systems((add_log, ui_log));
     }
 }
@@ -44,10 +43,6 @@ pub enum LogLevel {
     Info,
     Warning,
     Error,
-}
-
-fn setup(mut commands: Commands) {
-    // commands.insert_resource();
 }
 
 fn ui_log(mut contexts: EguiContexts, mut log_entries: ResMut<LogEntries>) {

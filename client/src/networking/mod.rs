@@ -4,8 +4,8 @@ pub mod networking_systems;
 pub mod polling;
 pub mod util;
 pub mod networking {
-    use bevy::prelude::{App, Plugin};
-    use surf::Url;
+    use bevy::prelude::{App, Plugin, Resource};
+    use reqwest::Url;
 
     use super::{
         networking_events::NetworkingEvent,
@@ -16,12 +16,28 @@ pub mod networking {
 
     pub struct NetworkingPlugin(pub(crate) String);
 
+    #[derive(Resource)]
+    pub struct Runtime(pub tokio::runtime::Runtime);
+
     impl Plugin for NetworkingPlugin {
         fn build(&self, app: &mut App) {
+            #[cfg(not(target_family = "wasm"))]
+            let runtime = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .unwrap();
+
+            // TODO: Make runtime Option and remove on wasm
+            #[cfg(target_family = "wasm")]
+            let runtime = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
             app.add_event::<NetworkingEvent>()
                 .insert_resource(ServerUrl(
                     Url::parse(self.0.as_str()).expect("Invalid base url"),
                 ))
+                .insert_resource(Runtime(runtime))
                 .init_resource::<NetworkingRessource>()
                 .add_event::<PollingStatus>()
                 .add_system(request_dispatcher)

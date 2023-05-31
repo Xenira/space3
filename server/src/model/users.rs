@@ -1,39 +1,51 @@
-use crate::diesel::ExpressionMethods;
-use crate::diesel::RunQueryDsl;
-use crate::model::polling::Channel;
-use crate::schema::game_users;
-use crate::schema::lobby_users;
-use crate::util::jwt;
-use crate::{schema::users, Database};
+use super::{lobbies::LobbyWithUsers, polling::ActivePolls};
+use crate::{model::polling::Channel, schema::lobby_users, schema::users, Database, RunningGames};
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use chrono::NaiveDateTime;
-use diesel::{insert_into, prelude::*, QueryDsl};
-
-use protocol::protocol::Credentials;
-use protocol::protocol::LoginResponse;
-use protocol::protocol::Protocol;
-use protocol::protocol::UserData;
+use diesel::{dsl::now, insert_into, prelude::*, update, ExpressionMethods, QueryDsl, RunQueryDsl};
+use protocol::protocol::{Credentials, Error, LoginResponse, Protocol, UserData};
 use rand_core::OsRng;
-use rocket::http::Status;
-use rocket::request;
-use rocket::request::FromRequest;
-use rocket::request::Outcome;
-use rocket::serde::json::Json;
-use rocket::Request;
+use rocket::{
+    http::Status,
+    request::{self, FromRequest, Outcome},
+    serde::json::Json,
+    Request, State,
+};
+use std::fmt;
+use uuid::Uuid;
 
-use super::lobbies::LobbyWithUsers;
-use super::polling::ActivePolls;
-
-#[derive(Identifiable, Queryable, Clone, Debug)]
+#[derive(Identifiable, Queryable, Clone)]
 pub struct User {
     pub id: i32,
     pub username: String,
     pub password: String,
     pub salt: String,
+    pub display_name: Option<String>,
     pub currency: i32,
     pub tutorial: bool,
+    pub session_token: Option<Uuid>,
+    pub session_expires: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+impl fmt::Debug for User {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("User")
+            .field("id", &self.id)
+            .field("username", &self.username)
+            .field("display_name", &self.display_name)
+            .field("password", &"[REDACTED]".to_string())
+            .field("salt", &"[REDACTED]".to_string())
+            .field("display_name", &self.display_name)
+            .field("currency", &self.currency)
+            .field("tutorial", &self.tutorial)
+            .field("session_token", &"[REDACTED]".to_string())
+            .field("session_expires", &self.session_expires)
+            .field("created_at", &self.created_at)
+            .field("updated_at", &self.updated_at)
+            .finish()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -49,32 +61,34 @@ impl<'r> FromRequest<'r> for &'r User {
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
         let user = req
             .local_cache_async(async {
-                match req.headers().get_one("x-api-key") {
+                match req.headers().get_one("x-api-key").map(|s| s.to_string()) {
                     None => Err(ApiKeyError::Missing),
                     Some(key) => {
-                        trace!("Authenticating based on jwt");
-                        match jwt::validate(key) {
-                            Ok(token) => {
-                                trace!("Token is valid");
-                                if let Some(db) = req.guard::<Database>().await.succeeded() {
-                                    let user = db
-                                        .run(move |con| {
-                                            users::table
-                                                .filter(users::username.eq(token.claims.sub))
-                                                .first::<User>(con)
-                                        })
-                                        .await
-                                        .expect("Failed to retrieve user from db");
-                                    trace!("Setting user {:?}", user);
+                        if let Some(db) = req.guard::<Database>().await.succeeded() {
+                            db.run(move |con| {
+                                let user = users::table
+                                    .filter(
+                                        users::session_token
+                                            .eq(Some(Uuid::parse_str(&key).unwrap()))
+                                            .and(users::session_expires.gt(now)),
+                                    )
+                                    .first::<User>(con)
+                                    .unwrap();
 
-                                    return Ok(user);
-                                }
-                                Err(ApiKeyError::Other)
-                            }
-                            Err(err) => {
-                                warn!("Error during login: {}", err);
-                                Err(ApiKeyError::Invalid)
-                            }
+                                update(users::table)
+                                    .filter(users::id.eq(user.id))
+                                    .set((users::session_expires.eq(Some(
+                                        chrono::Utc::now().naive_utc() + chrono::Duration::hours(1),
+                                    )),))
+                                    .execute(con)
+                                    .unwrap();
+
+                                trace!("Setting user {:?}", user);
+                                Ok(user)
+                            })
+                            .await
+                        } else {
+                            Err(ApiKeyError::Other)
                         }
                     }
                 }
@@ -93,10 +107,12 @@ pub struct NewUser {
     pub username: String,
     pub password: String,
     pub salt: String,
+    pub session_token: Option<Uuid>,
+    pub session_expires: Option<NaiveDateTime>,
 }
 
 impl NewUser {
-    fn from_credentials(cred: &Credentials) -> Result<NewUser, ()> {
+    fn from_credentials(cred: &Credentials, session_token: Uuid) -> Result<NewUser, ()> {
         let salt = SaltString::generate(&mut OsRng);
         let username: String = cred.username.clone();
 
@@ -106,6 +122,8 @@ impl NewUser {
                 username,
                 password: password_hash,
                 salt: salt.to_string(),
+                session_token: Some(session_token),
+                session_expires: Some(chrono::Utc::now().naive_utc() + chrono::Duration::hours(1)),
             });
         }
         Err(())
@@ -124,17 +142,28 @@ fn hash_password(cred: &Credentials, salt: &SaltString) -> Result<String, ()> {
 
 #[put("/users", data = "<creds>")]
 pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
-    let new_user = NewUser::from_credentials(&creds).expect("Failed to hash password");
+    let session_token = Uuid::new_v4();
+
+    let new_user =
+        NewUser::from_credentials(&creds, session_token).expect("Failed to hash password");
 
     // TODO: return new user
-    db.run(|con| insert_into(users::table).values(new_user).execute(con))
+    let user_id = db
+        .run(|con| {
+            insert_into(users::table)
+                .values(new_user)
+                .returning(users::id)
+                .get_result(con)
+        })
         .await
         .expect("Failed to create user");
 
     Json(Protocol::LoginResponse(LoginResponse {
-        key: jwt::generate(&creds.username),
+        key: session_token.to_string(),
         user: UserData {
+            id: user_id,
             username: creds.username.clone(),
+            display_name: None,
             currency: 0,
             lobby: None,
         },
@@ -142,7 +171,11 @@ pub async fn register(creds: Json<Credentials>, db: Database) -> Json<Protocol> 
 }
 
 #[post("/users", data = "<creds>")]
-pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
+pub async fn login(
+    creds: Json<Credentials>,
+    db: Database,
+    games: &State<RunningGames>,
+) -> Json<Protocol> {
     let username = creds.username.clone();
     let user = db
         .run(move |con| {
@@ -156,34 +189,49 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
     assert_eq!(
         hash_password(
             &creds,
-            &SaltString::new(user.salt.as_str()).expect("User salt currupted")
+            &SaltString::from_b64(user.salt.as_str()).expect("User salt currupted")
         )
         .expect("Failed to verify login")
         .to_string(),
         user.password
     );
 
-    let channels = db
-        .run(move |con| {
-            let lobby = lobby_users::table
+    let session_token = Uuid::new_v4();
+
+    db.run(move |con| {
+        update(users::table)
+            .filter(users::id.eq(user.id))
+            .set((
+                users::session_token.eq(Some(session_token)),
+                users::session_expires
+                    .eq(chrono::Utc::now().naive_utc() + chrono::Duration::hours(1)),
+            ))
+            .execute(con)
+    })
+    .await
+    .expect("Failed to update session token");
+
+    let mut game = None;
+
+    for (id, g) in games.games.lock().await.iter() {
+        if g.lock().await.has_user(user.id) {
+            game = Some(Channel::Game(*id));
+            break;
+        }
+    }
+
+    let channels = vec![
+        db.run(move |con| {
+            lobby_users::table
                 .filter(lobby_users::user_id.eq(user.id))
                 .select(lobby_users::lobby_id)
                 .first::<i32>(con)
                 .map(|id| Channel::Lobby(id))
-                .ok();
-            let game = game_users::table
-                .filter(
-                    game_users::user_id
-                        .eq(user.id)
-                        .and(game_users::health.gt(0)),
-                )
-                .select(game_users::game_id)
-                .first::<i32>(con)
-                .map(|id| Channel::Game(id))
-                .ok();
-            vec![lobby, game]
+                .ok()
         })
-        .await;
+        .await,
+        game,
+    ];
 
     for channel in channels {
         if let Some(channel) = channel {
@@ -192,9 +240,11 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
     }
 
     Json(Protocol::LoginResponse(LoginResponse {
-        key: jwt::generate(&user.username),
+        key: session_token.to_string(),
         user: UserData {
+            id: user.id,
             username: user.username,
+            display_name: user.display_name,
             currency: user.currency,
             lobby: None,
         },
@@ -204,8 +254,36 @@ pub async fn login(creds: Json<Credentials>, db: Database) -> Json<Protocol> {
 #[get("/users/@me")]
 pub fn me(user: &User, lobby: Option<LobbyWithUsers>) -> Json<Protocol> {
     Json(Protocol::UserResponse(UserData {
+        id: user.id,
         username: user.username.to_string(),
+        display_name: user.display_name.clone(),
         currency: user.currency,
         lobby: lobby.map(|l| l.into()),
     }))
+}
+
+#[put("/users/display_name", data = "<display_name>")]
+pub async fn set_display_name(
+    db: Database,
+    user: &User,
+    display_name: Json<String>,
+) -> Json<Protocol> {
+    let user_id = user.id;
+    if let Ok(display_name) = db
+        .run(move |con| {
+            diesel::update(users::table.filter(users::id.eq(user_id)))
+                .set(users::display_name.eq(&display_name.0))
+                .execute(con)?;
+
+            QueryResult::Ok(display_name)
+        })
+        .await
+    {
+        Json(Protocol::DisplaynameResponse(display_name.0))
+    } else {
+        return Json(Error::new_protocol(
+            Status::InternalServerError.code,
+            "Failed to update display name".to_string(),
+        ));
+    }
 }

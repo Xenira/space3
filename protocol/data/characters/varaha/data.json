@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Varaha",
+  "description": "A boar-headed incarnation of Lord Vishnu. Varaha is associated with rescuing the earth goddess, Bhudevi, from the depths of the cosmic ocean.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Varaha",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

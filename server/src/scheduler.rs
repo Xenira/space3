@@ -1,16 +1,22 @@
-use std::{future::Future, pin::Pin, time::Duration};
-
-use diesel::{dsl::now, prelude::*, ExpressionMethods, QueryDsl};
-use rocket::{log::private::warn, tokio};
-
 use crate::{
-    model::{game::Game, lobbies::Lobby},
-    schema::{games, lobbies},
+    game::game_instance::GameInstance,
+    model::lobbies::Lobby,
+    schema::lobbies,
     service::{game_service, lobby_service},
     Database,
 };
+use diesel::{dsl::now, prelude::*, ExpressionMethods, QueryDsl};
+use rocket::{
+    log::private::warn,
+    tokio::{self, sync::Mutex},
+};
+use std::{borrow::BorrowMut, collections::HashMap, sync::Arc, time::Duration};
+use uuid::Uuid;
 
-pub async fn long_running_task(db: Database) {
+pub async fn long_running_task(
+    db: Database,
+    games: &Arc<Mutex<HashMap<Uuid, Arc<Mutex<GameInstance>>>>>,
+) {
     loop {
         // trace!("Long running task");
         if let Ok(lobbies) = db
@@ -23,7 +29,11 @@ pub async fn long_running_task(db: Database) {
         {
             for lobby in lobbies {
                 debug!("Starting lobby {:?}", lobby);
-                game_service::start_game(&db, &lobby).await;
+                let game = game_service::start_game(&db, &lobby).await;
+                games
+                    .lock()
+                    .await
+                    .insert(game.game_id, Arc::new(Mutex::new(game)));
                 db.run(move |con| {
                     lobby_service::close_lobby(con, &lobby);
                 })
@@ -33,20 +43,19 @@ pub async fn long_running_task(db: Database) {
             warn!("Failed to load lobbies to start")
         }
 
-        if let Ok(games) = db
-            .run(move |con| {
-                games::table
-                    .filter(games::next_battle.le(now))
-                    .load::<Game>(con)
-            })
-            .await
-        {
-            for game in games {
-                debug!("Next turn for game {:?}", game);
-                game_service::next_turn(&db, &game).await;
+        for game in games.lock().await.values_mut() {
+            if !(game.lock().await).turn.is_next() {
+                continue;
             }
-        } else {
-            warn!("Failed to load games")
+
+            debug!("Next turn for game {:?}", game.lock().await.game_id);
+            if game_service::next_turn(game.lock().await.borrow_mut()).await {
+                debug!(
+                    "Game {:?} is over, removing from active games list",
+                    game.lock().await.game_id
+                );
+                games.lock().await.remove(&game.lock().await.game_id);
+            }
         }
 
         tokio::time::sleep(Duration::from_secs(1)).await;

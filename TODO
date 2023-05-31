@@ -1,51 +1,70 @@
 Service:
 	Lobby:
-		✔ Delete Lobby @started(23-04-29 19:33) @done(23-04-29 21:32) @lasted(1h59m20s)
-		✔ Notyfy about Change @started(23-04-29 19:40) @done(23-04-29 21:32) @lasted(1h52m5s)
-		✔ Join / Leave @started(23-04-30 09:44) @done(23-04-30 11:49) @lasted(2h5m23s)
-		✔ Toggle Ready @started(23-04-30 11:50) @done(23-04-30 12:03) @lasted(13m51s)
-		✔ Start Game @started(23-04-30 12:03) @done(23-04-30 16:48) @lasted(4h45m41s)
 		☐ Kick Player
 		☐ Promote Player
 		☐ Invite Player
-		✔ Auto Promote on Leave @done(23-05-04 06:40)
 		☐ Do not disclose master user id
 	Character Selection:
-		✔ Select Character choices @done(23-05-06 18:27)
-		✔ Add endopint for selecting character @started(23-05-07 11:10) @done(23-05-10 21:10) @lasted(3d10h51s)
 		☐ Select random Character when time runs out
-		☐ Start main game if all players have selected
 	Matchmaking:
 		☐ Join Queue
 		☐ Leave Queue
 	Game:
-		✔ Create Game @started(23-04-30 16:48) @done(23-05-02 17:53) @lasted(2d1h5m25s)
-		✔ Transition to Pilot selection @started(23-05-02 17:53) @done(23-05-04 06:39) @lasted(1d12h46m36s)
-		✔ Add game state update service (polling) + timer info @started(23-05-11 18:42) @done(23-05-11 19:22) @lasted(40m24s)
-		✔ Determine next opponent (round robin) @done(23-05-16 21:34)
-		✔ Transition to Shop phase @done(23-05-11 19:48)
-		✔ Transition to Combat phase @done(23-05-11 19:48)
-		☐ Transition to End phase
+		☐ Close games after 5 minutes of inactivity
+		☐ Fix notification channels for old games
+		☐ Implement error handling
+		☐ Close game if only bots are left
+		☐ Fix crash if still in game
+		Abilities:
+			Triggers:
+				☐ On Death (Last Breath)
+				☐ On Attack (Valor?)
+				☐ On Kill (Slay)
+				☐ On Survive round (Survivor)
+				☐ On Buy (Godsend)
+				☐ On Sell (Sacrafice)
+				☐ On Upgrade (Ascension)
+				☐ On Reroll (Reforge)?
+				☐ On Round Start (Dawn?)
+			Effects:
+				☐ Summon
+				☐ Transform
+				☐ Heal
+				☐ Damage
+				☐ Steal
+				☐ Silence
+				☐ Stun
+				☐ Stealth
+				☐ Taunt
+				☐ Flying
+			Targets:
+				☐ Aura
+				☐ Self
+				☐ Ally
+				☐ Enemy
+				☐ All
+
+		Character Types:
+			☐ Monster
+			☐ Demigod
+			☐ Hero
+			☐ Immortal
+			☐ Beast
+			☐ Titan
+			☐ Enchanter?
+			☐ Creature
+			☐ Spirit
+			☐ Guardian
+		Character Alignments:
+			☐ Good / Evil
+			☐ Lawful / Chaotic
 		Shop:
-			☐ Set player money
-			☐ Remove old shop if not locked
-			✔ Buy Character @started(23-05-14 01:55) @done(23-05-14 03:34) @lasted(1h39m42s)
-			✔ Send updated shop and board to player after buy @started(23-05-15 19:19) @done(23-05-15 20:01) @lasted(42m16s)
-			☐ Sell Character
-			✔ Roll @done(23-05-11 21:03)
-			✔ Reroll @started(23-05-18 14:57) @done(23-05-18 15:26) @lasted(29m11s)
-			☐ Upgrade Character
-			☐ Lock Shop
-			✔ Move character @started(23-05-16 17:25) @done(23-05-16 18:12) @lasted(47m8s)
+			☐ Add guard to prevent shop actions when not in shop phase
+			☐ Select characters based on lvl
 		Game:
-			☐ Delete non locked shops
-			✔ Calculate Combat @started(23-05-16 18:14) @done(23-05-17 17:07) @lasted(22h53m25s)
-			✔ Send Combat log to players @done(23-05-18 14:43)
-			☐ Add Action Stack
-			✔ Fix order of boards in combat log @started(23-05-18 14:43) @done(23-05-18 14:56) @lasted(13m4s)
+			☐ Add combined animation for multiple actions
+			☐ Do not substract health from dead opponents
 	Bot Games:
-		☐ Add fill with bots option to lobby
-		☐ Simple Bots
 		☐ Add option to suspend timer when only bots are left
 	Tutorial:
 		☐ Write Dialogs
@@ -53,70 +72,37 @@ Service:
 	Polling:
 		☐ Join channels on login
 	Geteral:
-		✔ Create periodic task to execute timed events @started(23-04-30 13:18) @done(23-04-30 14:29) @lasted(1h11m)
 		☐ Add version check
-		☐ Mask sensitive data
+		☐ Make session timeout configurable
 
 Client:
 	Networking:
-		☐ Change to global response handler
 		☐ Add rate limit to polling
 	UI:
-		✔ Timer UI @started(23-05-10 22:02) @done(23-05-10 23:41) @lasted(1h39m19s)
 		☐ Add timer animation
 		☐ Add on screen notifications
-		✔ Add on screen logs @done(23-05-04 06:39)
+		Login:
+			☐ Allow to specify server url
+			☐ Add logout button
 		Main:
 			☐ Add settings menu
-			☐ Add logout button
 			☐ Add credits button
-	Lobby:
-		☐ Disable play button if not master
-		☐ Change ready button text to "not ready" if already ready
 	God Selection:
-		✔ Add frame for gods @done(23-05-06 18:27)
-		✔ Add Animation and State handling @done(23-05-06 18:28)
-		✔ Add hover detection @done(23-05-06 18:28)
-		✔ Add click detection @started(23-05-07 00:03) @done(23-05-07 00:38) @lasted(35m4s)
-		✔ God component @started(23-05-07 00:38) @done(23-05-07 03:45) @lasted(3h7m42s)
-		☐ God presets
-		✔ Fallback god @done(23-05-07 00:38)
-		✔ Add selection @done(23-05-10 21:59)
 		☐ Add random selection
 		☐ Add ready button
 		☐ Add confirmation button
 	Main-Game:
-		☐ Player List
+		☐ Add upgraded character frame
+		☐ Add hover "tooltip"
 		Shop:
-			✔ Add character pedestal @started(23-05-11 19:35) @done(23-05-15 19:18) @lasted(3d23h43m54s)
-			✔ Add shop UI @started(23-05-11 19:35) @done(23-05-11 21:44) @lasted(2h9m59s)
-			UI:
-				✔ Add reroll button @done(23-05-18 15:26)
-				☐ Add lock button
-				✔ Display money @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m55s)
-				✔ Display health @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m54s)
-				✔ Display exp @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m53s)
-			✔ Add Characters @done(23-05-16 22:50)
-			☐ Add Reroll
-			✔ Add Buy @started(23-05-14 01:55) @done(23-05-15 19:18) @lasted(1d17h23m47s)
-			✔ Display Characters on board @started(23-05-15 20:01) @done(23-05-15 20:19) @lasted(18m8s)
-			✔ Fix character positioning (index not deterministic) @started(23-05-16 17:00) @done(23-05-16 17:16) @lasted(16m49s)
-			✔ Add character move @started(23-05-16 17:49) @done(23-05-16 18:12) @lasted(23m3s)
-			☐ Display health and attack
-			☐ Display price
-			☐ Add character sell
-			☐ Add character upgrade
-			☐ Fix buy position
-			☐ Initialy load board from server
+			☐ Attach shop to top of screen
+			☐ Attach bench to bottom of screen
 		Battle:
-			✔ Add character pedestal @started(23-05-17 17:07) @done(23-05-17 17:45) @lasted(38m13s)
 			☐ Add battle UI
-			✔ Playback battle @started(23-05-17 17:45) @done(23-05-17 21:38) @lasted(3h53m59s)
-			☐ Fix battle animation jumping
-			✔ Display health and attack @started(23-05-18 11:46) @done(23-05-18 13:19) @lasted(1h33m27s)
-			☐ Add enemy god
-			✔ Add battle animation @done(23-05-18 13:19)
-			☐ Fix stacked entities on x axis
+			☐ Change target health on animation hit
+			☐ Change character health/attack color (white -> >= base, red -> less than base)
+			☐ Add transition animation to battle
+			☐ Add battle result animation
 	Settings:
 		Dev:
 			☐ Log Settings
@@ -126,17 +112,139 @@ Client:
 		☐ Add transform animations
 		☐ Text animation
 	Misc:
-		✔ Add drag and drop plugin @started(23-05-14 03:36) @done(23-05-14 04:19) @lasted(43m36s)
-		✔ Do not modify final transform, instead use events @done(23-05-16 22:50)
-		☐ Fix jittering between original and coursor position
 		☐ Add labels to drop targets
 		☐ Add drag and drop animation
 		☐ Add version check
 		☐ Add bug report button
 
-
 Misc:
 	☐ Intro video
 
+Hosting:
+	☐ Add preview server
+	☐ Add production server
+
 Stupid Ideas I prob won't be able (or want) to do:
 	☐ <epic> 2D or 3D Fight animation
+	((medusa)), snake, portrait, (glowing eyes), bright eyes, (snakes for hair), hair is small snakes, small snakes, ((snake hair)), no hair, lighting, shading, 4k, island background, particles, shadow, effects, fantasy art, myth, mythology, gods, by (Anato Finnstark)
+Negative prompt: nipples, boobs, 2 people, 2 faces, lowres, low quality, wierd eyes, messed up eyes, hair
+Steps: 30, Sampler: DPM++ SDE Karras, CFG scale: 7.5, Seed: 210994947, Size: 768x768, Model hash: b76cc78ad9, Version: v1.2.1
+
+Archive:
+  ✔ On Survive hit (Defiance?) @done(23-05-30 21:53) @project(Service.Game.Abilities.Triggers)
+  ✔ Buff @done(23-05-30 21:53) @project(Service.Game.Abilities.Effects)
+  ✘ Debuff @cancelled(23-05-30 21:53) @project(Service.Game.Abilities.Effects)
+  ✔ Add Action Stack @done(23-05-30 21:53) @project(Service.Game.Game)
+  ✔ Disable play button if not master @started(23-05-30 23:53) @done(23-05-31 01:59) @lasted(2h6m17s) @project(Client.Lobby)
+  ✔ Change ready button text to "not ready" if already ready @started(23-05-30 23:54) @done(23-05-31 01:59) @lasted(2h5m18s) @project(Client.Lobby)
+  ✔ God presets @done(23-05-30 23:17) @project(Client.God Selection)
+  ✔ Attach opponent list to left side of screen @started(23-05-30 21:48) @done(23-05-30 21:58) @lasted(10m20s) @project(Client.Main-Game)
+  ✔ Convert exp to lvl @started(23-05-30 23:12) @done(23-05-30 23:16) @lasted(4m56s) @project(Client.Main-Game)
+  ✔ Attach player profile to bottom right of screen @started(23-05-30 21:58) @done(23-05-30 22:28) @lasted(31m) @project(Client.Main-Game)
+  ✔ Update gold on reroll and sell @started(23-05-30 21:39) @done(23-05-30 21:46) @lasted(7m51s) @project(Client.Main-Game.Shop)
+  ✔ Add enemy character to top right of screen @started(23-05-30 22:29) @done(23-05-30 23:12) @lasted(43m12s) @project(Client.Main-Game.Battle)
+  ✔ Start main game if all players have selected @done(23-05-28 17:06) @project(Service.Character Selection)
+  ✔ Buy random characters @started(23-05-24 22:15) @done(23-05-28 17:07) @lasted(3d18h52m28s) @project(Service.Game.Bots.Simple Bot)
+  ✘ Add fill with bots option to lobby @cancelled(23-05-28 17:08) @project(Service.Bot Games)
+  ✔ Simple Bots @done(23-05-28 17:08) @project(Service.Bot Games)
+  ✘ Add delay to game start @cancelled(23-05-28 17:01) @project(Rewrite)
+  ✔ Price is number ascending @started(23-05-28 15:45) @done(23-05-28 15:52) @lasted(7m26s) @project(Rewrite)
+  ✔ Shop is shifting after buy @started(23-05-28 16:50) @done(23-05-28 17:00) @lasted(10m56s) @project(Rewrite)
+  ✔ Battle not playing @started(23-05-28 15:14) @done(23-05-28 15:28) @lasted(14m21s) @project(Rewrite)
+  ✔ Upgrade not working @started(23-05-28 15:29) @done(23-05-28 15:41) @lasted(12m49s) @project(Rewrite)
+  ✔ Dmg calculation might be wrong @started(23-05-28 15:28) @done(23-05-28 15:29) @lasted(1m51s) @project(Rewrite)
+  ✔ Fix buy board index @started(23-05-28 16:31) @done(23-05-28 16:49) @lasted(18m51s) @project(Rewrite)
+  ✔ Pairings might be wrong with dead opponents @started(23-05-28 15:53) @done(23-05-28 16:30) @lasted(37m7s) @project(Rewrite)
+  ✔ Remove clone from player and shop @started(23-05-28 16:30) @done(23-05-28 16:31) @lasted(1m23s) @project(Rewrite)
+  ✔ Start gold and xp wrong @started(23-05-28 17:00) @done(23-05-28 17:05) @lasted(5m21s) @project(Rewrite)
+  ✔ Add endpoint for opponent list @started(23-05-20 17:56) @done(23-05-20 18:32) @lasted(36m25s) @project(Service.Game)
+  ✔ Fill lobby games with bots @done(23-05-24 22:14) @project(Service.Game.Bots)
+  ✔ Select random god @done(23-05-24 22:14) @project(Service.Game.Bots.Simple Bot)
+  ✔ Favor buying same characters if not yet upgraded and on board @done(23-05-25 18:21) @project(Service.Game.Bots.Simple Bot)
+  ✔ Put characters on board in order of attack @done(23-05-25 18:20) @project(Service.Game.Bots.Simple Bot)
+  ✔ Sell last character on bench if full and not duplicate of non upgraded character on board @done(23-05-25 18:20) @project(Service.Game.Bots.Simple Bot)
+  ✔ Implement buy to "occupied" slot @started(23-05-24 19:15) @done(23-05-24 19:51) @lasted(36m28s) @project(Service.Game.Shop.Board DnD)
+  ✔ Fix swap bug @done(23-05-24 19:14) @project(Service.Game.Shop.Board DnD)
+  ✔ Play final battle animations @done(23-05-24 19:54) @project(Service.Game.Game)
+  ✔ Fix turn timer @done(23-05-23 23:23) @project(Service.Game.Game)
+  ✔ Mask sensitive data @done(23-05-24 21:14) @project(Service.Geteral)
+  ✔ Add session refresh @done(23-05-24 21:05) @project(Service.Geteral)
+  ✔ Player List @started(23-05-20 18:32) @done(23-05-20 20:17) @lasted(1h45m59s) @project(Client.Main-Game)
+  ✔ Fix assets unloading @done(23-05-23 22:51) @project(Client.Main-Game)
+  ✔ Fix drag and drop jittering on board @done(23-05-24 17:19) @project(Client.Main-Game.Shop)
+  ✔ Add character art @done(23-05-23 00:58) @project(Client.Misc)
+  ✔ Add cli for character info and art @done(23-05-23 00:59) @project(Client.Misc)
+  ☐ Add god art @done(23-05-23 00:58) @project(Client.Misc)
+  ✔ Add cli for god info and art @done(23-05-23 00:59) @project(Client.Misc)
+  ✔ Fix jittering between original and coursor position (Create curser entity) @done(23-05-24 17:53) @project(Client.Misc)
+  ✔ Add anchor entities for elements @started(23-05-23 19:21) @done(23-05-23 22:51) @lasted(3h30m9s) @project(Client.Misc)
+  ✔ Delete Lobby @started(23-04-29 19:33) @done(23-04-29 21:32) @lasted(1h59m20s) @project(Service.Lobby)
+  ✔ Notyfy about Change @started(23-04-29 19:40) @done(23-04-29 21:32) @lasted(1h52m5s) @project(Service.Lobby)
+  ✔ Join / Leave @started(23-04-30 09:44) @done(23-04-30 11:49) @lasted(2h5m23s) @project(Service.Lobby)
+  ✔ Toggle Ready @started(23-04-30 11:50) @done(23-04-30 12:03) @lasted(13m51s) @project(Service.Lobby)
+  ✔ Start Game @started(23-04-30 12:03) @done(23-04-30 16:48) @lasted(4h45m41s) @project(Service.Lobby)
+  ✔ Auto Promote on Leave @done(23-05-04 06:40) @project(Service.Lobby)
+  ✔ Select Character choices @done(23-05-06 18:27) @project(Service.Character Selection)
+  ✔ Add endopint for selecting character @started(23-05-07 11:10) @done(23-05-10 21:10) @lasted(3d10h51s) @project(Service.Character Selection)
+  ✔ Create Game @started(23-04-30 16:48) @done(23-05-02 17:53) @lasted(2d1h5m25s) @project(Service.Game)
+  ✔ Transition to Pilot selection @started(23-05-02 17:53) @done(23-05-04 06:39) @lasted(1d12h46m36s) @project(Service.Game)
+  ✔ Add game state update service (polling) + timer info @started(23-05-11 18:42) @done(23-05-11 19:22) @lasted(40m24s) @project(Service.Game)
+  ✔ Determine next opponent (round robin) @done(23-05-16 21:34) @project(Service.Game)
+  ✔ Transition to Shop phase @done(23-05-11 19:48) @project(Service.Game)
+  ✔ Transition to Combat phase @done(23-05-11 19:48) @project(Service.Game)
+  ✔ Transition to End phase @done(23-05-20 17:54) @project(Service.Game)
+  ✔ Set player money @done(23-05-20 00:40) @project(Service.Game.Shop)
+  ✔ Remove old shop if not locked @done(23-05-20 00:40) @project(Service.Game.Shop)
+  ✔ Buy Character @started(23-05-14 01:55) @done(23-05-14 03:34) @lasted(1h39m42s) @project(Service.Game.Shop)
+  ✔ Send updated shop and board to player after buy @started(23-05-15 19:19) @done(23-05-15 20:01) @lasted(42m16s) @project(Service.Game.Shop)
+  ✔ Sell Character @started(23-05-20 15:42) @done(23-05-20 16:05) @lasted(23m30s) @project(Service.Game.Shop)
+  ✔ Roll @done(23-05-11 21:03) @project(Service.Game.Shop)
+  ✔ Reroll @started(23-05-18 14:57) @done(23-05-18 15:26) @lasted(29m11s) @project(Service.Game.Shop)
+  ✔ Upgrade Character @done(23-05-20 02:23) @project(Service.Game.Shop)
+  ✔ Lock Shop @started(23-05-19 23:20) @done(23-05-20 00:12) @lasted(52m14s) @project(Service.Game.Shop)
+  ✔ Move character @started(23-05-16 17:25) @done(23-05-16 18:12) @lasted(47m8s) @project(Service.Game.Shop)
+  ✔ Delete non locked shops @done(23-05-20 16:07) @project(Service.Game.Game)
+  ✔ Calculate Combat @started(23-05-16 18:14) @done(23-05-17 17:07) @lasted(22h53m25s) @project(Service.Game.Game)
+  ✔ Send Combat log to players @done(23-05-18 14:43) @project(Service.Game.Game)
+  ✔ Fix order of boards in combat log @started(23-05-18 14:43) @done(23-05-18 14:56) @lasted(13m4s) @project(Service.Game.Game)
+  ✔ Calculate animation duration based on action count @started(23-05-19 22:24) @done(23-05-19 23:13) @lasted(49m38s) @project(Service.Game.Game)
+  ✔ Create periodic task to execute timed events @started(23-04-30 13:18) @done(23-04-30 14:29) @lasted(1h11m) @project(Service.Geteral)
+  ✔ Change to global response handler @done(23-05-19 22:22) @project(Client.Networking)
+  ✔ Timer UI @started(23-05-10 22:02) @done(23-05-10 23:41) @lasted(1h39m19s) @project(Client.UI)
+  ✔ Add on screen logs @done(23-05-04 06:39) @project(Client.UI)
+  ✔ Add frame for gods @done(23-05-06 18:27) @project(Client.God Selection)
+  ✔ Add Animation and State handling @done(23-05-06 18:28) @project(Client.God Selection)
+  ✔ Add hover detection @done(23-05-06 18:28) @project(Client.God Selection)
+  ✔ Add click detection @started(23-05-07 00:03) @done(23-05-07 00:38) @lasted(35m4s) @project(Client.God Selection)
+  ✔ God component @started(23-05-07 00:38) @done(23-05-07 03:45) @lasted(3h7m42s) @project(Client.God Selection)
+  ✔ Fallback god @done(23-05-07 00:38) @project(Client.God Selection)
+  ✔ Add selection @done(23-05-10 21:59) @project(Client.God Selection)
+  ✔ Add character pedestal @started(23-05-11 19:35) @done(23-05-15 19:18) @lasted(3d23h43m54s) @project(Client.Main-Game.Shop)
+  ✔ Add shop UI @started(23-05-11 19:35) @done(23-05-11 21:44) @lasted(2h9m59s) @project(Client.Main-Game.Shop)
+  ✔ Add reroll button @done(23-05-18 15:26) @project(Client.Main-Game.Shop.UI)
+  ✔ Add lock button @started(23-05-19 23:20) @done(23-05-20 00:12) @lasted(52m20s) @project(Client.Main-Game.Shop.UI)
+  ✔ Display money @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m55s) @project(Client.Main-Game.Shop.UI)
+  ✔ Display health @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m54s) @project(Client.Main-Game.Shop.UI)
+  ✔ Display exp @started(23-05-18 13:31) @done(23-05-18 14:42) @lasted(1h11m53s) @project(Client.Main-Game.Shop.UI)
+  ✔ Add Characters @done(23-05-16 22:50) @project(Client.Main-Game.Shop)
+  ✔ Add Reroll @done(23-05-19 22:06) @project(Client.Main-Game.Shop)
+  ✔ Add Buy @started(23-05-14 01:55) @done(23-05-15 19:18) @lasted(1d17h23m47s) @project(Client.Main-Game.Shop)
+  ✔ Display Characters on board @started(23-05-15 20:01) @done(23-05-15 20:19) @lasted(18m8s) @project(Client.Main-Game.Shop)
+  ✔ Fix character positioning (index not deterministic) @started(23-05-16 17:00) @done(23-05-16 17:16) @lasted(16m49s) @project(Client.Main-Game.Shop)
+  ✔ Add character move @started(23-05-16 17:49) @done(23-05-16 18:12) @lasted(23m3s) @project(Client.Main-Game.Shop)
+  ✔ Display health and attack @done(23-05-19 22:22) @project(Client.Main-Game.Shop)
+  ✔ Display price @started(23-05-20 00:15) @done(23-05-20 00:32) @lasted(17m51s) @project(Client.Main-Game.Shop)
+  ✔ Add character sell @done(23-05-20 16:05) @project(Client.Main-Game.Shop)
+  ✔ Add character upgrade @done(23-05-20 02:23) @project(Client.Main-Game.Shop)
+  ✔ Fix buy position @started(23-05-19 22:16) @done(23-05-19 22:22) @lasted(6m32s) @project(Client.Main-Game.Shop)
+  ✔ Initialy load board from server @started(23-05-19 22:07) @done(23-05-19 22:16) @lasted(9m7s) @project(Client.Main-Game.Shop)
+  ✔ Add bench @started(23-05-20 15:30) @done(23-05-20 15:42) @lasted(12m30s) @project(Client.Main-Game.Shop)
+  ✔ Add character pedestal @started(23-05-17 17:07) @done(23-05-17 17:45) @lasted(38m13s) @project(Client.Main-Game.Battle)
+  ✔ Playback battle @started(23-05-17 17:45) @done(23-05-17 21:38) @lasted(3h53m59s) @project(Client.Main-Game.Battle)
+  ✔ Fix battle animation jumping @done(23-05-19 22:06) @project(Client.Main-Game.Battle)
+  ✔ Display health and attack @started(23-05-18 11:46) @done(23-05-18 13:19) @lasted(1h33m27s) @project(Client.Main-Game.Battle)
+  ✔ Add battle animation @done(23-05-18 13:19) @project(Client.Main-Game.Battle)
+  ✔ Fix stacked entities on x axis  @started(23-05-19 20:52) @done(23-05-19 21:35) @lasted(43m51s) @project(Client.Main-Game.Battle)
+  ✔ Fix last animation state not showing @done(23-05-19 22:06) @project(Client.Main-Game.Battle)
+  ✔ Add drag and drop plugin @started(23-05-14 03:36) @done(23-05-14 04:19) @lasted(43m36s) @project(Client.Misc)
+  ✔ Do not modify final transform, instead use events @done(23-05-16 22:50) @project(Client.Misc)
