@@ -45,24 +45,24 @@ jobs:
         run:
           cargo clippy
           --all-features
-          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
           --manifest-path=server/Cargo.toml
+          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
         continue-on-error: true
         
       - name: Run rust-clippy (/client)
         run:
           cargo clippy
           --all-features
-          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
           --manifest-path=client/Cargo.toml
+          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
         continue-on-error: true
       
       - name: Run rust-clippy (/protocol)
         run:
           cargo clippy
           --all-features
-          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
           --manifest-path=protocol/Cargo.toml
+          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
         continue-on-error: true
 
       - name: Upload analysis results to GitHub
