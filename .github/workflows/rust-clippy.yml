@@ -34,19 +34,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: clippy
-          override: true
-
       - name: Install required cargo
         run: cargo install clippy-sarif sarif-fmt
         
       - name: Install dependencies
-        run: sudo apt-get install libasound2-dev -y
+        run: sudo apt-get install libasound2-dev libudev-dev -y
 
       - name: Run rust-clippy (/server)
         run:
