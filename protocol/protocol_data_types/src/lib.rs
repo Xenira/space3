@@ -1,5 +1,3 @@
-use std::fmt::{Debug};
-
 use protocol_types::{
     character::CharacterUpgrade,
     heros::Pantheon,
@@ -8,6 +6,7 @@ use protocol_types::{
 use quote::{quote, ToTokens, TokenStreamExt, __private::TokenStream, format_ident};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow::Borrowed;
+use std::fmt::Debug;
 
 pub trait Entity {
     fn with_id(&mut self, id: i32) -> Self;

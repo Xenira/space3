@@ -13,12 +13,13 @@ Service:
 		☐ Close games after 5 minutes of inactivity
 		☐ Fix notification channels for old games
 		☐ Implement error handling
+		☐ Close game if only bots are left
+		☐ Fix crash if still in game
 		Abilities:
 			Triggers:
 				☐ On Death (Last Breath)
 				☐ On Attack (Valor?)
 				☐ On Kill (Slay)
-				☐ On Survive hit (Defiance?)
 				☐ On Survive round (Survivor)
 				☐ On Buy (Godsend)
 				☐ On Sell (Sacrafice)
@@ -28,8 +29,6 @@ Service:
 			Effects:
 				☐ Summon
 				☐ Transform
-				☐ Buff
-				☐ Debuff
 				☐ Heal
 				☐ Damage
 				☐ Steal
@@ -63,7 +62,6 @@ Service:
 			☐ Add guard to prevent shop actions when not in shop phase
 			☐ Select characters based on lvl
 		Game:
-			☐ Add Action Stack
 			☐ Add combined animation for multiple actions
 			☐ Do not substract health from dead opponents
 	Bot Games:
@@ -89,27 +87,18 @@ Client:
 		Main:
 			☐ Add settings menu
 			☐ Add credits button
-	Lobby:
-		☐ Disable play button if not master
-		☐ Change ready button text to "not ready" if already ready
 	God Selection:
-		☐ God presets
 		☐ Add random selection
 		☐ Add ready button
 		☐ Add confirmation button
 	Main-Game:
 		☐ Add upgraded character frame
 		☐ Add hover "tooltip"
-		☐ Attach opponent list to left side of screen
-		☐ Convert exp to lvl
-		☐ Attach player profile to bottom right of screen
 		Shop:
 			☐ Attach shop to top of screen
 			☐ Attach bench to bottom of screen
-			☐ Update gold on reroll and sell
 		Battle:
 			☐ Add battle UI
-			☐ Add enemy character to top right of screen
 			☐ Change target health on animation hit
 			☐ Change character health/attack color (white -> >= base, red -> less than base)
 			☐ Add transition animation to battle
@@ -142,6 +131,18 @@ Negative prompt: nipples, boobs, 2 people, 2 faces, lowres, low quality, wierd e
 Steps: 30, Sampler: DPM++ SDE Karras, CFG scale: 7.5, Seed: 210994947, Size: 768x768, Model hash: b76cc78ad9, Version: v1.2.1
 
 Archive:
+  ✔ On Survive hit (Defiance?) @done(23-05-30 21:53) @project(Service.Game.Abilities.Triggers)
+  ✔ Buff @done(23-05-30 21:53) @project(Service.Game.Abilities.Effects)
+  ✘ Debuff @cancelled(23-05-30 21:53) @project(Service.Game.Abilities.Effects)
+  ✔ Add Action Stack @done(23-05-30 21:53) @project(Service.Game.Game)
+  ✔ Disable play button if not master @started(23-05-30 23:53) @done(23-05-31 01:59) @lasted(2h6m17s) @project(Client.Lobby)
+  ✔ Change ready button text to "not ready" if already ready @started(23-05-30 23:54) @done(23-05-31 01:59) @lasted(2h5m18s) @project(Client.Lobby)
+  ✔ God presets @done(23-05-30 23:17) @project(Client.God Selection)
+  ✔ Attach opponent list to left side of screen @started(23-05-30 21:48) @done(23-05-30 21:58) @lasted(10m20s) @project(Client.Main-Game)
+  ✔ Convert exp to lvl @started(23-05-30 23:12) @done(23-05-30 23:16) @lasted(4m56s) @project(Client.Main-Game)
+  ✔ Attach player profile to bottom right of screen @started(23-05-30 21:58) @done(23-05-30 22:28) @lasted(31m) @project(Client.Main-Game)
+  ✔ Update gold on reroll and sell @started(23-05-30 21:39) @done(23-05-30 21:46) @lasted(7m51s) @project(Client.Main-Game.Shop)
+  ✔ Add enemy character to top right of screen @started(23-05-30 22:29) @done(23-05-30 23:12) @lasted(43m12s) @project(Client.Main-Game.Battle)
   ✔ Start main game if all players have selected @done(23-05-28 17:06) @project(Service.Character Selection)
   ✔ Buy random characters @started(23-05-24 22:15) @done(23-05-28 17:07) @lasted(3d18h52m28s) @project(Service.Game.Bots.Simple Bot)
   ✘ Add fill with bots option to lobby @cancelled(23-05-28 17:08) @project(Service.Bot Games)

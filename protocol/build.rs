@@ -41,11 +41,6 @@ where
     let type_name = std::any::type_name::<U>();
     let path = Path::new(path);
 
-    let mut generated_rs = vec![
-        "use std::borrow::Cow::Borrowed;".to_string(),
-        "use protocol_types::prelude::*;".to_string(),
-    ];
-
     let mut names: Vec<String> = Vec::new();
 
     let entities = std::fs::read_dir(path)

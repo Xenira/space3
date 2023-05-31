@@ -12,7 +12,8 @@
 				"args": [
 					"build",
 					"--bin=rog-server",
-					"--package=rog-server"
+					"--package=rog-server",
+					"--manifest-path=server/Cargo.toml"
 				],
 				"filter": {
 					"name": "rog-server",
@@ -21,7 +22,7 @@
 			},
 			"args": [],
 			"cwd": "${workspaceFolder}/server",
-			"relativePathBase": "${workspaceFolder}/server"
+			"relativePathBase": "${workspaceFolder}/server",
 		},
 		{
 			"type": "lldb",

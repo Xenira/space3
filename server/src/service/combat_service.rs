@@ -1,8 +1,3 @@
-use std::{
-    cell::{RefCell},
-    rc::Rc,
-};
-
 use crate::game::game_instance_player::GameInstancePlayer;
 use protocol::{
     protocol::{BattleAction, BattleActionType, CharacterInstance},
@@ -10,6 +5,7 @@ use protocol::{
 };
 use rand::seq::IteratorRandom;
 use rocket::log::private::debug;
+use std::{cell::RefCell, rc::Rc};
 use uuid::Uuid;
 
 #[derive(Debug)]

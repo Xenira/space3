@@ -1,14 +1,14 @@
-use std::{
-    error::Error,
-    fs::File,
-    io::{BufReader, Write},
-    path::{Path},
-};
 use clap::{Parser, Subcommand};
 use log::info;
 use onefetch_image::get_best_backend;
 use protocol_data_types::{CharacterJson, GodJson};
 use protocol_types::{heros::Pantheon, prelude::CharacterUpgrade};
+use std::{
+    error::Error,
+    fs::File,
+    io::{BufReader, Write},
+    path::Path,
+};
 use surf::{Client, Config};
 
 mod sd;
