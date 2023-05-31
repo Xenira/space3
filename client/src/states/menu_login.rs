@@ -84,7 +84,7 @@ fn logout(
                     texture_atlas: pedestal_atlas_handle.clone(),
                     sprite: TextureAtlasSprite::new(0),
                     transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
-                        68.0 * 3.0 as f32,
+                        68.0 * 3.0_f32,
                         0.0,
                         1.0,
                     )),
@@ -100,7 +100,7 @@ fn logout(
                     texture_atlas: shop_frame_atlas_handle.clone(),
                     sprite: TextureAtlasSprite::new(0),
                     transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
-                        68.0 * 1.0 as f32,
+                        68.0 * 1.0_f32,
                         200.0,
                         1.0,
                     )),

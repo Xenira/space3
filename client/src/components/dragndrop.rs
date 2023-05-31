@@ -59,7 +59,7 @@ fn on_drag(
             let (cursor, cursor_transform) = q_cursor.single();
 
             commands.entity(entity).insert(Dragged {
-                original_transform: transform.clone(),
+                original_transform: *transform,
                 original_parent: parent.map(|p| p.get()),
             });
             commands.entity(entity).remove_parent();
@@ -93,9 +93,7 @@ fn on_drop(
                 if let Some(parent) = dragged.original_parent {
                     commands.entity(entity).set_parent(parent);
                 }
-                commands
-                    .entity(entity)
-                    .insert(dragged.original_transform.clone());
+                commands.entity(entity).insert(dragged.original_transform);
 
                 if let Ok((drop_target, _)) = q_drop_target.get_single() {
                     debug!("Droped on: {:?}", drop_target);

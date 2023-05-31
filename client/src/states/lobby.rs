@@ -60,10 +60,8 @@ fn ui_lobby(
             {
                 network.request_data(Method::PATCH, "lobbies/ready", &lobby.0);
             }
-            if master {
-                if ui.button("Start").clicked() {
-                    network.request_data(Method::PATCH, "lobbies/start", &lobby.0);
-                }
+            if master && ui.button("Start").clicked() {
+                network.request_data(Method::PATCH, "lobbies/start", &lobby.0);
             }
         });
     });

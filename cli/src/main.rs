@@ -161,7 +161,7 @@ async fn generate_god(god: GodInput) -> Result<(), Box<dyn Error>> {
                 .with_default(
                     existing
                         .clone()
-                        .map(|e| e.name.clone())
+                        .map(|e| e.name)
                         .unwrap_or("".to_string())
                         .as_str(),
                 )
@@ -256,7 +256,7 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
                 .with_default(
                     existing
                         .clone()
-                        .map(|e| e.name.clone())
+                        .map(|e| e.name)
                         .unwrap_or("".to_string())
                         .as_str(),
                 )
@@ -334,16 +334,13 @@ async fn generate_character(character: CharacterInput) -> Result<(), Box<dyn Err
                                     &existing
                                         .clone()
                                         .map(|e| {
-                                            e.upgrade
-                                                .map(|u| u.name.to_string())
-                                                .unwrap_or("".to_string())
+                                            e.upgrade.map(|u| u.name).unwrap_or("".to_string())
                                         })
                                         .unwrap_or("".to_string()),
                                 )
                                 .prompt()
                         })
-                        .unwrap()
-                        .to_string(),
+                        .unwrap(),
                 ),
                 attack: character
                     .attack

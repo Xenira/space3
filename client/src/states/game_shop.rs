@@ -290,10 +290,8 @@ fn on_network(
                         if let Some(lock_transition) = animation.get_transition("lock") {
                             commands.entity(entity).insert(lock_transition);
                         }
-                    } else {
-                        if let Some(unlock_transition) = animation.get_transition("unlock") {
-                            commands.entity(entity).insert(unlock_transition);
-                        }
+                    } else if let Some(unlock_transition) = animation.get_transition("unlock") {
+                        commands.entity(entity).insert(unlock_transition);
                     }
                 }
             }
@@ -364,7 +362,7 @@ fn on_reroll(
     mut networking: ResMut<NetworkingRessource>,
 ) {
     for ev in ev_cklicked.iter() {
-        if let Ok(_) = q_reroll.get(ev.0) {
+        if q_reroll.get(ev.0).is_ok() {
             networking.request(Method::POST, "games/shops");
         }
     }
@@ -376,7 +374,7 @@ fn on_lock(
     mut networking: ResMut<NetworkingRessource>,
 ) {
     for ev in ev_cklicked.iter() {
-        if let Ok(_) = q_lock.get(ev.0) {
+        if q_lock.get(ev.0).is_ok() {
             networking.request(Method::PATCH, "games/shops");
         }
     }

@@ -289,9 +289,9 @@ fn god_click(
     mut network: ResMut<NetworkingRessource>,
 ) {
     for ev in ev_clicked.iter() {
-        q_god.get(ev.0).ok().map(|(god, _)| {
+        if let Ok((god, _)) = q_god.get(ev.0) {
             network.request(Method::PUT, format!("games/avatar/{}", god.0.id).as_str());
-        });
+        }
     }
 }
 
@@ -316,7 +316,7 @@ fn on_network(
                 if god_comp.0.id == god.id {
                     // Move god to center
                     commands.entity(entity).insert(TransformAnimation {
-                        source: transform.clone(),
+                        source: *transform,
                         target: transform.with_translation(Vec3::ZERO),
                         speed: 1.0,
                         repeat: AnimationRepeatType::Once,

@@ -54,7 +54,7 @@ fn ui_log(mut contexts: EguiContexts, mut log_entries: ResMut<LogEntries>) {
         diff.num_seconds() < 10
     });
 
-    if log_entries.0.len() == 0 {
+    if log_entries.0.is_empty() {
         return;
     }
 

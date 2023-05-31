@@ -5,7 +5,7 @@ use protocol_types::{character::Character, heros::God};
 use quote::quote;
 use quote::{format_ident, ToTokens};
 use serde::de::DeserializeOwned;
-use serde_json;
+
 use std::{fs::File, io::BufReader, path::Path};
 
 macro_rules! warn {
@@ -55,13 +55,13 @@ where
                     .ok()
                     .and_then(|f| {
                         serde_json::from_reader(BufReader::new(f))
-                            .or_else(|e| {
+                            .map_err(|e| {
                                 warn!(
                                     "Failed to parse data.json for {:?}: {}",
                                     p.join("data.json"),
                                     e
                                 );
-                                Err(e)
+                                e
                             })
                             .ok()
                     })
@@ -96,7 +96,7 @@ where
     let static_name = format_ident!("{}_ENTITIES", name.to_uppercase());
     let len = entities.len();
     let get_function = format_ident!("get_{}", name);
-    let type_name = syn::parse_str::<syn::Type>(&type_name).unwrap();
+    let type_name = syn::parse_str::<syn::Type>(type_name).unwrap();
     let tokens = quote! {
         use std::rc::Rc;
         use protocol_types::prelude::*;

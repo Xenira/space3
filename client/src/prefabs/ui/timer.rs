@@ -34,7 +34,7 @@ impl TimerBundle {
             animation: frame_animation,
             animation_timer: AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
             sprite_sheet: SpriteSheetBundle {
-                texture_atlas: frame_atlas_handle.clone(),
+                texture_atlas: frame_atlas_handle,
                 sprite: TextureAtlasSprite::new(0),
                 transform: Transform::from_scale(Vec3::splat(1.0)),
                 ..Default::default()
