@@ -6,6 +6,14 @@
 version: 2
 updates:
   - package-ecosystem: "cargo" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    directory: "/server" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo" # See documentation for possible values
+    directory: "/client" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo" # See documentation for possible values
+    directory: "/protocol" # Location of package manifests
     schedule:
       interval: "weekly"
