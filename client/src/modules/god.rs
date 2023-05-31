@@ -1,7 +1,6 @@
-use bevy::prelude::*;
-use protocol::{protocol::GameOpponentInfo, protocol_types::character};
-
 use crate::states::startup::{CharacterAssets, GodAssets, UiAssets};
+use bevy::prelude::*;
+use protocol::protocol::GameOpponentInfo;
 
 pub(crate) struct GodPlugin;
 

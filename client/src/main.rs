@@ -1,10 +1,5 @@
 #[cfg(not(target_family = "wasm"))]
 extern crate dotenv;
-use components::on_screen_log::{LogEntry, LogLevel};
-#[cfg(not(target_family = "wasm"))]
-use dotenv::dotenv;
-use reqwest::Method;
-
 use crate::{
     components::{timer::TimerUi, ComponentsPlugin},
     modules::game_user_info::GameUserRes,
@@ -22,18 +17,21 @@ use bevy::{
     pbr::PointLightBundle,
     prelude::*,
     window::Cursor,
-    winit::WinitPlugin,
 };
 use bevy_egui::{
     egui::{self, Color32},
     EguiContexts, EguiPlugin,
 };
 use chrono::{DateTime, Utc};
+use components::on_screen_log::{LogEntry, LogLevel};
+#[cfg(not(target_family = "wasm"))]
+use dotenv::dotenv;
 use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
 use protocol::{
     gods::get_gods,
     protocol::{Credentials, Protocol, Turn},
 };
+use reqwest::Method;
 use std::env;
 
 mod components;

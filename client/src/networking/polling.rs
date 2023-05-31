@@ -1,9 +1,7 @@
+use crate::networking::util::get_task;
 use async_channel::Receiver;
 use bevy::prelude::*;
 use reqwest::Method;
-use tokio::runtime;
-
-use crate::networking::util::get_task;
 
 use super::{
     networking::Runtime, networking_events::NetworkingEvent,
@@ -21,7 +19,7 @@ pub(crate) enum PollingStatus {
 pub(crate) fn on_polling_status_change(
     mut commands: Commands,
     mut ev_polling_status: EventReader<PollingStatus>,
-    mut res: ResMut<NetworkingRessource>,
+    res: ResMut<NetworkingRessource>,
     query_poller: Query<Entity, With<PollingReceiver>>,
     runtime: Res<Runtime>,
 ) {

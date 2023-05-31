@@ -1,11 +1,9 @@
 use std::{
-    borrow::Cow,
     error::Error,
     fs::File,
     io::{BufReader, Write},
-    path::{Path, PathBuf},
+    path::{Path},
 };
-
 use clap::{Parser, Subcommand};
 use log::info;
 use onefetch_image::get_best_backend;

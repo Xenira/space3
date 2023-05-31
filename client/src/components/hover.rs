@@ -1,5 +1,5 @@
 use super::{animation::Animation, cursor::Cursor, ChangeDetectionSystemSet};
-use crate::{components::animation::AnimationTransition, MainCamera};
+use crate::components::animation::AnimationTransition;
 use bevy::{input::mouse::MouseButtonInput, prelude::*};
 use std::ops::Mul;
 

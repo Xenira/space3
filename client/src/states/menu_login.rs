@@ -1,13 +1,7 @@
-use bevy::{app::AppExit, prelude::*};
-use bevy_egui::{egui, EguiContexts};
-use protocol::protocol::{Credentials, Protocol, UserData};
-use reqwest::{header::HeaderValue, Method};
-
 use crate::{
     cleanup_system,
     components::{
         anchors::{AnchorType, Anchors},
-        animation::AnimationTimer,
         dragndrop::{Dragable, DropTagret},
         hover::{BoundingBox, Clickable, Hoverable},
     },
@@ -15,9 +9,13 @@ use crate::{
         networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
         polling::PollingStatus,
     },
-    prefabs::ui::timer::{TimerBundle, TimerTextBundle},
+    prefabs::ui::timer::TimerTextBundle,
     AppState, Cleanup, StateChangeEvent,
 };
+use bevy::{app::AppExit, prelude::*};
+use bevy_egui::{egui, EguiContexts};
+use protocol::protocol::{Credentials, Protocol, UserData};
+use reqwest::{header::HeaderValue, Method};
 
 const STATE: AppState = AppState::MenuLogin;
 pub(crate) struct MenuLoginPlugin;
@@ -42,7 +40,7 @@ fn logout(
     mut ev_polling_status: EventWriter<PollingStatus>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    mut res_anchors: Res<Anchors>,
+    res_anchors: Res<Anchors>,
 ) {
     debug!("Logout start");
     commands.remove_resource::<User>();

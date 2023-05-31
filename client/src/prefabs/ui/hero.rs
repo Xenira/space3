@@ -1,9 +1,8 @@
-use bevy::prelude::*;
-
 use crate::components::{
     animation::AnimationBundle,
     hover::{BoundingBox, Hoverable},
 };
+use bevy::prelude::*;
 
 #[derive(Bundle)]
 pub struct HeroSelectionChoiceBundle {
@@ -47,4 +46,4 @@ pub struct HeroSelectionChoiceBundle {
 
 pub fn hero_selection() {}
 
-pub fn hero_selection_frame(index: u8) {}
+pub fn hero_selection_frame(_index: u8) {}

@@ -92,7 +92,7 @@ fn setup(
     mut networking: ResMut<NetworkingRessource>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
-    mut res_anchor: Res<Anchors>,
+    res_anchor: Res<Anchors>,
 ) {
     // root node
     networking.request(Method::GET, "games/shops");
@@ -203,7 +203,7 @@ fn setup(
     let lock_atlas = TextureAtlas::from_grid(lock, Vec2::new(32.0, 32.0), 2, 1, None, None);
     let lock_atlas_handle = texture_atlases.add(lock_atlas);
 
-    let mut lock_animation = animation::simple(0, 0)
+    let lock_animation = animation::simple(0, 0)
         .with_state(
             AnimationState::new("lock", AnimationIndices::new(0, 1))
                 .with_repeat_type(AnimationRepeatType::Once)

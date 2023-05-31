@@ -1,5 +1,3 @@
-use std::fs::File;
-
 use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
 use surf::Client;

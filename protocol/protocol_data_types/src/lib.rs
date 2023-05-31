@@ -1,11 +1,11 @@
-use std::fmt::{format, Debug};
+use std::fmt::{Debug};
 
 use protocol_types::{
     character::CharacterUpgrade,
     heros::Pantheon,
     prelude::{Ability, AbilityEffect, AbilityValue},
 };
-use quote::{quote, ToTokens, TokenStreamExt, __private::TokenStream, format_ident, quote_spanned};
+use quote::{quote, ToTokens, TokenStreamExt, __private::TokenStream, format_ident};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow::Borrowed;
 

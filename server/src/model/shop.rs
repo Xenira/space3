@@ -1,7 +1,6 @@
 use crate::{
     model::{game::Game, game_users::GameUser, users::User},
     schema::shops,
-    service::shop_service,
 };
 use chrono::NaiveDateTime;
 use diesel::prelude::*;

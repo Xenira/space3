@@ -1,4 +1,4 @@
-use bevy::{app::AppExit, prelude::*};
+use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use protocol::protocol::Protocol;
 use reqwest::Method;

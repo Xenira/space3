@@ -1,7 +1,6 @@
-use bevy::{prelude::*, render::render_resource::Texture, utils::HashMap};
+use crate::{AppState, StateChangeEvent};
+use bevy::{prelude::*, utils::HashMap};
 use protocol::{characters::get_characters, gods::get_gods};
-
-use crate::{modules::character, AppState, StateChangeEvent};
 
 const STATE: AppState = AppState::Startup;
 pub(crate) struct StartupPlugin;

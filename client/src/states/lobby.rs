@@ -1,13 +1,12 @@
+use crate::{
+    cleanup_system,
+    networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
+    AppState, Cleanup,
+};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use protocol::protocol::{LobbyInfo, Protocol};
 use reqwest::Method;
-
-use crate::{
-    cleanup_system,
-    networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
-    AppState, Cleanup, StateChangeEvent,
-};
 
 use super::menu_login::User;
 

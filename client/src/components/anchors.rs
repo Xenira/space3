@@ -1,11 +1,6 @@
-use bevy::{
-    prelude::*,
-    utils::HashMap,
-    window::{PrimaryWindow, WindowResized, WindowResolution},
-};
-use bitflags::bitflags;
-
 use crate::{AppState, MainCamera};
+use bevy::{prelude::*, utils::HashMap, window::PrimaryWindow};
+use bitflags::bitflags;
 
 pub(crate) struct AnchorsPlugin;
 

@@ -1,10 +1,7 @@
-use std::sync::Arc;
-
+use crate::networking::util::get_task;
 use async_channel::Receiver;
 use bevy::prelude::*;
-use tokio::runtime;
-
-use crate::networking::util::get_task;
+use std::sync::Arc;
 
 use super::{
     networking::Runtime, networking_events::NetworkingEvent,

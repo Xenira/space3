@@ -43,7 +43,7 @@ pub async fn long_running_task(
             warn!("Failed to load lobbies to start")
         }
 
-        for (i, game) in games.lock().await.values_mut().enumerate() {
+        for game in games.lock().await.values_mut() {
             if !(game.lock().await).turn.is_next() {
                 continue;
             }

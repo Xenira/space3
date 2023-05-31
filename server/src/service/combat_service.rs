@@ -1,11 +1,11 @@
 use std::{
-    cell::{Ref, RefCell, RefMut},
+    cell::{RefCell},
     rc::Rc,
 };
 
 use crate::game::game_instance_player::GameInstancePlayer;
 use protocol::{
-    protocol::{BattleAction, BattleActionType, BattleResponse, CharacterInstance},
+    protocol::{BattleAction, BattleActionType, CharacterInstance},
     protocol_types::prelude::{Ability, AbilityTrigger, AbilityValue},
 };
 use rand::seq::IteratorRandom;

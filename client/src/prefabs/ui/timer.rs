@@ -1,15 +1,11 @@
-use bevy::prelude::*;
-
-use crate::{
-    components::{
-        animation::{
-            Animation, AnimationBundle, AnimationDirection, AnimationIndices, AnimationRepeatType,
-            AnimationState, AnimationTimer,
-        },
-        timer::TimerTextComponent,
+use crate::components::{
+    animation::{
+        Animation, AnimationBundle, AnimationDirection, AnimationIndices, AnimationRepeatType,
+        AnimationState, AnimationTimer,
     },
-    prefabs::animation,
+    timer::TimerTextComponent,
 };
+use bevy::prelude::*;
 
 #[derive(Bundle)]
 pub struct TimerBundle {
@@ -18,11 +14,7 @@ pub struct TimerBundle {
 }
 
 impl TimerBundle {
-    pub fn new(
-        timer: Timer,
-        asset_server: &AssetServer,
-        texture_atlases: &mut Assets<TextureAtlas>,
-    ) -> Self {
+    pub fn new(asset_server: &AssetServer, texture_atlases: &mut Assets<TextureAtlas>) -> Self {
         let frame = asset_server.load("textures/ui/timer_frame.png");
         let frame_atlas = TextureAtlas::from_grid(frame, Vec2::new(128.0, 64.0), 25, 1, None, None);
         let frame_atlas_handle = texture_atlases.add(frame_atlas);

@@ -1,7 +1,8 @@
+use super::startup::{GodAssets, UiAssets};
 use crate::{
     cleanup_system,
     components::{
-        animation::{AnimationIndices, AnimationRepeatType, AnimationTimer, TransformAnimation},
+        animation::{AnimationRepeatType, AnimationTimer, TransformAnimation},
         hover::{BoundingBox, ClickEvent, Clickable, Hoverable, Hovered},
     },
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
@@ -15,8 +16,6 @@ use protocol::{
     protocol_types::heros::{self, God},
 };
 use reqwest::Method;
-
-use super::startup::{GodAssets, UiAssets};
 
 const STATE: AppState = AppState::GameCommanderSelection;
 
@@ -285,13 +284,12 @@ fn god_hover(
 }
 
 fn god_click(
-    mut commands: Commands,
     mut ev_clicked: EventReader<ClickEvent>,
     q_god: Query<(&GodComponent, &Transform), With<Clickable>>,
     mut network: ResMut<NetworkingRessource>,
 ) {
     for ev in ev_clicked.iter() {
-        q_god.get(ev.0).ok().map(|(god, transform)| {
+        q_god.get(ev.0).ok().map(|(god, _)| {
             network.request(Method::PUT, format!("games/avatar/{}", god.0.id).as_str());
         });
     }

@@ -68,7 +68,7 @@ impl GameInstance {
         false
     }
 
-    async fn start_shop(&mut self, turn: u16) -> (DateTime<Utc>, bool) {
+    async fn start_shop(&mut self, _turn: u16) -> (DateTime<Utc>, bool) {
         game_service::update_player_placements(self).await;
 
         if self.is_game_over() {

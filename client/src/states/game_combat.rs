@@ -1,3 +1,4 @@
+use super::game_shop::BoardCharacter;
 use crate::{
     cleanup_system,
     components::{
@@ -8,9 +9,7 @@ use crate::{
     AppState, Cleanup,
 };
 use bevy::prelude::*;
-use protocol::protocol::{BattleResponse, CharacterInstance, GameOpponentInfo};
-
-use super::game_shop::BoardCharacter;
+use protocol::protocol::{BattleResponse, CharacterInstance};
 
 const STATE: AppState = AppState::GameBattle;
 
