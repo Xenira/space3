@@ -1,0 +1,50 @@
+{
+  "name": "Hydra",
+  "description": "A serpentine water monster with multiple heads. When one head was cut off, two would grow back in its place.",
+  "health": 4,
+  "attack": 2,
+  "cost": 2,
+  "abilities": [
+    {
+      "name": "Regenerate",
+      "description": "If this character survives damage, it doubles its current health.",
+      "trigger": "OnSurvive",
+      "effect": {
+        "Buff": [
+          {
+            "PercentAttack": 100
+          },
+          {
+            "Plain": 0
+          },
+          false
+        ]
+      },
+      "target": "SelfTarget"
+    }
+  ],
+  "upgrade": {
+    "name": "Hydra",
+    "attack": 4,
+    "health": 8,
+    "abilities": [
+      {
+        "name": "Regenerate",
+        "description": "If this character survives damage, it tripple its current health.",
+        "trigger": "OnSurvive",
+        "effect": {
+          "Buff": [
+            {
+              "PercentAttack": 200
+            },
+            {
+              "Plain": 0
+            },
+            false
+          ]
+        },
+        "target": "SelfTarget"
+      }
+    ]
+  }
+}

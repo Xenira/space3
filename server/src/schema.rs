@@ -29,11 +29,13 @@ diesel::table! {
     game_users (id) {
         id -> Int4,
         game_id -> Int4,
-        user_id -> Int4,
+        user_id -> Nullable<Int4>,
+        display_name -> Varchar,
         avatar_id -> Nullable<Int4>,
         experience -> Int4,
         health -> Int4,
         credits -> Int4,
+        placement -> Nullable<Int4>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -66,7 +68,7 @@ diesel::table! {
         id -> Int4,
         lobby_id -> Int4,
         user_id -> Int4,
-        username -> Varchar,
+        display_name -> Varchar,
         ready -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
@@ -76,6 +78,7 @@ diesel::table! {
 diesel::table! {
     shops (id) {
         id -> Int4,
+        game_id -> Int4,
         game_user_id -> Int4,
         character_ids -> Array<Nullable<Int4>>,
         locked -> Bool,
@@ -90,8 +93,11 @@ diesel::table! {
         username -> Varchar,
         password -> Varchar,
         salt -> Varchar,
+        display_name -> Nullable<Varchar>,
         currency -> Int4,
         tutorial -> Bool,
+        session_token -> Nullable<Uuid>,
+        session_expires -> Nullable<Timestamp>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

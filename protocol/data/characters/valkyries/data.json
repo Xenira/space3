@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Valkyries",
+  "description": "Divine female figures who serve Odin. They choose warriors worthy of entering Valhalla, the great hall of fallen heroes in Asgard.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Valkyries",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

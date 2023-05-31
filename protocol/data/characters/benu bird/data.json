@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Benu Bird",
+  "description": "A mythical bird associated with the sun, rebirth, and creation. It was often associated with the god Ra and believed to be a symbol of eternal life.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Benu Bird",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

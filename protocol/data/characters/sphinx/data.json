@@ -1,0 +1,14 @@
+{
+  "name": "Sphinx",
+  "description": "A creature with the head of a human and the body of a lion, often depicted as having wings. It posed riddles to travelers and would devour those who failed to answer correctly.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Sphinx",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

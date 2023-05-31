@@ -1,19 +1,12 @@
 #[cfg(not(target_family = "wasm"))]
 extern crate dotenv;
-use components::on_screen_log::{LogEntry, LogLevel};
-#[cfg(not(target_family = "wasm"))]
-use dotenv::dotenv;
-use surf::http::Method;
-
 use crate::{
-    components::{
-        timer::{TimerPlugin, TimerUi},
-        ComponentsPlugin,
-    },
+    components::{timer::TimerUi, ComponentsPlugin},
     modules::game_user_info::GameUserRes,
     networking::networking::NetworkingPlugin,
     states::{
-        game_combat::BattleRes, game_commander_selection::GameCommanderSelection, game_states,
+        game_combat::BattleRes, game_commander_selection::GameCommanderSelection,
+        game_result::GameResultRes, game_states,
     },
 };
 use bevy::{
@@ -23,15 +16,22 @@ use bevy::{
     math::Vec3,
     pbr::PointLightBundle,
     prelude::*,
-    render::camera::ScalingMode,
+    window::Cursor,
 };
 use bevy_egui::{
     egui::{self, Color32},
     EguiContexts, EguiPlugin,
 };
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Utc};
+use components::on_screen_log::{LogEntry, LogLevel};
+#[cfg(not(target_family = "wasm"))]
+use dotenv::dotenv;
 use networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
-use protocol::protocol::{Credentials, Protocol};
+use protocol::{
+    gods::get_gods,
+    protocol::{Credentials, Protocol, Turn},
+};
+use reqwest::Method;
 use std::env;
 
 mod components;
@@ -43,9 +43,10 @@ mod util;
 
 #[derive(States, Default, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
-    _Startup,
     #[default]
+    Startup,
     MenuLogin,
+    MenuSetDisplayName,
     MenuMain,
     DialogLobbyJoin,
     Lobby,
@@ -53,7 +54,7 @@ enum AppState {
     GameCommanderSelection,
     GameShop,
     GameBattle,
-    _GameResult,
+    GameResult,
 }
 
 #[derive(Debug)]
@@ -79,15 +80,27 @@ fn main() {
     #[cfg(target_family = "wasm")]
     let base_url = env!("BASE_URL", "BASE_URL needs to be set for wasm builds").to_string();
 
+    let mut cursor = Cursor::default();
+    cursor.visible = false;
+
+    let default_plugins = DefaultPlugins
+        .set(LogPlugin {
+            level: Level::DEBUG,
+            ..Default::default()
+        })
+        .set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "<name>".to_string(),
+                resizable: true,
+                cursor,
+                fit_canvas_to_parent: true,
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
+
     app.add_state::<AppState>()
-        .add_plugins(
-            DefaultPlugins
-                .set(LogPlugin {
-                    level: Level::DEBUG,
-                    ..Default::default()
-                })
-                .set(ImagePlugin::default_nearest()),
-        )
+        .add_plugins(default_plugins) // .set(ImagePlugin::default_nearest()),
         .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(EntityCountDiagnosticsPlugin::default())
@@ -135,7 +148,7 @@ fn setup(
                 user,
             );
             networking.request_data(
-                Method::Post,
+                Method::POST,
                 "users",
                 &Credentials {
                     username: user,
@@ -175,23 +188,24 @@ fn networking_handler(
             }
             Protocol::GameStartResponse(gods) => {
                 commands.insert_resource(TimerUi(Some(Timer::from_seconds(30.0, TimerMode::Once))));
-                commands.insert_resource(GameCommanderSelection(gods.clone()));
+                commands.insert_resource(GameCommanderSelection(
+                    gods.iter()
+                        .map(|g| get_gods()[*g as usize].clone())
+                        .collect::<Vec<_>>(),
+                ));
                 ev_state_change.send(StateChangeEvent(AppState::GameCommanderSelection));
             }
             Protocol::GameUpdateResponse(update) => {
-                if let Some(timer) = update.next_turn_at {
-                    commands.insert_resource(TimerUi(Some(Timer::from_seconds(
-                        timer.signed_duration_since(Utc::now()).num_seconds() as f32,
-                        TimerMode::Once,
-                    ))));
-                }
+                let timer: DateTime<Utc> = update.turn.into();
 
-                if update.turn > 0 {
-                    if update.turn % 2 == 0 {
-                        // ev_state_change.send(StateChangeEvent(AppState::GameBattle));
-                    } else {
-                        ev_state_change.send(StateChangeEvent(AppState::GameShop));
-                    }
+                commands.insert_resource(TimerUi(Some(Timer::from_seconds(
+                    timer.signed_duration_since(Utc::now()).num_seconds() as f32,
+                    TimerMode::Once,
+                ))));
+
+                match update.turn {
+                    Turn::Combat(_, _) => (),
+                    Turn::Shop(_, _) => ev_state_change.send(StateChangeEvent(AppState::GameShop)),
                 }
             }
             Protocol::GameUserInfoResponse(user_info) => {
@@ -201,8 +215,10 @@ fn networking_handler(
                 commands.insert_resource(BattleRes(battle.clone()));
                 ev_state_change.send(StateChangeEvent(AppState::GameBattle));
             }
-            Protocol::GameEndResponse(_) => {
-                ev_state_change.send(StateChangeEvent(AppState::MenuMain))
+            Protocol::GameEndResponse(result) => {
+                commands.remove_resource::<GameUserRes>();
+                commands.insert_resource(GameResultRes(result.clone()));
+                ev_state_change.send(StateChangeEvent(AppState::GameResult))
             }
             Protocol::NetworkingError(e) => {
                 if e.status == 401 {

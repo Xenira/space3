@@ -1,9 +1,173 @@
-= space3
+# <name> (TBD)
+:app-name: <name>
+:app-version: 0.1.0
 :icons: font
+:toclevels: 3
+:toc-title: Table of Contents
+:sectnums: |,all|
+:toc:
 
-WARNING: WIP - DO NOT USE
+image:https://your-project-logo.png[Project Logo, align="center"]
 
-[ ]³ ["Space cubed" / "Cubed space"] will be a +++<del>+++voxel+++</del>+++ pixel art auto battler set in space (duh!).
+## Description
 
-- https://opengameart.org/content/searching
-- https://opengameart.org/content/gui-sound-effects
+NOTE: Please note that <name> is currently in early development. Some features may be limited or missing, and the game experience is subject to change as development progresses.
+
+Embark on a divine battleground as a powerful god in <name>. Engage in epic brawls against 8 other players, utilizing characters from Norse, Greek, Hindu, and Egyptian mythology. Strategically assemble your team of legendary heroes, manage resources, and unleash mighty abilities to dominate the competition. Will you prove yourself as the ultimate deity in this mythic clash of gods?
+
+For current development status, see the the `TODO` file and github issues.
+
+## Compatability
+[cols="2,2,1,12"]
+|====
+| Platform | OS | Status | Comment
+
+.4+^.^| Desktop | Linux    | ✔ | This game is developed on Linux and should work on most distributions.
+| SteamDeck| ☐ | This game has not been tested on the SteamDeck. It should work and will be tested once the game is in a more complete state.
+| macOS    | ☐ | This game has not been tested on macOS. I cannot test it as I do not own a Mac. Contributions are welcome.
+| Windows  | ☐ | This game has not been tested on Windows. I will create a Windows build but windows support is not a priority.
+.1+^.^| Web | Web      | ☐ | Web compatibility is a goal of this project. The game is playable in a web browser using WebAssembly. Some features may be limited (e.g. Steam integration).
+.3+^.^| Mobile | PureOS   | ☐ | This should work on PureOS but the app needs to be optimized for mobile. I will create a PureOS app once the game is in a more complete state.
+| Android  | ☐ | This should work on Android but a app has not been created yet. I will create an Android app once the game is in a more complete state.
+| iOS      | ☐ | This should work on iOS but an app has not been created yet. I cannot create an iOS app as I do not own an iPhone. Contributions are welcome.
+|====
+
+## Usage
+
+TODO: Provide instructions and examples on how to use your project. Explain the game mechanics, controls, and any additional features. Include code snippets or screenshots if necessary.
+
+## Development
+
+To install and run this project locally, follow these steps:
+
+1. Clone the repository:
++
+[source,shell]
+----
+$ git clone https://github.com/xenira/<name>.git
+----
++
+
+2. Change to the project directory:
++
+[source,shell]
+----
+$ cd <name>
+----
++
+
+3. Ensure you have Rust and Cargo installed. If not, follow the official Rust installation instructions: link:https://www.rust-lang.org/tools/install[]
+
+4. Install the Diesel CLI:
++
+[source,shell]
+----
+$ cargo install diesel_cli --no-default-features --features postgres
+----
++
+
+5. Start the PostgreSQL database using Docker Compose (/server):
++
+[source,shell]
+----
+$ docker-compose up -d
+----
++
+
+6. Run the database migrations (/server):
++
+[source,shell]
+----
+$ diesel migration run
+----
++
+
+
+7. Build the server component (/server):
++
+[source,shell]
+----
+$ cargo build --bin server
+----
+
+8. Customize and configure the server as needed. The .env file can be used to set environment variables.
+
+9. Start the server:
++
+[source,shell]
+----
+$ cargo run --bin server
+----
++
+
+10. Open another terminal window and change to the client directory:
++
+[source,shell]
+----
+$ cd client
+----
++
+
+11. Build the client component:
++
+[source,shell]
+----
+$ cargo build --bin client
+----
++
+
+12. Customize and configure the client as needed.
+
+13. Start the client:
++
+[source,shell]
+----
+$ cargo run --bin client
+----
++
+
+
+## Contributing
+
+Contributions are welcome! If you'd like to contribute to this project, please follow these guidelines:
+
+1. Please create an issue before submitting a pull request. This will allow us to discuss the issue and ensure that your contribution will be accepted.
+
+2. Fork the repository.
+
+3. Create a new branch from the dev branch:
++
+[source,shell]
+----
+$ git checkout -b feature/your-feature
+----
++
+
+4. Make your changes and commit them using conventional commits:
++
+[source,shell]
+----
+$ git commit -m "feat(component): Add new feature" -m "A detailed description of the feature."
+----
++
+
+5. Push the changes to your forked repository:
++
+[source,shell]
+----
+$ git push origin feature/your-feature
+----
++
+
+6. Submit a merge request (MR) from your branch to the dev branch.
+
+Please ensure that your code follows the project's coding standards and includes appropriate tests.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the `LICENSE` file for details.
+
+## Contact
+
+If you have any questions or need further assistance, feel free to contact us at <tbd>.
+

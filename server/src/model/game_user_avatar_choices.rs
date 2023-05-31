@@ -1,17 +1,16 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
-use diesel::{delete, dsl::count_star, prelude::*, update};
+use chrono::NaiveDateTime;
+use diesel::prelude::*;
 use protocol::protocol::Protocol;
 
 use crate::{
-    model::game_users::GameUser,
-    schema::{game_user_avatar_choices, game_users, games},
+    model::{game_users::GameUser, users::User},
+    schema::game_user_avatar_choices,
     service::game_service::notify_users,
-    Database,
 };
-use protocol::gods::GODS;
-use rocket::{http::Status, log::private::debug, serde::json::Json};
+use protocol::gods::get_gods;
+use rocket::{http::Status, serde::json::Json};
 
-use super::game::Game;
+use super::game::{Game, GameGuard};
 
 #[derive(Identifiable, Queryable, Associations, Clone, Debug)]
 #[diesel(belongs_to(Game))]
@@ -49,80 +48,36 @@ pub enum GameUserAvatarChoiceError {
 }
 
 #[put("/games/avatar/<avatar_id>")]
-pub async fn select_avatar(
-    db: Database,
-    mut game: Game,
-    game_user: GameUser,
-    avatar_id: i32,
-) -> Json<Protocol> {
-    let game_user = game_user.clone();
-    let (choice, game) = db
-        .run(move |c| {
-            let choosen_avatar = GameUserAvatarChoice::belonging_to(&game_user)
-                .filter(game_user_avatar_choices::avatar_id.eq(avatar_id))
-                .first::<GameUserAvatarChoice>(c);
+pub async fn select_avatar(game: GameGuard, user: &User, avatar_id: i32) -> Json<Protocol> {
+    let mut game = game.0.lock().await;
+    if let Some(game_user) = game.get_user_mut(user.id) {
+        if game_user.god.is_some() {
+            return Json(protocol::protocol::Error::new_protocol(
+                Status::BadRequest.code,
+                "Avatar already chosen".to_string(),
+            ));
+        }
 
-            // TODO: Check if avatar is needed in if let
-            if let Ok(_) = choosen_avatar {
-                // TODO: Handle result
-                update(game_users::table)
-                    .set(game_users::avatar_id.eq(avatar_id))
-                    .filter(game_users::id.eq(game_user.id))
-                    .execute(c)
-                    .unwrap();
+        if game_user.god_choices.contains(&avatar_id) {
+            let god = get_gods()[avatar_id as usize].clone();
+            game_user.god = Some(god.clone());
 
-                delete(game_user_avatar_choices::table)
-                    .filter(game_user_avatar_choices::game_user_id.eq(game_user.id))
-                    .execute(c)
-                    .unwrap();
-
-                if game
-                    .next_battle
-                    .map(|next| {
-                        DateTime::<Utc>::from_utc(next, Utc)
-                            .signed_duration_since(Utc::now())
-                            .num_seconds()
-                    })
-                    .map_or(false, |seconds| seconds > 5)
-                {
-                    if let Ok(choices_left) = GameUserAvatarChoice::belonging_to(&game)
-                        .select(count_star())
-                        .first::<i64>(c)
-                    {
-                        if choices_left == 0 {
-                            debug!(
-                                "All players have chosen their avatar, starting game in 5 seconds"
-                            );
-                            game.next_battle = Some(
-                                Utc::now()
-                                    .naive_utc()
-                                    .checked_add_signed(chrono::Duration::seconds(5))
-                                    .unwrap(),
-                            );
-                            update(games::table)
-                                .set(games::next_battle.eq(game.next_battle))
-                                .filter(games::id.eq(game.id))
-                                .execute(c);
-                        }
-                    }
-                }
-
-                (
-                    Protocol::AvatarSelectResponse(GODS[avatar_id as usize].clone()),
-                    game,
-                )
-            } else {
-                (
-                    protocol::protocol::Error::new_protocol(
-                        Status::Conflict.code,
-                        "Avatar not available".to_string(),
-                    ),
-                    game,
-                )
+            if !game.players.iter().any(|p| p.god.is_none()) {
+                game.next_turn().await;
             }
-        })
-        .await;
 
-    notify_users(&game).await;
-    Json(choice)
+            notify_users(&game).await;
+            Json(Protocol::AvatarSelectResponse(god))
+        } else {
+            Json(protocol::protocol::Error::new_protocol(
+                Status::Conflict.code,
+                "Avatar not available".to_string(),
+            ))
+        }
+    } else {
+        Json(protocol::protocol::Error::new_protocol(
+            Status::BadRequest.code,
+            "User not in game".to_string(),
+        ))
+    }
 }

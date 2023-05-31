@@ -1,12 +1,11 @@
 use super::{
-    hover::{BoundingBox, ClickEvent, Clickable, Hovered},
+    cursor::Cursor,
+    hover::{ClickEvent, Clickable, Hovered},
     ChangeDetectionSystemSet,
 };
-use crate::MainCamera;
 use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
-    transform,
 };
 
 pub(crate) struct DragNDropPlugin;
@@ -16,7 +15,7 @@ impl Plugin for DragNDropPlugin {
         app.add_event::<DragEvent>()
             .add_event::<DropEvent>()
             .add_systems(
-                (on_drag, drag, on_drop)
+                (on_drag, on_drop)
                     .chain()
                     .in_set(ChangeDetectionSystemSet::MouseDetection),
             );
@@ -30,7 +29,10 @@ pub struct Dragable;
 pub struct DropTagret;
 
 #[derive(Debug, Component, Clone)]
-pub struct Dragged(pub Transform);
+pub struct Dragged {
+    pub original_transform: Transform,
+    pub original_parent: Option<Entity>,
+}
 
 #[derive(Debug)]
 pub struct DragEvent(pub Entity);
@@ -44,37 +46,34 @@ pub struct DropEvent {
 fn on_drag(
     mut commands: Commands,
     mut ev_clicked: EventReader<ClickEvent>,
-    q_hovered: Query<(Entity, &Transform), (With<Clickable>, With<Dragable>)>,
+    mut q_hovered: Query<
+        (Entity, &mut Transform, &GlobalTransform, Option<&Parent>),
+        (With<Clickable>, With<Dragable>),
+    >,
     mut ev_draged: EventWriter<DragEvent>,
+    q_cursor: Query<(Entity, &GlobalTransform), With<Cursor>>,
 ) {
     for ev in ev_clicked.iter() {
-        if let Ok((entity, transform)) = q_hovered.get(ev.0) {
+        if let Ok((entity, mut transform, global_transform, parent)) = q_hovered.get_mut(ev.0) {
             debug!("Dragged: {:?}", entity);
-            commands.entity(entity).insert(Dragged(transform.clone()));
-            ev_draged.send(DragEvent(entity));
-        }
-    }
-}
+            let (cursor, cursor_transform) = q_cursor.single();
 
-fn drag(
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    mut ev_cursor_move: EventReader<CursorMoved>,
-    mut q_draged: Query<(&mut Transform, &GlobalTransform), With<Dragged>>,
-) {
-    let (camera, camera_transform) = q_camera.single();
-    if let Some(cursor_event) = ev_cursor_move.iter().last() {
-        if let Some(world_position) = camera
-            .viewport_to_world(camera_transform, cursor_event.position)
-            .map(|r| r.origin)
-        {
-            for (mut transform, global_transform) in q_draged.iter_mut() {
-                let global_transform =
-                    global_transform.compute_transform().translation - transform.translation;
-                let global_transform = Vec3::new(global_transform.x, global_transform.y, 0.0);
-                let world_position =
-                    Vec3::new(world_position.x, world_position.y, transform.translation.z);
-                transform.translation = world_position - global_transform;
-            }
+            commands.entity(entity).insert(Dragged {
+                original_transform: transform.clone(),
+                original_parent: parent.map(|p| p.get()),
+            });
+            commands.entity(entity).remove_parent();
+            commands.entity(cursor).add_child(entity);
+            transform.translation = Vec3::ZERO;
+
+            // Add inverse of cursor transform to the entity transform + 5% scale keeping z
+            let global_scale = global_transform.compute_transform().scale;
+            transform.scale = global_scale.truncate().extend(0.0)
+                * (1.0 / cursor_transform.compute_transform().scale)
+                * 1.05
+                + Vec3::new(0.0, 0.0, global_scale.z);
+
+            ev_draged.send(DragEvent(entity));
         }
     }
 }
@@ -91,7 +90,13 @@ fn on_drop(
             for (entity, dragged) in q_draged.iter() {
                 debug!("Droped: {:?}", entity);
                 commands.entity(entity).remove::<Dragged>();
-                commands.entity(entity).insert(dragged.0.clone());
+                if let Some(parent) = dragged.original_parent {
+                    commands.entity(entity).set_parent(parent);
+                }
+                commands
+                    .entity(entity)
+                    .insert(dragged.original_transform.clone());
+
                 if let Ok((drop_target, _)) = q_drop_target.get_single() {
                     debug!("Droped on: {:?}", drop_target);
                     ev_droped.send(DropEvent {

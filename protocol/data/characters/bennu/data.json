@@ -1,0 +1,31 @@
+{
+  "id": null,
+  "name": "Bennu",
+  "description": "A mythological bird associated with the sun, rebirth, and creation. It was often depicted as a heron or a stork.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Bennu",
+    "attack": 3,
+    "health": 2,
+    "abilities": [
+      {
+        "name": "Flying",
+        "description": "",
+        "trigger": "Passive",
+        "effect": "Flying",
+        "target": "SelfTarget"
+      }
+    ]
+  },
+  "abilities": [
+    {
+      "name": "Flying",
+      "description": "",
+      "trigger": "Passive",
+      "effect": "Flying",
+      "target": "SelfTarget"
+    }
+  ]
+}

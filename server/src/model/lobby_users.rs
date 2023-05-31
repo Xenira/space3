@@ -33,7 +33,7 @@ impl Into<protocol::LobbyUser> for LobbyUser {
 pub struct NewLobbyUser {
     lobby_id: i32,
     user_id: i32,
-    username: String,
+    display_name: String,
 }
 
 impl NewLobbyUser {
@@ -41,7 +41,11 @@ impl NewLobbyUser {
         Self {
             lobby_id: lobby.id,
             user_id: user.id,
-            username: user.username.to_string(),
+            display_name: user
+                .display_name
+                .as_ref()
+                .map(|dn| dn.to_string())
+                .unwrap_or(user.username.to_string()),
         }
     }
 }

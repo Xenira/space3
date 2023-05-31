@@ -7,20 +7,22 @@
 		{
 			"type": "lldb",
 			"request": "launch",
-			"name": "Debug executable 'yaab'",
+			"name": "Debug server",
 			"cargo": {
 				"args": [
 					"build",
-					"--bin=yaab",
-					"--package=yaab"
+					"--bin=rog-server",
+					"--package=rog-server",
+					"--manifest-path=server/Cargo.toml"
 				],
 				"filter": {
-					"name": "yaab",
+					"name": "rog-server",
 					"kind": "bin"
 				}
 			},
 			"args": [],
-			"cwd": "${workspaceFolder}"
+			"cwd": "${workspaceFolder}/server",
+			"relativePathBase": "${workspaceFolder}/server",
 		},
 		{
 			"type": "lldb",

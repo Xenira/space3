@@ -1,20 +1,25 @@
-use std::sync::Arc;
-
+use crate::networking::util::get_task;
 use async_channel::Receiver;
 use bevy::prelude::*;
+use std::sync::Arc;
 
-use crate::networking::util::get_task;
-
-use super::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource};
+use super::{
+    networking::Runtime, networking_events::NetworkingEvent,
+    networking_ressource::NetworkingRessource,
+};
 
 #[derive(Component, Debug)]
 pub struct NetworkingReceiver(Receiver<NetworkingEvent>);
 
-pub(crate) fn request_dispatcher(mut res: ResMut<NetworkingRessource>, mut commands: Commands) {
+pub(crate) fn request_dispatcher(
+    mut res: ResMut<NetworkingRessource>,
+    mut commands: Commands,
+    runtime: Res<Runtime>,
+) {
     let client = Arc::new(res.client.clone());
     for request in res.requests.drain(..) {
         debug!("Spawning task for {:?}", request);
-        let task = get_task(&client, request);
+        let task = get_task(&runtime, &client, request);
 
         // Spawn new entity and add our new task as a component
         commands.spawn(NetworkingReceiver(task));

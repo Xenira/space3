@@ -1,14 +1,14 @@
-use bevy::prelude::*;
-
-use bevy_egui::{egui, EguiContexts};
-use protocol::protocol::{LobbyInfo, Protocol};
-use surf::http::Method;
-
 use crate::{
     cleanup_system,
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
-    AppState, Cleanup, StateChangeEvent,
+    AppState, Cleanup,
 };
+use bevy::prelude::*;
+use bevy_egui::{egui, EguiContexts};
+use protocol::protocol::{LobbyInfo, Protocol};
+use reqwest::Method;
+
+use super::menu_login::User;
 
 const STATE: AppState = AppState::Lobby;
 pub(crate) struct LobbyPlugin;
@@ -26,39 +26,50 @@ pub struct CurrentLobby(pub LobbyInfo);
 fn ui_lobby(
     mut contexts: EguiContexts,
     mut network: ResMut<NetworkingRessource>,
-    mut lobby: ResMut<CurrentLobby>,
+    lobby: ResMut<CurrentLobby>,
+    res_user: Res<User>,
 ) {
     let ctx = contexts.ctx_mut();
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.heading(format!("Lobby ({})", lobby.0.name));
         ui.separator();
+
+        let mut ready = false;
+        let mut master = lobby.0.master == res_user.0.id;
+
         for player in &lobby.0.users {
             ui.label(format!(
                 "{} ({})",
                 player.name,
                 if player.ready { "ready" } else { "not ready" }
             ));
+            if player.name == *res_user.0.display_name.as_ref().unwrap() {
+                ready = player.ready;
+                master = player.id == lobby.0.master;
+            }
         }
+
         ui.separator();
         ui.horizontal(|ui| {
             if ui.button("Leave").clicked() {
-                network.request_data(Method::Delete, "lobbies", &lobby.0);
+                network.request_data(Method::DELETE, "lobbies", &lobby.0);
             }
-            if ui.button("Ready").clicked() {
-                network.request_data(Method::Patch, "lobbies/ready", &lobby.0);
+            if ui
+                .button(if !ready { "Ready" } else { "Not Ready" })
+                .clicked()
+            {
+                network.request_data(Method::PATCH, "lobbies/ready", &lobby.0);
             }
-            if ui.button("Play").clicked() {
-                network.request_data(Method::Patch, "lobbies/start", &lobby.0);
+            if master {
+                if ui.button("Start").clicked() {
+                    network.request_data(Method::PATCH, "lobbies/start", &lobby.0);
+                }
             }
         });
     });
 }
 
-fn on_network(
-    mut commands: Commands,
-    mut ev_networking: EventReader<NetworkingEvent>,
-    mut ev_state_change: EventWriter<StateChangeEvent>,
-) {
+fn on_network(mut commands: Commands, mut ev_networking: EventReader<NetworkingEvent>) {
     for ev in ev_networking.iter() {
         match &ev.0 {
             Protocol::LobbyStatusResponse(lobby) => {

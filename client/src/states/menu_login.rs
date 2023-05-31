@@ -1,13 +1,7 @@
-use bevy::{app::AppExit, prelude::*};
-use bevy_egui::{egui, EguiContexts};
-use protocol::protocol::{Credentials, Protocol, UserData};
-
-use surf::http::Method;
-
 use crate::{
     cleanup_system,
     components::{
-        animation::AnimationTimer,
+        anchors::{AnchorType, Anchors},
         dragndrop::{Dragable, DropTagret},
         hover::{BoundingBox, Clickable, Hoverable},
     },
@@ -15,9 +9,13 @@ use crate::{
         networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
         polling::PollingStatus,
     },
-    prefabs::ui::timer::{TimerBundle, TimerTextBundle},
+    prefabs::ui::timer::TimerTextBundle,
     AppState, Cleanup, StateChangeEvent,
 };
+use bevy::{app::AppExit, prelude::*};
+use bevy_egui::{egui, EguiContexts};
+use protocol::protocol::{Credentials, Protocol, UserData};
+use reqwest::{header::HeaderValue, Method};
 
 const STATE: AppState = AppState::MenuLogin;
 pub(crate) struct MenuLoginPlugin;
@@ -35,13 +33,14 @@ impl Plugin for MenuLoginPlugin {
 struct LoginCredentials(Credentials);
 
 #[derive(Resource)]
-struct User(UserData);
+pub struct User(pub UserData);
 
 fn logout(
     mut commands: Commands,
     mut ev_polling_status: EventWriter<PollingStatus>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    res_anchors: Res<Anchors>,
 ) {
     debug!("Logout start");
     commands.remove_resource::<User>();
@@ -52,7 +51,15 @@ fn logout(
     //     &asset_server,
     //     texture_atlases.as_mut(),
     // ));
-    commands.spawn(TimerTextBundle::new(&asset_server));
+
+    commands
+        .entity(res_anchors.get(AnchorType::TOP_RIGHT).unwrap())
+        .with_children(|parent| {
+            parent.spawn((TimerTextBundle::new(
+                &asset_server,
+                Transform::from_translation(Vec3::new(-30.0, -15.0, 100.0)),
+            ),));
+        });
 
     let shop_frame = asset_server.load("textures/ui/user_frame.png");
     let shop_frame_atlas =
@@ -130,10 +137,10 @@ fn ui_login(
         ui.separator();
         ui.horizontal(|ui| {
             if ui.button("Login").clicked() {
-                network.request_data(Method::Post, "users", &credentials.0);
+                network.request_data(Method::POST, "users", &credentials.0);
             }
             if ui.button("Register").clicked() {
-                network.request_data(Method::Put, "users", &credentials.0);
+                network.request_data(Method::PUT, "users", &credentials.0);
             }
         });
         if ui.button("Exit").clicked() {
@@ -151,27 +158,20 @@ fn on_login(
 ) {
     for ev in ev_networking.iter() {
         if let Protocol::LoginResponse(login) = &ev.0 {
-            network.client = network
-                .client
-                .config()
-                .clone()
-                .add_header("x-api-key", login.key.clone())
-                .unwrap()
-                .try_into()
-                .unwrap();
-            network.polling_client = network
-                .polling_client
-                .config()
-                .clone()
-                .add_header("x-api-key", login.key.clone())
-                .unwrap()
-                .try_into()
-                .unwrap();
+            network.headers.insert(
+                "x-api-key",
+                HeaderValue::from_str(login.key.as_str()).unwrap(),
+            );
+
             commands.insert_resource(User(login.user.clone()));
             debug!("Logged in as {}", login.user.username);
 
             ev_polling_status.send(PollingStatus::Start);
-            ev_state_change.send(StateChangeEvent(AppState::MenuMain));
+            if login.user.display_name.is_none() {
+                ev_state_change.send(StateChangeEvent(AppState::MenuSetDisplayName));
+            } else {
+                ev_state_change.send(StateChangeEvent(AppState::MenuMain));
+            }
         }
     }
 }

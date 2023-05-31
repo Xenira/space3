@@ -1,17 +1,14 @@
-use crate::{
-    schema::{game_users, games},
-    Database,
-};
-
+use super::users::User;
+use crate::{game::game_instance::GameInstance, schema::games, RunningGames};
 use chrono::NaiveDateTime;
-use diesel::{prelude::*, QueryDsl};
+use diesel::prelude::*;
 use rocket::{
     http::Status,
     request::{FromRequest, Outcome},
-    Request,
+    tokio::sync::Mutex,
+    Request, State,
 };
-
-use super::users::User;
+use std::sync::Arc;
 
 #[derive(Identifiable, Queryable, Clone, Debug)]
 pub struct Game {
@@ -59,32 +56,29 @@ pub enum GameError {
     Internal,
 }
 
+pub struct GameGuard(pub Arc<Mutex<GameInstance>>);
+
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for Game {
+impl<'r> FromRequest<'r> for GameGuard {
     type Error = GameError;
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         if let Outcome::Success(user) = req.guard::<&User>().await {
             let user = user.clone();
-            if let Some(db) = req.guard::<Database>().await.succeeded() {
-                return db
-                    .run(move |con| {
-                        if let Ok(game) = games::table
-                            .filter(
-                                games::id.eq_any(
-                                    game_users::table
-                                        .filter(game_users::user_id.eq(user.id))
-                                        .select(game_users::game_id),
-                                ),
-                            )
-                            .first::<Game>(con)
-                        {
-                            return Outcome::Success(game);
-                        } else {
-                            return Outcome::Forward(());
-                        };
-                    })
-                    .await;
+            let games = req
+                .guard::<&State<RunningGames>>()
+                .await
+                .unwrap()
+                .games
+                .clone()
+                .lock_owned()
+                .await;
+
+            for game in games.values() {
+                if game.lock().await.has_user(user.id) {
+                    return Outcome::Success(GameGuard(game.clone()));
+                }
             }
+
             return Outcome::Failure((Status::ServiceUnavailable, GameError::Internal));
         }
         Outcome::Failure((Status::Unauthorized, GameError::Internal))

@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Rakshasa",
+  "description": "Malevolent shape-shifting demons with supernatural powers. They are often depicted as fierce, grotesque beings associated with darkness and evil.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Rakshasa",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

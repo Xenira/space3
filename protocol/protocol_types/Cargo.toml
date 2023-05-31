@@ -1,11 +1,12 @@
 [package]
 name = "protocol_types"
-version.workspace = true
-authors.workspace = true
-license.workspace = true
+version = "0.1.0"
+authors = ["Xenira"]
+license = "GPL-3.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
+serde_variant = "0.1.2"

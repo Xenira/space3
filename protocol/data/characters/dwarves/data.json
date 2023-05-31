@@ -1,0 +1,15 @@
+{
+  "id": null,
+  "name": "Dwarves",
+  "description": "Skilled craftsmen known for their exceptional abilities in forging weapons and magical items. They play a significant role in Norse mythology and are associated with the underground realm of Svartalfheim.",
+  "health": 2,
+  "attack": 3,
+  "cost": 2,
+  "upgrade": {
+    "name": "Dwarves",
+    "attack": 3,
+    "health": 2,
+    "abilities": []
+  },
+  "abilities": []
+}

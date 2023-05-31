@@ -7,6 +7,7 @@ use static_init::dynamic;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use uuid::Uuid;
 
 use crate::model::users::User;
 
@@ -20,7 +21,7 @@ pub struct ActivePolls {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Channel {
     Lobby(i32),
-    Game(i32),
+    Game(Uuid),
 }
 
 #[dynamic]
@@ -51,10 +52,10 @@ impl ActivePolls {
         }
     }
 
-    pub async fn notify(user: &i32, data: Protocol) -> Result<(), SendError<Protocol>> {
+    pub async fn notify(user: i32, data: Protocol) -> Result<(), SendError<Protocol>> {
         let channel = {
             let polls = &Self::get().lock().unwrap().polls;
-            polls.get(user).cloned()
+            polls.get(&user).cloned()
         };
 
         let channel = match channel {
@@ -65,7 +66,7 @@ impl ActivePolls {
                     .lock()
                     .unwrap()
                     .polls
-                    .insert(*user, channel.clone());
+                    .insert(user, channel.clone());
                 channel
             }
         };
@@ -85,7 +86,7 @@ impl ActivePolls {
             return join_all(
                 users
                     .iter()
-                    .map(|user| ActivePolls::notify(user, data.clone())),
+                    .map(|user| ActivePolls::notify(*user, data.clone())),
             )
             .await;
         }
@@ -114,6 +115,13 @@ impl ActivePolls {
         }
     }
 
+    pub fn leave_channel(channel: &Channel, user: &i32) {
+        let mut polls = Self::get().lock().unwrap();
+        if let Some(users) = polls.channels.get_mut(channel) {
+            users.remove(user);
+        }
+    }
+
     pub fn close_channel(channel: &Channel) {
         let mut polls = Self::get().lock().unwrap();
         polls.channels.remove(channel);
@@ -137,5 +145,5 @@ pub async fn poll(user: &User) -> Json<Protocol> {
 
 #[get("/notify")]
 pub async fn notify(user: &User) {
-    ActivePolls::notify(&user.id, Protocol::EMPTY(String::new())).await;
+    ActivePolls::notify(user.id, Protocol::EMPTY(String::new())).await;
 }
