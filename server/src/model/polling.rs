@@ -142,8 +142,3 @@ pub async fn poll(user: &User) -> Json<Protocol> {
         Err(_) => Json(Protocol::PollingTimeout),
     }
 }
-
-#[get("/notify")]
-pub async fn notify(user: &User) {
-    ActivePolls::notify(user.id, Protocol::EMPTY(String::new())).await;
-}

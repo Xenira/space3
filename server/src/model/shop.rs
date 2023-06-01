@@ -65,6 +65,12 @@ impl ShopUpdate {
     }
 }
 
+impl Default for ShopUpdate {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug)]
 pub enum ShopError {
     Internal,
@@ -80,7 +86,7 @@ pub async fn get_shop(game: GameGuard, user: &User) -> Json<Protocol> {
                 health: game_user.health,
                 money: game_user.money,
                 name: game_user.display_name.to_string(),
-                avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+                avatar: game_user.god.clone().map(|g| g.id),
             },
             game_user.shop.locked,
             game_user.shop.characters.clone(),
@@ -105,7 +111,7 @@ pub async fn reroll_shop(game: GameGuard, user: &User) -> Json<Protocol> {
                     health: game_user.health,
                     money: game_user.money,
                     name: game_user.display_name.to_string(),
-                    avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+                    avatar: game_user.god.clone().map(|g| g.id),
                 },
                 false,
                 game_user.shop.characters.clone(),
@@ -138,7 +144,7 @@ pub async fn toggle_lock_shop(game: GameGuard, user: &User) -> Json<Protocol> {
                 health: user.health,
                 money: user.money,
                 name: user.display_name.to_string(),
-                avatar: user.god.clone().and_then(|g| Some(g.id)),
+                avatar: user.god.clone().map(|g| g.id),
             },
             user.shop.locked,
             user.shop.characters.clone(),
@@ -172,7 +178,7 @@ pub async fn buy_character(
                     health: game_user.health,
                     money: game_user.money,
                     name: game_user.display_name.to_string(),
-                    avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+                    avatar: game_user.god.clone().map(|g| g.id),
                 },
                 game_user.shop.characters.clone(),
                 game_user.board.to_vec(),

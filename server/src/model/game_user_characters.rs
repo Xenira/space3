@@ -56,7 +56,7 @@ pub struct NewGameUserCharacter {
     pub defense_bonus: i32,
 }
 
-#[derive(AsChangeset)]
+#[derive(AsChangeset, Default)]
 #[diesel(table_name = game_user_characters)]
 pub struct GameUserCharacterUpdate {
     pub position: Option<i32>,
@@ -66,15 +66,6 @@ pub struct GameUserCharacterUpdate {
 }
 
 impl GameUserCharacterUpdate {
-    pub fn new() -> Self {
-        Self {
-            position: None,
-            upgraded: None,
-            attack_bonus: None,
-            defense_bonus: None,
-        }
-    }
-
     pub fn with_position(mut self, position: i32) -> Self {
         self.position = Some(position);
         self
@@ -160,7 +151,7 @@ pub async fn sell_character(user: &User, game: GameGuard, character_idx: usize) 
                 health: game_user.health,
                 money: game_user.money,
                 name: user.username.clone(),
-                avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+                avatar: game_user.god.clone().map(|g| g.id),
             },
             game_user.board.to_vec(),
         ))

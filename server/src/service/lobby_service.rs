@@ -61,11 +61,11 @@ pub async fn join_lobby(
         .await
     {
         debug!("Joined lobby {:?}. Sending update.", lobby);
-        notify_lobby_users(&db, lobby.id).await;
-        return Ok(());
+        notify_lobby_users(db, lobby.id).await;
+        Ok(())
     } else {
         warn!("Failed to join lobby {:?}", lobby_name);
-        return Err(LobbyError::Internal);
+        Err(LobbyError::Internal)
     }
 }
 
@@ -138,7 +138,7 @@ pub async fn set_ready_state(db: &Database, user: &LobbyUser, rdy: bool) {
     })
     .await;
 
-    notify_lobby_users(&db, user.lobby_id).await;
+    notify_lobby_users(db, user.lobby_id).await;
 }
 
 pub async fn start_lobby_timer(db: &Database, lobby: &LobbyWithUsers) {
@@ -184,7 +184,7 @@ async fn reassign_master(db: &Database) {
                 .load::<Lobby>(con)
                 .unwrap()
                 .iter()
-                .map(|lobby| {
+                .filter_map(|lobby| {
                     if let Ok(user) = LobbyUser::belonging_to(lobby)
                         .select(lobby_users::user_id)
                         .first::<i32>(con)
@@ -204,7 +204,6 @@ async fn reassign_master(db: &Database) {
                         None
                     }
                 })
-                .filter_map(|id| id)
                 .collect::<Vec<i32>>()
         })
         .await;
@@ -232,7 +231,7 @@ pub fn close_lobby(con: &mut PgConnection, lobby: &Lobby) -> Result<(), String> 
         .filter(lobbies::id.eq(lobby.id))
         .execute(con);
 
-    if let Ok(_) = result {
+    if result.is_ok() {
         Ok(())
     } else {
         Err("Failed to delete lobby".to_string())

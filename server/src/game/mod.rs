@@ -1,4 +1,3 @@
-pub(crate) mod data_manager;
 pub(crate) mod game_instance;
 pub(crate) mod game_instance_player;
 pub(crate) mod shop;

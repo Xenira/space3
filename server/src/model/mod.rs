@@ -8,7 +8,7 @@ pub mod polling;
 pub(crate) mod shop;
 pub mod users;
 
-pub mod model {
+pub mod routes {
     use protocol::protocol::{Protocol, Status};
     use rocket::{serde::json::Json, Route};
 
@@ -47,7 +47,6 @@ pub mod model {
             game_user_characters::move_character,
             game_user_characters::sell_character,
             polling::poll,
-            polling::notify,
         ]
     }
 }

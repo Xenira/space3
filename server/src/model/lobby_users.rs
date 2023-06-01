@@ -18,12 +18,12 @@ pub struct LobbyUser {
     updated_at: NaiveDateTime,
 }
 
-impl Into<protocol::LobbyUser> for LobbyUser {
-    fn into(self) -> protocol::LobbyUser {
+impl From<LobbyUser> for protocol::LobbyUser {
+    fn from(val: LobbyUser) -> Self {
         protocol::LobbyUser {
-            id: self.id,
-            name: self.username,
-            ready: self.ready,
+            id: val.id,
+            name: val.username,
+            ready: val.ready,
         }
     }
 }

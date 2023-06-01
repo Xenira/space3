@@ -13,10 +13,9 @@ use rocket::{
 use std::{borrow::BorrowMut, collections::HashMap, sync::Arc, time::Duration};
 use uuid::Uuid;
 
-pub async fn long_running_task(
-    db: Database,
-    games: &Arc<Mutex<HashMap<Uuid, Arc<Mutex<GameInstance>>>>>,
-) {
+type GameMap = HashMap<Uuid, Arc<Mutex<GameInstance>>>;
+
+pub async fn long_running_task(db: Database, games: &Arc<Mutex<GameMap>>) {
     loop {
         // trace!("Long running task");
         if let Ok(lobbies) = db
