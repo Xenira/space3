@@ -141,7 +141,7 @@ fn play_animation(
                                 - (source_global_transform.compute_transform().translation
                                     - source_transform.translation);
                             commands.entity(entity).insert(TransformAnimation {
-                                source: source_transform.clone(),
+                                source: *source_transform,
                                 target: Transform::from_translation(target_transform)
                                     .with_scale(source_transform.scale),
                                 speed: 5.0,

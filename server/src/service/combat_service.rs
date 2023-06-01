@@ -5,7 +5,7 @@ use protocol::{
 };
 use rand::seq::IteratorRandom;
 use rocket::log::private::debug;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, cmp::Ordering, mem::swap, rc::Rc};
 use uuid::Uuid;
 
 #[derive(Debug)]
@@ -60,7 +60,7 @@ pub fn get_pairing(round: u16, mut players: Vec<&GameInstancePlayer>) -> Vec<(Uu
     let player_count = players.iter().filter(|p| p.placement.is_none()).count();
     let player_count = player_count + player_count % 2;
 
-    let mut active_players = players[0..player_count].into_iter().collect::<Vec<_>>();
+    let mut active_players = players[0..player_count].iter().collect::<Vec<_>>();
 
     active_players.sort_by_key(|p| p.id);
 
@@ -107,17 +107,11 @@ pub async fn calculate_combat(
     let start_opponent = players.1.board[0..7].to_vec();
     let player_a_board = &mut players.0.board[0..7]
         .iter()
-        .map(|c| {
-            c.as_ref()
-                .and_then(|c| Some(Rc::new(RefCell::new(c.clone()))))
-        })
+        .map(|c| c.as_ref().map(|c| Rc::new(RefCell::new(c.clone()))))
         .collect::<Vec<_>>();
     let player_b_board = &mut players.1.board[0..7]
         .iter()
-        .map(|c| {
-            c.as_ref()
-                .and_then(|c| Some(Rc::new(RefCell::new(c.clone()))))
-        })
+        .map(|c| c.as_ref().map(|c| Rc::new(RefCell::new(c.clone()))))
         .collect::<Vec<_>>();
 
     let current_player = &mut rand::random::<bool>();
@@ -158,9 +152,7 @@ pub async fn calculate_combat(
         );
 
         // Change current player
-        let board = battle.board;
-        battle.board = battle.op_board;
-        battle.op_board = board;
+        swap(&mut battle.board, &mut battle.op_board);
 
         *battle.current_player = !*battle.current_player;
     }
@@ -180,10 +172,14 @@ pub async fn calculate_combat(
     let player_a_lvl = players.0.get_lvl();
     let player_b_lvl = players.1.get_lvl();
 
-    if player_a_survived > player_b_survived {
-        players.1.health -= player_a_survived as i16 + player_a_lvl as i16;
-    } else if player_b_survived > player_a_survived {
-        players.0.health -= player_b_survived as i16 + player_b_lvl as i16;
+    match player_a_survived.cmp(&player_b_survived) {
+        Ordering::Greater => {
+            players.1.health -= player_a_survived as i16 + player_a_lvl as i16;
+        }
+        Ordering::Less => {
+            players.0.health -= player_b_survived as i16 + player_b_lvl as i16;
+        }
+        Ordering::Equal => (),
     }
 
     (actions, start_own, start_opponent)
@@ -431,7 +427,7 @@ fn apply_ability(
 
 fn calculate_ammount(value: &AbilityValue, entry: &AbilityStackEntry) -> i32 {
     match value {
-        AbilityValue::Plain(value) => value.clone(),
+        AbilityValue::Plain(value) => *value,
         AbilityValue::PercentHealth(value) => {
             (entry.target.borrow().get_total_health() as f32 / 100.0 * *value as f32) as i32
         }

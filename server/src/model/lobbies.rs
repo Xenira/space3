@@ -29,7 +29,7 @@ pub struct Lobby {
 }
 
 impl Lobby {
-    pub fn into_lobby_info(&self, users: &Vec<LobbyUser>) -> LobbyInfo {
+    pub fn into_lobby_info(&self, users: &[LobbyUser]) -> LobbyInfo {
         LobbyInfo {
             name: self.name.clone(),
             master: users
@@ -48,9 +48,9 @@ pub struct LobbyWithUsers {
     pub users: Vec<LobbyUser>,
 }
 
-impl Into<LobbyInfo> for LobbyWithUsers {
-    fn into(self) -> LobbyInfo {
-        self.lobby.into_lobby_info(&self.users)
+impl From<LobbyWithUsers> for LobbyInfo {
+    fn from(val: LobbyWithUsers) -> Self {
+        val.lobby.into_lobby_info(&val.users)
     }
 }
 
@@ -100,10 +100,10 @@ impl<'r> FromRequest<'r> for LobbyWithUsers {
                             let users = LobbyUser::belonging_to(&lobby)
                                 .load(con)
                                 .unwrap_or_default();
-                            return Outcome::Success(LobbyWithUsers { lobby, users });
+                            Outcome::Success(LobbyWithUsers { lobby, users })
                         } else {
-                            return Outcome::Forward(());
-                        };
+                            Outcome::Forward(())
+                        }
                     })
                     .await;
             }

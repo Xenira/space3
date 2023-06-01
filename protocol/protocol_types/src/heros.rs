@@ -33,10 +33,10 @@ impl Display for Pantheon {
 impl From<&str> for Pantheon {
     fn from(s: &str) -> Self {
         match s.to_lowercase().as_str() {
-            "Greek" => Self::Greek,
-            "Norse" => Self::Norse,
-            "Egyptian" => Self::Egyptian,
-            "Hindu" => Self::Hindu,
+            "greek" => Self::Greek,
+            "norse" => Self::Norse,
+            "egyptian" => Self::Egyptian,
+            "hindu" => Self::Hindu,
             _ => panic!("Invalid pantheon: {}", s),
         }
     }

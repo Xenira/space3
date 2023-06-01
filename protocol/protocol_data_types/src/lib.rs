@@ -66,7 +66,7 @@ impl ToTokens for CharacterJson {
         let abilities = self
             .abilities
             .iter()
-            .map(|a| ability_as_tokens(&a))
+            .map(ability_as_tokens)
             .collect::<Vec<_>>();
 
         let id = self.id.unwrap_or(0);
@@ -102,7 +102,7 @@ fn upgrade_as_tokens(upgrade: &CharacterUpgrade) -> TokenStream {
     let abilities = upgrade
         .abilities
         .iter()
-        .map(|a| ability_as_tokens(&a))
+        .map(ability_as_tokens)
         .collect::<Vec<_>>();
     quote! {
         Some(CharacterUpgrade {
@@ -131,22 +131,6 @@ fn ability_as_tokens(ability: &Ability) -> TokenStream {
     }
 }
 
-// impl ToString for CharacterJson {
-//     fn to_string(&self, idx: usize) -> String {
-//         format!(
-//             "Character {{ id: {}, name: Borrowed(\"{}\"), description: Borrowed(\"{}\"), health: {}, attack: {}, cost: {}, upgrade: {}, abilities: {}}}",
-//             idx,
-//             self.name,
-//             self.description,
-//             self.health,
-//             self.attack,
-//             self.cost,
-//             if let Some(upgrade) = &self.upgrade { format!("Some(CharacterUpgrade {{ name: Borrowed(\"{}\"), attack: {}, health: {}, abilities: {} }})", upgrade.name, upgrade.attack, upgrade.health, format_abilities(&upgrade.abilities)) } else { "None".to_string() },
-//             format_abilities(&self.abilities)
-//         )
-//     }
-// }
-
 impl Entity for CharacterJson {
     fn get_name(&self) -> &str {
         &self.name
@@ -157,21 +141,6 @@ impl Entity for CharacterJson {
         self.clone()
     }
 }
-
-// fn format_abilities(abilities: &Vec<Ability>) -> String {
-//     format!(
-//         "vec![{}]",
-//         abilities
-//             .iter()
-//             .map(|ability| format_ability(ability))
-//             .collect::<Vec<String>>()
-//             .join(", ")
-//     )
-// }
-
-// fn format_ability(ability: &Ability) -> String {
-//     format!("Ability {{ name: Borrowed(\"{}\"), description: Borrowed(\"{}\"), trigger: AbilityTrigger::{:?}, effect: {}, target: AbilityTarget::{:?} }}", ability.name, ability.description, ability.trigger, format_ability_effect(&ability.effect), ability.target)
-// }
 
 fn ability_effect_as_tokens(effect: &AbilityEffect) -> TokenStream {
     match effect {

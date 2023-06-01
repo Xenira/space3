@@ -86,7 +86,7 @@ impl GameInstancePlayer {
         };
 
         let cost = shop_character.cost as u16;
-        if self.money < cost as u16 {
+        if self.money < cost {
             // Not enough money
             return Err(());
         }
@@ -115,11 +115,11 @@ impl GameInstancePlayer {
             self.board[free_index] = Some(board_character.clone());
             self.board[board_idx] = Some(shop_character);
 
-            self.money -= cost as u16;
+            self.money -= cost;
             *self.shop.characters.get_mut(shop_idx).unwrap() = None;
         } else {
             // Board is empty at index
-            self.money -= cost as u16;
+            self.money -= cost;
             *board_character = Some(shop_character);
             *self.shop.characters.get_mut(shop_idx).unwrap() = None;
         }
@@ -133,13 +133,13 @@ impl GameInstancePlayer {
             return Err(());
         }
 
-        if let Some(_) = self.board.get(character_idx).unwrap() {
+        if self.board.get(character_idx).unwrap().is_some() {
             self.money += 1;
             self.board[character_idx] = None;
             Ok(())
         } else {
             // Board is empty at index
-            return Err(());
+            Err(())
         }
     }
 

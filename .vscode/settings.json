@@ -6,6 +6,9 @@
   },
   "rust-analyzer.linkedProjects": [
     "./protocol/protocol_types/Cargo.toml",
-    "./server/Cargo.toml"
+    "./server/Cargo.toml",
+    "./client/Cargo.toml",
+    "./protocol/Cargo.toml",
+    "./protocol/protocol_data_types/Cargo.toml"
   ]
 }

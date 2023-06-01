@@ -29,7 +29,7 @@ impl Shop {
 
     pub fn get_new_characters(count: usize) -> Vec<Option<CharacterInstance>> {
         get_characters()
-            .choose_multiple(&mut rand::thread_rng(), count as usize)
+            .choose_multiple(&mut rand::thread_rng(), count)
             .cloned()
             .map(|c| Some(CharacterInstance::from(&c, false)))
             .collect::<Vec<_>>()

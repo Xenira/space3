@@ -238,7 +238,7 @@ fn animate_sprite(
                     .states
                     .get(&transition.to_state)
                     .or(animation.states.values().next())
-                    .map(|next_state| match transition.transition_type {
+                    .and_then(|next_state| match transition.transition_type {
                         AnimationTransitionType::Finish => {
                             if sprite.index == current_state.indices.last {
                                 Some(next_state.clone())
@@ -248,7 +248,6 @@ fn animate_sprite(
                         }
                         AnimationTransitionType::Imediate | _ => Some(next_state.clone()),
                     })
-                    .flatten()
             } else {
                 None
             };
@@ -372,16 +371,16 @@ fn animate_transform(
                 }
                 AnimationRepeatType::PingPong => {
                     commands.entity(entity).insert(TransformAnimation {
-                        source: animation.target.clone(),
-                        target: animation.source.clone(),
+                        source: animation.target,
+                        target: animation.source,
                         speed: animation.speed,
                         repeat: AnimationRepeatType::PingPong,
                     });
                 }
                 AnimationRepeatType::PingPongOnce => {
                     commands.entity(entity).insert(TransformAnimation {
-                        source: animation.target.clone(),
-                        target: animation.source.clone(),
+                        source: animation.target,
+                        target: animation.source,
                         speed: animation.speed,
                         repeat: AnimationRepeatType::Once,
                     });

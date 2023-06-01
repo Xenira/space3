@@ -35,20 +35,17 @@ impl NewGame {
     }
 }
 
-#[derive(AsChangeset, Debug)]
+impl Default for NewGame {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(AsChangeset, Debug, Default)]
 #[diesel(table_name = games)]
 pub struct GameUpdate {
     pub next_battle: Option<NaiveDateTime>,
     pub current_round: Option<i32>,
-}
-
-impl GameUpdate {
-    pub fn new() -> Self {
-        Self {
-            next_battle: None,
-            current_round: None,
-        }
-    }
 }
 
 #[derive(Debug)]

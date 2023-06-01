@@ -25,7 +25,7 @@ pub async fn perform_bot_turn(bot: &mut GameInstancePlayer, rng: &mut StdRng) {
 
         // Reroll
         if buyable.is_empty() {
-            if let Err(_) = bot.reroll() {
+            if bot.reroll().is_err() {
                 break;
             }
             continue;
@@ -65,7 +65,7 @@ fn find_character_to_sell(characters: Vec<Option<CharacterInstance>>) -> Option<
         .collect::<Vec<_>>();
     characters.sort_by_key(|(_, c)| c.attack + c.attack_bonus);
 
-    return characters.pop().and_then(|(i, _)| Some(i));
+    characters.pop().map(|(i, _)| i)
 }
 
 fn find_character_to_buy(
@@ -84,5 +84,5 @@ fn find_character_to_buy(
         })
         .map(|(i, _)| i);
 
-    return idx.or_else(|| Some(rng.gen_range(0..buyable.len())));
+    idx.or_else(|| Some(rng.gen_range(0..buyable.len())))
 }

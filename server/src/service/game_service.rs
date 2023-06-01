@@ -106,7 +106,7 @@ pub async fn next_turn(game: &mut GameInstance) -> bool {
 
     let ended = game.next_turn().await;
 
-    notify_users(&game).await;
+    notify_users(game).await;
 
     ended
 }

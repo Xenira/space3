@@ -139,9 +139,7 @@ impl BattleAction {
     pub fn swap_players(&self) -> Self {
         let mut result = self.clone();
 
-        let res_op = result.result_opponent;
-        result.result_opponent = result.result_own;
-        result.result_own = res_op;
+        std::mem::swap(&mut result.result_opponent, &mut result.result_own);
 
         result
     }
@@ -228,7 +226,7 @@ impl CharacterInstance {
             id: Uuid::new_v4(),
             character_id: character.id,
             position: -1,
-            upgraded: upgraded,
+            upgraded,
             attack: if upgraded {
                 upgrade_atk
             } else {
@@ -291,20 +289,20 @@ impl Default for Turn {
     }
 }
 
-impl Into<u16> for Turn {
-    fn into(self) -> u16 {
-        match self {
-            Self::Shop(turn, _) => turn as u16,
-            Self::Combat(turn, _) => turn as u16,
+impl From<Turn> for u16 {
+    fn from(val: Turn) -> Self {
+        match val {
+            Turn::Shop(turn, _) => turn,
+            Turn::Combat(turn, _) => turn,
         }
     }
 }
 
-impl Into<DateTime<Utc>> for Turn {
-    fn into(self) -> DateTime<Utc> {
-        match self {
-            Self::Shop(_, turn_time) => turn_time,
-            Self::Combat(_, turn_time) => turn_time,
+impl From<Turn> for DateTime<Utc> {
+    fn from(val: Turn) -> Self {
+        match val {
+            Turn::Shop(_, turn_time) => turn_time,
+            Turn::Combat(_, turn_time) => turn_time,
         }
     }
 }

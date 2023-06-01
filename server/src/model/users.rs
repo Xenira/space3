@@ -7,6 +7,7 @@ use protocol::protocol::{Credentials, Error, LoginResponse, Protocol, UserData};
 use rand_core::OsRng;
 use rocket::{
     http::Status,
+    log::private::debug,
     request::{self, FromRequest, Outcome},
     serde::json::Json,
     Request, State,
@@ -95,7 +96,7 @@ impl<'r> FromRequest<'r> for &'r User {
             })
             .await;
         match user {
-            Ok(user) => Outcome::Success(&user),
+            Ok(user) => Outcome::Success(user),
             Err(e) => Outcome::Failure((Status::Unauthorized, e.clone())),
         }
     }
@@ -191,8 +192,7 @@ pub async fn login(
             &creds,
             &SaltString::from_b64(user.salt.as_str()).expect("User salt currupted")
         )
-        .expect("Failed to verify login")
-        .to_string(),
+        .expect("Failed to verify login"),
         user.password
     );
 
@@ -215,6 +215,7 @@ pub async fn login(
 
     for (id, g) in games.games.lock().await.iter() {
         if g.lock().await.has_user(user.id) {
+            debug!("User {:?} is in game {:?}", user.id, id);
             game = Some(Channel::Game(*id));
             break;
         }
@@ -226,17 +227,15 @@ pub async fn login(
                 .filter(lobby_users::user_id.eq(user.id))
                 .select(lobby_users::lobby_id)
                 .first::<i32>(con)
-                .map(|id| Channel::Lobby(id))
+                .map(Channel::Lobby)
                 .ok()
         })
         .await,
         game,
     ];
 
-    for channel in channels {
-        if let Some(channel) = channel {
-            ActivePolls::join_user(channel, user.id);
-        }
+    for channel in channels.into_iter().flatten() {
+        ActivePolls::join_user(channel, user.id);
     }
 
     Json(Protocol::LoginResponse(LoginResponse {
@@ -281,9 +280,9 @@ pub async fn set_display_name(
     {
         Json(Protocol::DisplaynameResponse(display_name.0))
     } else {
-        return Json(Error::new_protocol(
+        Json(Error::new_protocol(
             Status::InternalServerError.code,
             "Failed to update display name".to_string(),
-        ));
+        ))
     }
 }

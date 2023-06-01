@@ -66,10 +66,9 @@ fn check_hover(
     q_cursor: Query<&mut Transform, With<Cursor>>,
 ) {
     if ev_cursor_move.iter().next().is_some() {
-        if let Some(world_position) = q_cursor
+        if let Ok(world_position) = q_cursor
             .get_single()
             .map(|cursor| cursor.translation.truncate())
-            .ok()
         {
             for (entity, bounding_box, transform, hovered) in q_bounding_boxes.iter_mut() {
                 if bounding_box.is_point_inside(world_position, &transform.compute_transform()) {

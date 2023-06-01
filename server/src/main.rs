@@ -15,7 +15,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 use std::{collections::HashMap, env, error::Error, sync::Arc};
 
 use dotenv::dotenv;
-use model::model::get_api;
+use model::routes::get_api;
 use rocket::{
     fairing::AdHoc,
     figment::{
@@ -53,11 +53,11 @@ async fn main() -> Result<(), rocket::Error> {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is missing");
     let pool_size: u32 = env::var("POOL_SIZE").map_or(10, |size| {
         size.parse()
-            .expect(format!("POOL_SIZE {} can not be cast to u32", size).as_str())
+            .unwrap_or_else(|_| panic!("POOL_SIZE {} can not be cast to u32", size))
     });
     let port: u32 = env::var("PORT").map_or(8000, |port| {
         port.parse()
-            .expect(format!("PORT {} can not be cast to u32", port).as_str())
+            .unwrap_or_else(|_| panic!("PORT {} can not be cast to u32", port))
     });
 
     let db: Map<_, Value> = map! {

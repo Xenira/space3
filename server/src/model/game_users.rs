@@ -90,7 +90,7 @@ pub async fn get_own_user(user: &User, game: GameGuard) -> Json<Protocol> {
         health: game_user.health,
         money: game_user.money,
         name: user.username.clone(),
-        avatar: game_user.god.clone().and_then(|g| Some(g.id)),
+        avatar: game_user.god.clone().map(|g| g.id),
     }))
 }
 
