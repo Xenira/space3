@@ -72,7 +72,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
     outputs:
-      tag: ${{ steps.meta.outputs.tags }}
+      tag: ${{ steps.meta.outputs.tags[0] }}
 
   deploy-prev:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
