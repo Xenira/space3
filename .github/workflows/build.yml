@@ -27,9 +27,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    environment:
-      name: preview
-      url: https://github.com/Xenira/space3
     permissions:
       contents: read
       packages: write
@@ -74,3 +71,37 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+    outputs:
+      tag: ${{ steps.meta.outputs.tags }}
+
+  deploy-prev:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    name: Deploy to preview
+    needs: build
+    environment:
+      name: preview
+      url: https://prev-game.3.141.rip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke deployment hook
+        uses: distributhor/workflow-webhook@v3
+        env:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+          data: '{ "tag": "${{ needs.build.outputs.tag }}" }'
+    
+  deploy-prod:
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v*.*.*'
+    name: Deploy to production
+    needs: build
+    environment:
+      name: live
+      url: https://game.3.141.rip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke deployment hook
+        uses: distributhor/workflow-webhook@v3
+        env:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+          data: '{ "tag": "${{ needs.build.outputs.tag }}" }'
