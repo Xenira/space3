@@ -72,7 +72,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
     outputs:
-      tag: ${{ steps.meta.outputs.tags[0] }}
+      version: ${{ steps.meta.outputs.version }}
 
   deploy-prev:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -88,7 +88,7 @@ jobs:
         env:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
           webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
-          data: '{ "tag": "${{ needs.build.outputs.tag }}" }'
+          data: '{ "tag": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master" }'
     
   deploy-prod:
     if: github.event_name == 'push' && github.ref == 'refs/tags/v*.*.*'
@@ -104,4 +104,4 @@ jobs:
         env:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
           webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
-          data: '{ "tag": "${{ needs.build.outputs.tag }}" }'
+          data: '{ "tag": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.version }}" }'

@@ -1,4 +1,4 @@
-use super::{networking::Runtime, networking_events::NetworkingEvent};
+use super::{networking_events::NetworkingEvent, networking_plugin::Runtime};
 use async_channel::Receiver;
 use bevy::prelude::*;
 use protocol::protocol::{Error, Protocol};

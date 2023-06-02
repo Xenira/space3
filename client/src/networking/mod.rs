@@ -3,8 +3,9 @@ pub mod networking_ressource;
 pub mod networking_systems;
 pub mod polling;
 pub mod util;
-pub mod networking {
-    use bevy::prelude::{App, Plugin, Resource};
+
+pub mod networking_plugin {
+    use bevy::prelude::{debug, App, Plugin, Resource};
     use reqwest::Url;
 
     use super::{
@@ -21,6 +22,8 @@ pub mod networking {
 
     impl Plugin for NetworkingPlugin {
         fn build(&self, app: &mut App) {
+            debug!("Building networking plugin with base url: {}", self.0);
+
             #[cfg(not(target_family = "wasm"))]
             let runtime = tokio::runtime::Builder::new_multi_thread()
                 .enable_all()
