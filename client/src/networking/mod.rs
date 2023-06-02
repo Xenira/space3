@@ -38,7 +38,10 @@ pub mod networking_plugin {
                 .unwrap();
             app.add_event::<NetworkingEvent>()
                 .insert_resource(ServerUrl(
-                    Url::parse(self.0.as_str()).expect("Invalid base url"),
+                    Url::parse(self.0.as_str())
+                        .expect("Invalid base url")
+                        .join("/api/v1/")
+                        .unwrap(),
                 ))
                 .insert_resource(Runtime(runtime))
                 .init_resource::<NetworkingRessource>()

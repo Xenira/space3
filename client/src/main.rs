@@ -108,7 +108,7 @@ fn main() {
         .add_plugin(EntityCountDiagnosticsPlugin::default())
         .add_plugin(EguiPlugin)
         .add_event::<StateChangeEvent>()
-        .add_plugin(NetworkingPlugin(format!("{}/api/v1/", base_url)))
+        .add_plugin(NetworkingPlugin(base_url))
         .add_startup_system(setup)
         .add_system(state_change_handler)
         .add_system(networking_handler)
