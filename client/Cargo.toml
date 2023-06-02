@@ -25,6 +25,7 @@ reqwest = { version = "0.11.18", features = ["serde_json", "json", "blocking"] }
 tokio = { version = "1.28.2", features = ["rt"] }
 
 [target.wasm32-unknown-unknown.dependencies]
+web-sys = { version = "0.3.63", features = ["Window", "Document"] }
 wasm-bindgen-futures = "0.4.36"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]

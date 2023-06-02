@@ -3601,6 +3601,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

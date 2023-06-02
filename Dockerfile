@@ -25,8 +25,6 @@ COPY --from=planner-client /client/recipe.json /client/recipe.json
 COPY ./protocol /protocol
 RUN cargo chef cook --target wasm32-unknown-unknown --recipe-path recipe.json
 COPY ./client /client
-ARG BASE_URL
-ENV BASE_URL=$BASE_URL
 RUN trunk build
 
 ##################################################
@@ -48,8 +46,6 @@ COPY --from=builder-server /server/target/x86_64-unknown-linux-musl/release/rog-
 COPY --from=builder-client /client/dist ./static
 COPY ./server/static ./static
 COPY ./client/assets ./static/assets
-COPY ./protocol /protocol
-COPY ./server /server
 USER root
 EXPOSE 8000/tcp
 CMD ["rog-server"]
