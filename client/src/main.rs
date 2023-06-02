@@ -3,14 +3,14 @@ extern crate dotenv;
 use crate::{
     components::{timer::TimerUi, ComponentsPlugin},
     modules::game_user_info::GameUserRes,
-    networking::networking::NetworkingPlugin,
+    networking::networking_plugin::NetworkingPlugin,
     states::{
         game_combat::BattleRes, game_commander_selection::GameCommanderSelection,
         game_result::GameResultRes, game_states,
     },
 };
 use bevy::{
-    diagnostic::{EntityCountDiagnosticsPlugin, LogDiagnosticsPlugin},
+    diagnostic::EntityCountDiagnosticsPlugin,
     hierarchy::DespawnRecursiveExt,
     log::{Level, LogPlugin},
     math::Vec3,

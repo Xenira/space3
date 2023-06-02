@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use reqwest::Method;
 
 use super::{
-    networking::Runtime, networking_events::NetworkingEvent,
+    networking_events::NetworkingEvent, networking_plugin::Runtime,
     networking_ressource::NetworkingRessource,
 };
 
