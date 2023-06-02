@@ -69,6 +69,7 @@ pub struct Id(String);
 fn main() {
     debug!("Generating app");
     let mut app = App::new();
+    let log_level = Level::DEBUG;
 
     #[cfg(not(target_family = "wasm"))]
     if let Err(err) = dotenv() {
@@ -78,14 +79,16 @@ fn main() {
     #[cfg(not(target_family = "wasm"))]
     let base_url = env::var("BASE_URL").expect("BASE_URL not supplied");
     #[cfg(target_family = "wasm")]
-    let base_url = env!("BASE_URL", "BASE_URL needs to be set for wasm builds").to_string();
+    let base_url = wasm_get_base_url()
+        .expect("Base url could not be resolved")
+        .to_string();
 
     let mut cursor = Cursor::default();
     cursor.visible = false;
 
     let default_plugins = DefaultPlugins
         .set(LogPlugin {
-            level: Level::DEBUG,
+            level: log_level,
             ..Default::default()
         })
         .set(WindowPlugin {
@@ -101,7 +104,6 @@ fn main() {
 
     app.add_state::<AppState>()
         .add_plugins(default_plugins) // .set(ImagePlugin::default_nearest()),
-        .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(EntityCountDiagnosticsPlugin::default())
         .add_plugin(EguiPlugin)
@@ -157,6 +159,15 @@ fn setup(
             );
         }
     }
+}
+
+#[cfg(target_family = "wasm")]
+fn wasm_get_base_url() -> Option<String> {
+    let window = web_sys::window().expect("no global `window` exists");
+    let document = window.document().expect("should have a document on window");
+    document
+        .base_uri()
+        .expect("should have a base URI on document")
 }
 
 fn networking_handler(
