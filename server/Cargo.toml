@@ -16,9 +16,7 @@ serde = {version="1.0", features=["derive"]}
 serde_json = "1.0"
 argon2 = "0.5"
 rand_core = { version = "0.6", features = ["std"] }
-jsonwebtoken = "8"
 protocol = { path = "../protocol" }
-openssl = "0.10"
 async-std = "1.12"
 async-channel = "1.8"
 static_init = "1"
