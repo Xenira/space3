@@ -44,8 +44,8 @@ WORKDIR /usr/local/bin
 RUN apk add libgcc && addgroup -S serveruser && adduser -S serveruser -G serveruser
 COPY --from=builder-server /server/target/x86_64-unknown-linux-musl/release/rog-server .
 COPY --from=builder-client /client/dist ./static
+COPY --from=builder-client /client/assets ./static/assets
 COPY ./server/static ./static
-COPY ./client/assets ./static/assets
 USER root
 EXPOSE 8000/tcp
 CMD ["rog-server"]

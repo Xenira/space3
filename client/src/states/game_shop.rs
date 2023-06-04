@@ -188,7 +188,7 @@ fn setup(
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("textures/ui/reroll.png"),
-            transform: Transform::from_translation(Vec3::new(64.0 * 6.0, 200.0, 0.0)),
+            transform: Transform::from_translation(Vec3::new(64.0 * 6.0, 200.0, 5.0)),
             ..Default::default()
         },
         Hoverable("hover".to_string(), "leave".to_string()),
