@@ -7,7 +7,11 @@ pub(crate) struct AnchorsPlugin;
 impl Plugin for AnchorsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Anchors>()
-            .add_system(setup.in_schedule(OnEnter(AppState::Startup)))
+            .add_system(
+                setup
+                    .in_base_set(CoreSet::First)
+                    .in_schedule(OnEnter(AppState::Startup)),
+            )
             .add_system(on_resize);
     }
 }
@@ -39,10 +43,13 @@ bitflags! {
         const BOTTOM = 0b00000010;
         const LEFT = 0b00000100;
         const RIGHT = 0b00001000;
+        const MIDDLE = 0b00010000;
         const TOP_LEFT = Self::TOP.bits() | Self::LEFT.bits();
         const TOP_RIGHT = Self::TOP.bits() | Self::RIGHT.bits();
         const BOTTOM_LEFT = Self::BOTTOM.bits() | Self::LEFT.bits();
         const BOTTOM_RIGHT = Self::BOTTOM.bits() | Self::RIGHT.bits();
+        const MIDDLE_LEFT = Self::MIDDLE.bits() | Self::LEFT.bits();
+        const MIDDLE_RIGHT = Self::MIDDLE.bits() | Self::RIGHT.bits();
     }
 }
 
@@ -105,6 +112,26 @@ fn setup(
             AnchorType::BOTTOM_RIGHT,
         ),
     );
+
+    anchors.set(
+        AnchorType::MIDDLE_LEFT,
+        spawn_anchor(
+            &mut commands,
+            (width, height),
+            camera,
+            AnchorType::MIDDLE_LEFT,
+        ),
+    );
+
+    anchors.set(
+        AnchorType::MIDDLE_RIGHT,
+        spawn_anchor(
+            &mut commands,
+            (width, height),
+            camera,
+            AnchorType::MIDDLE_RIGHT,
+        ),
+    );
 }
 
 fn on_resize(
@@ -153,9 +180,17 @@ fn spawn_anchor(
 fn get_sceen_space_position((width, height): (f32, f32), anchor_type: AnchorType) -> Vec2 {
     Vec2::new(
         if anchor_type & AnchorType::LEFT == AnchorType::LEFT {
-            0.0
+            if anchor_type & AnchorType::MIDDLE == AnchorType::MIDDLE {
+                width / 4.0
+            } else {
+                0.0
+            }
         } else if anchor_type & AnchorType::RIGHT == AnchorType::RIGHT {
-            width
+            if anchor_type & AnchorType::MIDDLE == AnchorType::MIDDLE {
+                width / 4.0 * 3.0
+            } else {
+                width
+            }
         } else {
             width / 2.0
         },

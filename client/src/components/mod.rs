@@ -7,11 +7,14 @@ pub(crate) mod dragndrop;
 pub(crate) mod hover;
 pub(crate) mod on_screen_log;
 pub(crate) mod timer;
+pub(crate) mod tooltip;
 
 #[derive(SystemSet, Hash, Debug, Clone, Eq, PartialEq)]
 pub enum ChangeDetectionSystemSet {
     MouseDetection,
     MouseDetectionFlush,
+    Tooltip,
+    TooltipRender,
     Animation,
 }
 
@@ -24,8 +27,11 @@ impl Plugin for ComponentsPlugin {
                 ChangeDetectionSystemSet::MouseDetection,
                 ChangeDetectionSystemSet::MouseDetectionFlush,
                 ChangeDetectionSystemSet::Animation,
+                ChangeDetectionSystemSet::Tooltip,
+                ChangeDetectionSystemSet::TooltipRender,
             )
-                .chain(),
+                .chain()
+                .in_base_set(CoreSet::PreUpdate),
         )
         .add_system(apply_system_buffers.in_set(ChangeDetectionSystemSet::MouseDetectionFlush))
         .add_plugin(animation::AnimationPlugin)
@@ -34,6 +40,7 @@ impl Plugin for ComponentsPlugin {
         .add_plugin(on_screen_log::OnScreenLogPlugin)
         .add_plugin(timer::TimerPlugin)
         .add_plugin(anchors::AnchorsPlugin)
-        .add_plugin(cursor::CursorPlugin);
+        .add_plugin(cursor::CursorPlugin)
+        .add_plugin(tooltip::TooltipPlugin);
     }
 }

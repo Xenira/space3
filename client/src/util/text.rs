@@ -1,4 +1,5 @@
-pub fn break_text(text: String, width: usize, center: bool) -> String {
+pub fn break_text(text: String, width: f32, font_size: f32, center: bool) -> String {
+    let width = (width / (font_size / 2.0)) as usize;
     text.split(' ')
         .fold(vec!["".to_string()], |mut acc: Vec<String>, word| {
             let current_line = acc.last_mut().unwrap();

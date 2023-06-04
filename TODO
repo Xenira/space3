@@ -3,9 +3,9 @@ Service:
 		☐ Kick Player
 		☐ Promote Player
 		☐ Invite Player
-		☐ Do not disclose master user id
+		✔ Do not disclose master user id @done(23-06-04 11:39)
 	Character Selection:
-		☐ Select random Character when time runs out
+		☐ Select random Character when time runs out <- causes panic on compat
 	Matchmaking:
 		☐ Join Queue
 		☐ Leave Queue
@@ -93,7 +93,7 @@ Client:
 		☐ Add confirmation button
 	Main-Game:
 		☐ Add upgraded character frame
-		☐ Add hover "tooltip"
+		✔ Add hover "tooltip" @started(23-06-02 23:33) @done(23-06-04 11:38) @lasted(1d12h5m35s)
 		Shop:
 			☐ Attach shop to top of screen
 			☐ Attach bench to bottom of screen
@@ -116,6 +116,7 @@ Client:
 		☐ Add drag and drop animation
 		☐ Add version check
 		☐ Add bug report button
+		☐ HDR
 
 Misc:
 	☐ Intro video

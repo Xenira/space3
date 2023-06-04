@@ -2,7 +2,10 @@ use bevy::prelude::*;
 use protocol::protocol::{GameOpponentInfo, GameUserInfo};
 
 use crate::{
-    components::anchors::{AnchorType, Anchors},
+    components::{
+        anchors::{AnchorType, Anchors},
+        hover::{BoundingBox, Hoverable},
+    },
     modules::god::God,
     states::startup::UiAssets,
 };
@@ -96,6 +99,11 @@ fn on_user_info_added(
                         .with_scale(Vec3::splat(3.0)),
                     ..Default::default()
                 },
+                Hoverable("hover".to_string(), "leave".to_string()),
+                BoundingBox(
+                    Vec3::new(48.0, 48.0, 0.0),
+                    Quat::from_rotation_z(45.0f32.to_radians()),
+                ),
                 God(GameOpponentInfo {
                     name: game_user_info.0.name.clone(),
                     experience: game_user_info.0.experience,

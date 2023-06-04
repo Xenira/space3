@@ -222,4 +222,8 @@ impl GameInstancePlayer {
             is_next_opponent,
         }
     }
+
+    pub(crate) fn is_active(&self) -> bool {
+        self.health > 0 && self.placement.is_none()
+    }
 }

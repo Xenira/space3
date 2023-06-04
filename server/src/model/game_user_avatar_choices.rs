@@ -69,6 +69,10 @@ pub async fn select_avatar(game: GameGuard, user: &User, avatar_id: i32) -> Json
             notify_users(&game).await;
             Json(Protocol::AvatarSelectResponse(god))
         } else {
+            debug!(
+                "Requested avatar {} not available. Possible choices: {:?}",
+                avatar_id, game_user.god_choices
+            );
             Json(protocol::protocol::Error::new_protocol(
                 Status::Conflict.code,
                 "Avatar not available".to_string(),
