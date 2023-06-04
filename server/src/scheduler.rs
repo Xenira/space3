@@ -7,7 +7,7 @@ use crate::{
 };
 use diesel::{dsl::now, prelude::*, ExpressionMethods, QueryDsl};
 use rocket::{
-    log::private::warn,
+    log::private::{debug, trace, warn},
     tokio::{self, sync::Mutex},
 };
 use std::{borrow::BorrowMut, collections::HashMap, sync::Arc, time::Duration};
@@ -55,6 +55,7 @@ pub async fn long_running_task(db: Database, games: &Arc<Mutex<GameMap>>) {
                 );
                 games.lock().await.remove(&game.lock().await.game_id);
             }
+            trace!("Done processing game {:?}", game.lock().await.game_id);
         }
 
         tokio::time::sleep(Duration::from_secs(1)).await;

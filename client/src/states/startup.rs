@@ -1,4 +1,4 @@
-use crate::{AppState, StateChangeEvent};
+use crate::{components::background::Background, AppState, StateChangeEvent};
 use bevy::{prelude::*, utils::HashMap};
 use protocol::{characters::get_characters, gods::get_gods};
 
@@ -10,6 +10,17 @@ impl Plugin for StartupPlugin {
         app.init_resource::<UiAssets>()
             .init_resource::<GodAssets>()
             .init_resource::<CharacterAssets>()
+            .init_resource::<BackgroundAssets>()
+            .add_systems(
+                (
+                    load_ui_assets,
+                    load_gods_assets,
+                    load_character_assets,
+                    load_background_assets,
+                )
+                    .before(setup)
+                    .in_schedule(OnEnter(STATE)),
+            )
             .add_system(setup.in_schedule(OnEnter(STATE)));
     }
 }
@@ -36,21 +47,21 @@ pub struct CharacterAssets {
     pub price_orb: Handle<Image>,
 }
 
-fn setup(
-    mut ev_state_change: EventWriter<StateChangeEvent>,
+#[derive(Resource, Default)]
+pub struct BackgroundAssets {
+    pub(crate) background: Handle<Image>,
+}
+
+fn load_ui_assets(asset_server: Res<AssetServer>, mut ui_assets: ResMut<UiAssets>) {
+    ui_assets.font = asset_server.load("fonts/monogram-extended.ttf");
+    ui_assets.cursor = asset_server.load("textures/ui/cursor.png");
+}
+
+fn load_gods_assets(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut god_assets: ResMut<GodAssets>,
-    mut character_assets: ResMut<CharacterAssets>,
-    mut ui_assets: ResMut<UiAssets>,
 ) {
-    ev_state_change.send(StateChangeEvent(AppState::MenuLogin));
-
-    // UI
-    ui_assets.font = asset_server.load("fonts/monogram-extended.ttf");
-    ui_assets.cursor = asset_server.load("textures/ui/cursor.png");
-
-    // Gods
     for god in get_gods().iter() {
         let god_handle = asset_server.load(format!("generated/gods/{}.png", god.id));
         let god_atlas =
@@ -66,8 +77,13 @@ fn setup(
 
     god_assets.god_frame = texture_atlases.add(god_frame_atlas);
     god_assets.lvl_orb = asset_server.load("textures/ui/lvl_orb.png");
+}
 
-    // Characters
+fn load_character_assets(
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut character_assets: ResMut<CharacterAssets>,
+) {
     for character in get_characters().iter() {
         let character_handle =
             asset_server.load(format!("generated/characters/{}.png", character.id));
@@ -83,4 +99,20 @@ fn setup(
     character_assets.health_orb = asset_server.load("textures/ui/health_orb.png");
     character_assets.attack_orb = asset_server.load("textures/ui/attack_orb.png");
     character_assets.price_orb = asset_server.load("textures/ui/price_orb.png");
+}
+
+fn load_background_assets(
+    asset_server: Res<AssetServer>,
+    mut background_assets: ResMut<BackgroundAssets>,
+) {
+    background_assets.background = asset_server.load("textures/background/bg.png");
+}
+
+fn setup(
+    mut ev_state_change: EventWriter<StateChangeEvent>,
+    background_assets: ResMut<BackgroundAssets>,
+    mut background_resource: ResMut<Background>,
+) {
+    ev_state_change.send(StateChangeEvent(AppState::MenuLogin));
+    background_resource.0 = background_assets.background.clone();
 }

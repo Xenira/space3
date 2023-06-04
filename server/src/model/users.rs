@@ -234,6 +234,8 @@ pub async fn login(
         game,
     ];
 
+    ActivePolls::clear_user(user.id);
+
     for channel in channels.into_iter().flatten() {
         ActivePolls::join_user(channel, user.id);
     }

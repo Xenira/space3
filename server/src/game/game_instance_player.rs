@@ -6,7 +6,7 @@ use protocol::{
 };
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GameInstancePlayer {
     pub id: Uuid,
     pub user_id: Option<i32>,
@@ -221,5 +221,9 @@ impl GameInstancePlayer {
             character_id: self.god.as_ref().map_or(0, |g| g.id),
             is_next_opponent,
         }
+    }
+
+    pub(crate) fn is_active(&self) -> bool {
+        self.health > 0 && self.placement.is_none()
     }
 }

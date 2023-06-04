@@ -8,6 +8,7 @@ pub(crate) struct HoverPlugin;
 impl Plugin for HoverPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ClickEvent>()
+            .add_event::<HoverEvent>()
             .add_systems(
                 (check_hover, on_hover_added, on_hover_removed)
                     .chain()
@@ -19,6 +20,8 @@ impl Plugin for HoverPlugin {
 
 #[derive(Debug, Component, Clone)]
 pub struct Hovered;
+
+pub struct HoverEvent(pub Entity, pub bool);
 
 #[derive(Debug, Component, Clone)]
 pub struct BoundingBox(pub Vec3, pub Quat);
@@ -64,6 +67,7 @@ fn check_hover(
         With<Hoverable>,
     >,
     q_cursor: Query<&mut Transform, With<Cursor>>,
+    mut ev_hover: EventWriter<HoverEvent>,
 ) {
     if ev_cursor_move.iter().next().is_some() {
         if let Ok(world_position) = q_cursor
@@ -75,10 +79,12 @@ fn check_hover(
                     if hovered.is_none() {
                         trace!("Hovering over entity: {:?}", entity);
                         commands.entity(entity).insert(Hovered);
+                        ev_hover.send(HoverEvent(entity, true));
                     }
                 } else if hovered.is_some() {
                     trace!("No longer hovering over entity: {:?}", entity);
                     commands.entity(entity).remove::<Hovered>();
+                    ev_hover.send(HoverEvent(entity, false));
                 }
             }
         }

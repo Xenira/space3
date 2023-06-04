@@ -2,7 +2,7 @@ use super::SHOP_SIZE;
 use protocol::{characters::get_characters, protocol::CharacterInstance};
 use rand::seq::SliceRandom;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Shop {
     pub characters: Vec<Option<CharacterInstance>>,
     pub locked: bool,

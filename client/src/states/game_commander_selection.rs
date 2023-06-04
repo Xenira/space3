@@ -1,13 +1,12 @@
-use super::startup::{GodAssets, UiAssets};
+use super::startup::GodAssets;
 use crate::{
     cleanup_system,
     components::{
         animation::{AnimationRepeatType, AnimationTimer, TransformAnimation},
-        hover::{BoundingBox, ClickEvent, Clickable, Hoverable, Hovered},
+        hover::{BoundingBox, ClickEvent, Clickable, Hoverable},
     },
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
     prefabs::animation,
-    util::text::break_text,
     AppState, Cleanup,
 };
 use bevy::prelude::*;
@@ -24,7 +23,7 @@ pub(crate) struct GameCommanderSelectionPlugin;
 impl Plugin for GameCommanderSelectionPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(setup.in_schedule(OnEnter(STATE)))
-            .add_systems((god_hover, god_click, on_network).in_set(OnUpdate(STATE)))
+            .add_systems((god_click, on_network).in_set(OnUpdate(STATE)))
             .add_system(cleanup_system::<Cleanup>.in_schedule(OnExit(STATE)));
     }
 }
@@ -35,7 +34,6 @@ pub(crate) struct GameCommanderSelection(pub Vec<God>);
 fn setup(
     mut commands: Commands,
     god_assets: Res<GodAssets>,
-    ui_assets: Res<UiAssets>,
     res_gods: Res<GameCommanderSelection>,
 ) {
     let mut frame_animation = animation::simple(0, 0);
@@ -191,97 +189,10 @@ fn setup(
                     });
                 });
         });
-
-    commands
-        .spawn((
-            NodeBundle {
-                style: Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                    flex_direction: FlexDirection::Row,
-                    justify_content: JustifyContent::End,
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            Cleanup,
-        ))
-        .with_children(|parent| {
-            parent
-                .spawn((NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(40.0), Val::Percent(100.0)),
-                        flex_direction: FlexDirection::Column,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        gap: Size::height(Val::Px(24.0)),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },))
-                .with_children(|parent| {
-                    parent.spawn((
-                        TextBundle::from_section(
-                            "Select your deity",
-                            TextStyle {
-                                font: ui_assets.font.clone(),
-                                font_size: 50.0,
-                                color: Color::WHITE,
-                            },
-                        ),
-                        GodTitle,
-                    ));
-                    parent.spawn((
-                        TextBundle::from_sections([TextSection::from_style(TextStyle {
-                            font: ui_assets.font.clone(),
-                            font_size: 28.0,
-                            color: Color::WHITE,
-                        })]),
-                        GodDescription,
-                    ));
-                    parent.spawn((
-                        TextBundle::from_sections([TextSection::from_style(TextStyle {
-                            font: ui_assets.font.clone(),
-                            font_size: 32.0,
-                            color: Color::WHITE,
-                        })]),
-                        GodPantheon,
-                    ));
-                });
-        });
 }
-
-#[derive(Component, Debug)]
-pub struct GodTitle;
-
-#[derive(Component, Debug)]
-pub struct GodDescription;
-
-#[derive(Component, Debug)]
-pub struct GodPantheon;
 
 #[derive(Component, Debug)]
 pub struct GodComponent(pub heros::God);
-
-fn god_hover(
-    q_hovered: Query<&GodComponent, Added<Hovered>>,
-    mut q_title: Query<&mut Text, With<GodTitle>>,
-    mut q_desc: Query<&mut Text, (With<GodDescription>, Without<GodTitle>)>,
-    mut q_pantheon: Query<
-        &mut Text,
-        (
-            With<GodPantheon>,
-            Without<GodTitle>,
-            Without<GodDescription>,
-        ),
-    >,
-) {
-    if let Some(god) = q_hovered.iter().next() {
-        q_title.get_single_mut().unwrap().sections[0].value = god.0.name.to_string();
-        q_desc.get_single_mut().unwrap().sections[0].value =
-            break_text(god.0.description.to_string(), 36, true);
-        q_pantheon.get_single_mut().unwrap().sections[0].value = god.0.pantheon.to_string();
-    }
-}
 
 fn god_click(
     mut ev_clicked: EventReader<ClickEvent>,
@@ -299,16 +210,6 @@ fn on_network(
     mut commands: Commands,
     mut ev_network: EventReader<NetworkingEvent>,
     q_god: Query<(Entity, &GodComponent, &Transform)>,
-    mut q_title: Query<&mut Text, With<GodTitle>>,
-    mut q_desc: Query<&mut Text, (With<GodDescription>, Without<GodTitle>)>,
-    mut q_pantheon: Query<
-        &mut Text,
-        (
-            With<GodPantheon>,
-            Without<GodTitle>,
-            Without<GodDescription>,
-        ),
-    >,
 ) {
     for ev in ev_network.iter() {
         if let Protocol::AvatarSelectResponse(god) = &ev.0 {
@@ -321,13 +222,6 @@ fn on_network(
                         speed: 1.0,
                         repeat: AnimationRepeatType::Once,
                     });
-
-                    // Set god info
-                    q_title.get_single_mut().unwrap().sections[0].value = god.name.to_string();
-                    q_desc.get_single_mut().unwrap().sections[0].value =
-                        break_text(god.description.to_string(), 36, true);
-                    q_pantheon.get_single_mut().unwrap().sections[0].value =
-                        god.pantheon.to_string();
                 } else {
                     // Remove other gods
                     commands.entity(entity).despawn_recursive();

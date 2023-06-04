@@ -228,7 +228,7 @@ fn setup(
         SpriteSheetBundle {
             texture_atlas: lock_atlas_handle,
             sprite: TextureAtlasSprite::new(0),
-            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 0.0)),
+            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 5.0)),
             ..Default::default()
         },
         lock_animation,
@@ -581,6 +581,11 @@ fn generate_game_users(
                             .with_scale(Vec3::splat(2.0)),
                             ..Default::default()
                         },
+                        Hoverable("hover".to_string(), "leave".to_string()),
+                        BoundingBox(
+                            Vec3::new(48.0, 48.0, 0.0),
+                            Quat::from_rotation_z(45.0f32.to_radians()),
+                        ),
                         God(opponent.clone()),
                     ));
                 }

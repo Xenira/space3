@@ -47,7 +47,7 @@ fn setup(
             // Placement text
             parent.spawn(Text2dBundle {
                 text: Text::from_section(
-                    format!("Your achived place {}", game_result.0.place).as_str(),
+                    format!("Your achieved place {}", game_result.0.place).as_str(),
                     TextStyle {
                         font: asset_server.load("fonts/monogram-extended.ttf"),
                         font_size: 60.0,

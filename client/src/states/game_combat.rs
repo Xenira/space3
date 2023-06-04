@@ -4,6 +4,7 @@ use crate::{
     components::{
         anchors::{AnchorType, Anchors},
         animation::{Animation, AnimationFinished, AnimationRepeatType, TransformAnimation},
+        hover::{BoundingBox, Hoverable},
     },
     modules::{character::Character, god::God},
     AppState, Cleanup,
@@ -96,6 +97,11 @@ fn setup(
                 },
                 God(state.0.opponent.clone()),
                 OpponentProfile,
+                Hoverable("hover".to_string(), "leave".to_string()),
+                BoundingBox(
+                    Vec3::new(48.0, 48.0, 0.0),
+                    Quat::from_rotation_z(45.0f32.to_radians()),
+                ),
                 Cleanup,
             ));
         });
@@ -278,6 +284,8 @@ fn generate_board(
                     },
                     Character(character.clone()),
                     BoardCharacter(idx as u8, character.clone()),
+                    Hoverable("hover".to_string(), "leave".to_string()),
+                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
                 ));
             });
         }

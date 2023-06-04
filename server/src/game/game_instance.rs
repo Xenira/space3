@@ -30,27 +30,31 @@ impl GameInstance {
     pub fn get_user(&self, user_id: i32) -> Option<&GameInstancePlayer> {
         self.players
             .iter()
-            .find(|player| player.user_id == Some(user_id))
+            .find(|player| player.user_id == Some(user_id) && player.is_active())
     }
 
     pub fn get_game_user(&self, id: Uuid) -> Option<&GameInstancePlayer> {
-        self.players.iter().find(|player| player.id == id)
+        self.players
+            .iter()
+            .find(|player| player.id == id && player.is_active())
     }
 
     pub fn get_user_mut(&mut self, user_id: i32) -> Option<&mut GameInstancePlayer> {
         self.players
             .iter_mut()
-            .find(|player| player.user_id == Some(user_id))
+            .find(|player| player.user_id == Some(user_id) && player.is_active())
     }
 
     pub fn get_game_user_mut(&mut self, id: Uuid) -> Option<&mut GameInstancePlayer> {
-        self.players.iter_mut().find(|player| player.id == id)
+        self.players
+            .iter_mut()
+            .find(|player| player.id == id && player.is_active())
     }
 
     pub fn has_user(&self, user_id: i32) -> bool {
         self.players
             .iter()
-            .any(|player| player.user_id == Some(user_id))
+            .any(|player| player.user_id == Some(user_id) && player.is_active())
     }
 
     // TODO: Move back to service

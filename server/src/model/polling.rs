@@ -126,6 +126,16 @@ impl ActivePolls {
         let mut polls = Self::get().lock().unwrap();
         polls.channels.remove(channel);
     }
+
+    pub(crate) fn clear_user(id: i32) {
+        let mut polls = Self::get().lock().unwrap();
+        polls.channels.retain(|_, users| !users.contains(&id));
+        if let Some(c) = polls.polls.remove(&id) {
+            c.0.close();
+            c.1.close();
+            drop(c);
+        }
+    }
 }
 
 #[get("/poll")]

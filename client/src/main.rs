@@ -20,7 +20,7 @@ use bevy::{
 };
 use bevy_egui::{
     egui::{self, Color32},
-    EguiContexts, EguiPlugin,
+    EguiContexts, EguiPlugin, EguiStartupSet,
 };
 use chrono::{DateTime, Utc};
 use components::on_screen_log::{LogEntry, LogLevel};
@@ -109,7 +109,7 @@ fn main() {
         .add_plugin(EguiPlugin)
         .add_event::<StateChangeEvent>()
         .add_plugin(NetworkingPlugin(base_url))
-        .add_startup_system(setup)
+        .add_startup_system(setup.after(EguiStartupSet::InitContexts))
         .add_system(state_change_handler)
         .add_system(networking_handler)
         .add_plugin(ComponentsPlugin)
@@ -123,7 +123,7 @@ fn main() {
 #[derive(Component)]
 struct MainCamera;
 
-fn setup(
+pub fn setup(
     mut commands: Commands,
     mut contexts: EguiContexts,
     mut networking: ResMut<NetworkingRessource>,
