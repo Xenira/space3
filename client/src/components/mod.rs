@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 pub(crate) mod anchors;
 pub(crate) mod animation;
+pub(crate) mod background;
 pub(crate) mod cursor;
 pub(crate) mod dragndrop;
 pub(crate) mod hover;
@@ -41,6 +42,7 @@ impl Plugin for ComponentsPlugin {
         .add_plugin(timer::TimerPlugin)
         .add_plugin(anchors::AnchorsPlugin)
         .add_plugin(cursor::CursorPlugin)
-        .add_plugin(tooltip::TooltipPlugin);
+        .add_plugin(tooltip::TooltipPlugin)
+        .add_plugin(background::BackgroundPlugin);
     }
 }
