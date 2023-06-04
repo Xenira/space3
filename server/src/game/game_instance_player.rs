@@ -6,7 +6,7 @@ use protocol::{
 };
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GameInstancePlayer {
     pub id: Uuid,
     pub user_id: Option<i32>,

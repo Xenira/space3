@@ -102,6 +102,19 @@ pub async fn get_users(game: GameGuard, user: &User) -> Json<Protocol> {
     let pairings =
         combat_service::get_pairing(game.turn.into(), game.players.iter().collect::<Vec<_>>());
 
+    let mut players = game.players.to_vec();
+    players.sort_by(|a, b| {
+        if a.placement.is_some() && b.placement.is_some() {
+            a.placement.cmp(&b.placement)
+        } else if a.placement.is_some() {
+            std::cmp::Ordering::Greater
+        } else if b.placement.is_some() {
+            std::cmp::Ordering::Less
+        } else {
+            b.health.cmp(&a.health)
+        }
+    });
+
     let next_opponent = pairings
         .iter()
         .find(|p| p.0 == id || p.1 == id)
@@ -114,7 +127,7 @@ pub async fn get_users(game: GameGuard, user: &User) -> Json<Protocol> {
     );
 
     Json(Protocol::GameUsersResponse(
-        game.players
+        players
             .iter()
             .map(|u| u.opponent_info(u.id == next_opponent))
             .collect::<Vec<_>>(),

@@ -18,9 +18,10 @@ impl Plugin for StartupPlugin {
                     load_character_assets,
                     load_background_assets,
                 )
+                    .before(setup)
                     .in_schedule(OnEnter(STATE)),
             )
-            .add_system(setup.in_base_set(CoreSet::Last).in_schedule(OnEnter(STATE)));
+            .add_system(setup.in_schedule(OnEnter(STATE)));
     }
 }
 

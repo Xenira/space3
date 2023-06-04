@@ -228,7 +228,7 @@ fn setup(
         SpriteSheetBundle {
             texture_atlas: lock_atlas_handle,
             sprite: TextureAtlasSprite::new(0),
-            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 0.0)),
+            transform: Transform::from_translation(Vec3::new(64.0 * -5.5, 200.0, 5.0)),
             ..Default::default()
         },
         lock_animation,
