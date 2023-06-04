@@ -1,13 +1,13 @@
 {
   "name": "Minotaur",
   "description": "A creature with the head of a bull and the body of a man, residing in a labyrinth on the island of Crete.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 4,
+  "health": 3,
+  "cost": 3,
   "upgrade": {
     "name": "Minotaur",
-    "attack": 3,
-    "health": 2,
+    "attack": 8,
+    "health": 6,
     "abilities": []
   },
   "abilities": []

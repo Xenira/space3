@@ -2,13 +2,13 @@
   "id": null,
   "name": "Makara",
   "description": "A mythical creature depicted as a sea monster with the body of a crocodile, trunk of an elephant, and tail of a fish. Makara is often used as a decorative motif in Hindu art and architecture.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 20,
+  "health": 20,
+  "cost": 6,
   "upgrade": {
     "name": "Makara",
-    "attack": 3,
-    "health": 2,
+    "attack": 40,
+    "health": 40,
     "abilities": []
   },
   "abilities": []

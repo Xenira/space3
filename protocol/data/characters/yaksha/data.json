@@ -2,13 +2,13 @@
   "id": null,
   "name": "Yaksha",
   "description": "Nature spirits associated with forests, lakes, and mountains. They are often depicted as benevolent and protective guardians of natural treasures.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 5,
+  "health": 4,
+  "cost": 4,
   "upgrade": {
     "name": "Yaksha",
-    "attack": 3,
-    "health": 2,
+    "attack": 10,
+    "health": 8,
     "abilities": []
   },
   "abilities": []

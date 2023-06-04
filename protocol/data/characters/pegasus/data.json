@@ -1,13 +1,13 @@
 {
   "name": "Pegasus",
   "description": "A winged horse known for its beauty and speed, often associated with the Muses and heroic figures.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Pegasus",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

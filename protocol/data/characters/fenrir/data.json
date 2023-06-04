@@ -2,13 +2,13 @@
   "id": null,
   "name": "Fenrir",
   "description": "A monstrous wolf and one of the children of Loki. Fenrir is prophesied to be a great threat during Ragnarok, when it will break free and devour Odin, the All-Father.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 4,
+  "health": 3,
+  "cost": 3,
   "upgrade": {
     "name": "Fenrir",
-    "attack": 3,
-    "health": 2,
+    "attack": 8,
+    "health": 6,
     "abilities": []
   },
   "abilities": []

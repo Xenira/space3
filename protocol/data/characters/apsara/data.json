@@ -2,13 +2,13 @@
   "id": null,
   "name": "Apsara",
   "description": "Beautiful female celestial beings known for their elegance and grace. Apsaras are often depicted as dancers and musicians in the courts of the gods.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 4,
+  "health": 3,
+  "cost": 3,
   "upgrade": {
     "name": "Apsara",
-    "attack": 3,
-    "health": 2,
+    "attack": 8,
+    "health": 6,
     "abilities": []
   },
   "abilities": []

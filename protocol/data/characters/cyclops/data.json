@@ -1,13 +1,13 @@
 {
   "name": "Cyclops",
   "description": "Gigantic, one-eyed beings who were skilled blacksmiths. They were often portrayed as fierce and monstrous creatures.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Cyclops",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

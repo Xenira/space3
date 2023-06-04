@@ -2,12 +2,12 @@
   "id": null,
   "name": "Huldra",
   "description": "A seductive, forest-dwelling creature in Norse folklore. Huldras are often depicted as beautiful women from the front but with a hollow tree trunk or animal tail from behind.",
-  "health": 2,
-  "attack": 3,
+  "attack": 6,
+  "health": 1,
   "cost": 2,
   "upgrade": {
     "name": "Huldra",
-    "attack": 3,
+    "attack": 12,
     "health": 2,
     "abilities": []
   },

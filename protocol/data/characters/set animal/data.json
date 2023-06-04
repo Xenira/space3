@@ -2,13 +2,13 @@
   "id": null,
   "name": "Set Animal",
   "description": "A mysterious creature with the body of an unknown animal, often associated with the god Set. It had a canine-like head, long ears, and a curved snout.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Set Animal",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

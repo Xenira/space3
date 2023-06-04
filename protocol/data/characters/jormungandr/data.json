@@ -2,13 +2,13 @@
   "id": null,
   "name": "Jormungandr",
   "description": "Also known as the Midgard Serpent, it is a massive serpent that encircles the world, biting its own tail. It is one of the children of Loki and is destined to battle with Thor during Ragnarok, the Norse apocalypse.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 15,
+  "health": 5,
+  "cost": 5,
   "upgrade": {
     "name": "Jormungandr",
-    "attack": 3,
-    "health": 2,
+    "attack": 30,
+    "health": 10,
     "abilities": []
   },
   "abilities": []

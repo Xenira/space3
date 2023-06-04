@@ -2,13 +2,13 @@
   "id": null,
   "name": "Harpies",
   "description": "Female creatures with the bodies of birds and the faces of women, known for their role in punishing the guilty.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Harpies",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

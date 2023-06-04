@@ -2,13 +2,13 @@
   "id": null,
   "name": "Gandharva",
   "description": "Celestial beings known for their musical talents and association with beauty and charm. They are often depicted as part-human and part-animal.",
-  "health": 2,
-  "attack": 3,
+  "attack": 1,
+  "health": 6,
   "cost": 2,
   "upgrade": {
     "name": "Gandharva",
-    "attack": 3,
-    "health": 2,
+    "attack": 2,
+    "health": 12,
     "abilities": []
   },
   "abilities": []

@@ -57,9 +57,9 @@ impl GameInstancePlayer {
 
     pub fn generate_shop(&mut self) {
         if self.shop.locked {
-            self.shop.fill();
+            self.shop.fill(self.get_lvl());
         } else {
-            self.shop = Shop::new();
+            self.shop = Shop::new(self.get_lvl());
         }
     }
 
@@ -70,7 +70,7 @@ impl GameInstancePlayer {
         }
 
         self.money -= 1;
-        self.shop = Shop::new();
+        self.shop = Shop::new(self.get_lvl());
         Ok(())
     }
 

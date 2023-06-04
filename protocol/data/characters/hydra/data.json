@@ -1,9 +1,9 @@
 {
   "name": "Hydra",
   "description": "A serpentine water monster with multiple heads. When one head was cut off, two would grow back in its place.",
-  "health": 4,
   "attack": 2,
-  "cost": 2,
+  "health": 4,
+  "cost": 3,
   "abilities": [
     {
       "name": "Regenerate",

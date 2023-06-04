@@ -2,13 +2,13 @@
   "id": null,
   "name": "Hanuman",
   "description": "A monkey-like humanoid creature known for his incredible strength, devotion, and loyalty to Lord Rama. Hanuman is a central character in the Hindu epic, Ramayana.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Hanuman",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []
