@@ -9,26 +9,30 @@ pub struct Shop {
 }
 
 impl Shop {
-    pub fn new() -> Self {
+    pub fn new(lvl: u8) -> Self {
         Self {
-            characters: Self::get_new_characters(SHOP_SIZE),
+            characters: Self::get_new_characters(SHOP_SIZE, lvl),
             locked: false,
         }
     }
 
-    pub fn fill(&mut self) {
+    pub fn fill(&mut self, lvl: u8) {
         // Remove all None values
         self.characters.retain(|c| c.is_some());
 
         // Fill the rest of the shop
         self.characters.append(&mut Self::get_new_characters(
             SHOP_SIZE - self.characters.len(),
+            lvl,
         ));
         self.locked = false;
     }
 
-    pub fn get_new_characters(count: usize) -> Vec<Option<CharacterInstance>> {
+    pub fn get_new_characters(count: usize, lvl: u8) -> Vec<Option<CharacterInstance>> {
         get_characters()
+            .iter()
+            .filter(|c| c.cost <= lvl)
+            .collect::<Vec<_>>()
             .choose_multiple(&mut rand::thread_rng(), count)
             .cloned()
             .map(|c| Some(CharacterInstance::from(&c, false)))

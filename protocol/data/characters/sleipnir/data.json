@@ -2,13 +2,13 @@
   "id": null,
   "name": "Sleipnir",
   "description": "An eight-legged horse and the steed of Odin. Sleipnir is known for its incredible speed and is often portrayed as the most majestic and powerful horse in Norse mythology.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Sleipnir",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

@@ -2,13 +2,13 @@
   "id": null,
   "name": "Akhekh",
   "description": "A giant serpent associated with chaos and destruction. It was often depicted as a coiled serpent or as a dragon-like creature.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 6,
+  "health": 5,
+  "cost": 4,
   "upgrade": {
     "name": "Akhekh",
-    "attack": 3,
-    "health": 2,
+    "attack": 12,
+    "health": 10,
     "abilities": []
   },
   "abilities": []

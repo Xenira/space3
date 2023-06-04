@@ -2,13 +2,13 @@
   "id": null,
   "name": "Chimera",
   "description": "A fire-breathing monster with the body of a lion, the head of a goat on its back, and a serpent's tail.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Chimera",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

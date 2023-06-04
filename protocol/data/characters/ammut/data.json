@@ -2,13 +2,13 @@
   "id": null,
   "name": "Ammut",
   "description": " A fearsome creature depicted as part-lion, part-hippopotamus, and part-crocodile. It was believed to devour the hearts of the wicked in the afterlife.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 10,
+  "health": 10,
+  "cost": 5,
   "upgrade": {
     "name": "Ammut",
-    "attack": 3,
-    "health": 2,
+    "attack": 20,
+    "health": 20,
     "abilities": []
   },
   "abilities": []

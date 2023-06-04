@@ -1,13 +1,13 @@
 {
   "name": "Centaur",
   "description": "Half-human and half-horse creatures known for their wisdom and skill in archery.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Centaur",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

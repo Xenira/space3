@@ -24,13 +24,7 @@ impl Plugin for GameUserInfoPlugin {
 pub struct GameUserRes(pub GameUserInfo);
 
 #[derive(Component, Debug)]
-pub struct UserHealth;
-
-#[derive(Component, Debug)]
 pub struct UserMoney;
-
-#[derive(Component, Debug)]
-pub struct UserExperience;
 
 #[derive(Component, Debug)]
 pub struct UserProfile;
@@ -42,53 +36,26 @@ fn on_user_info_added(
     res_anchor: Res<Anchors>,
 ) {
     info!("Game user info added");
-    commands.spawn((
-        Text2dBundle {
-            text: Text::from_section(
-                format!("Health: {}", game_user_info.0.health),
-                TextStyle {
-                    font: ui_assets.font.clone(),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                },
-            ),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-            ..Default::default()
-        },
-        UserHealth,
-    ));
 
-    commands.spawn((
-        Text2dBundle {
-            text: Text::from_section(
-                format!("Exp: {}", game_user_info.0.experience),
-                TextStyle {
-                    font: ui_assets.font.clone(),
-                    font_size: 20.0,
-                    color: Color::WHITE,
+    commands
+        .entity(res_anchor.get(AnchorType::TOP).unwrap())
+        .with_children(|parent| {
+            parent.spawn((
+                Text2dBundle {
+                    text: Text::from_section(
+                        format!("$: {}", game_user_info.0.money),
+                        TextStyle {
+                            font: ui_assets.font.clone(),
+                            font_size: 20.0,
+                            color: Color::WHITE,
+                        },
+                    ),
+                    transform: Transform::from_translation(Vec3::new(0.0, -12.0, 10.0)),
+                    ..Default::default()
                 },
-            ),
-            transform: Transform::from_translation(Vec3::new(0.0, -20.0, 10.0)),
-            ..Default::default()
-        },
-        UserExperience,
-    ));
-
-    commands.spawn((
-        Text2dBundle {
-            text: Text::from_section(
-                format!("$: {}", game_user_info.0.money),
-                TextStyle {
-                    font: ui_assets.font.clone(),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                },
-            ),
-            transform: Transform::from_translation(Vec3::new(0.0, -40.0, 10.0)),
-            ..Default::default()
-        },
-        UserMoney,
-    ));
+                UserMoney,
+            ));
+        });
 
     commands
         .entity(res_anchor.get(AnchorType::BOTTOM_RIGHT).unwrap())
@@ -119,21 +86,11 @@ fn on_user_info_added(
 fn on_user_info_update(
     mut commands: Commands,
     game_user_info: Res<GameUserRes>,
-    mut q_set: ParamSet<(
-        Query<&mut Text, With<UserHealth>>,
-        Query<&mut Text, With<UserExperience>>,
-        Query<&mut Text, With<UserMoney>>,
-    )>,
+    mut q_money: Query<&mut Text, With<UserMoney>>,
     q_profile: Query<Entity, With<UserProfile>>,
 ) {
     info!("Game user info updated: {:?}", game_user_info);
-    for mut text in q_set.p0().iter_mut() {
-        text.sections[0].value = format!("Health: {}", game_user_info.0.health);
-    }
-    for mut text in q_set.p1().iter_mut() {
-        text.sections[0].value = format!("Exp: {}", game_user_info.0.experience);
-    }
-    for mut text in q_set.p2().iter_mut() {
+    for mut text in q_money.iter_mut() {
         text.sections[0].value = format!("$: {}", game_user_info.0.money);
     }
 
@@ -152,15 +109,7 @@ fn on_user_info_update(
 
 fn on_user_info_removed(
     mut commands: Commands,
-    q_info: Query<
-        Entity,
-        Or<(
-            With<UserHealth>,
-            With<UserExperience>,
-            With<UserMoney>,
-            With<UserProfile>,
-        )>,
-    >,
+    q_info: Query<Entity, Or<(With<UserMoney>, With<UserProfile>)>>,
 ) {
     info!("Game user info removed");
     for entity in q_info.iter() {

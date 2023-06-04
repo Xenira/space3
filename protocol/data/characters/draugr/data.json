@@ -2,13 +2,13 @@
   "id": null,
   "name": "Draugr",
   "description": "Undead creatures that inhabit burial grounds and protect their treasures. They are often depicted as decaying corpses and are known for their superhuman strength.",
-  "health": 2,
-  "attack": 3,
-  "cost": 2,
+  "attack": 4,
+  "health": 4,
+  "cost": 4,
   "upgrade": {
     "name": "Draugr",
-    "attack": 3,
-    "health": 2,
+    "attack": 8,
+    "health": 8,
     "abilities": []
   },
   "abilities": []

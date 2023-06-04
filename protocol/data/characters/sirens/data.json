@@ -2,13 +2,13 @@
   "id": null,
   "name": "Sirens",
   "description": "Enchanting creatures, part-woman and part-bird, whose songs lured sailors to their doom on rocky shores.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Sirens",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []

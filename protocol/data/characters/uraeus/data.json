@@ -2,13 +2,13 @@
   "id": null,
   "name": "Uraeus",
   "description": "A mythical serpent or cobra often depicted on the headdress of Egyptian pharaohs. It symbolized sovereignty and protection.",
-  "health": 2,
   "attack": 3,
+  "health": 2,
   "cost": 2,
   "upgrade": {
     "name": "Uraeus",
-    "attack": 3,
-    "health": 2,
+    "attack": 6,
+    "health": 4,
     "abilities": []
   },
   "abilities": []
