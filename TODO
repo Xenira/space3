@@ -1,4 +1,5 @@
 Service:
+	☐ Validate display name
 	Lobby:
 		☐ Kick Player
 		☐ Promote Player

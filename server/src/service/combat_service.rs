@@ -200,7 +200,7 @@ fn execute_turn(
 
     // Get attacking creature
     while battle.board[*index].is_none() {
-        if *index < 6 {
+        if *index < 5 {
             *index += 1;
         } else {
             *index = 0;
