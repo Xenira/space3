@@ -1,5 +1,7 @@
 Service:
 	☐ Validate display name
+	☐ Opponents need to show player names
+	☐ Reroll button not visible
 	Lobby:
 		☐ Kick Player
 		☐ Promote Player
@@ -98,6 +100,8 @@ Client:
 		Shop:
 			☐ Attach shop to top of screen
 			☐ Attach bench to bottom of screen
+			☐ Add glow to duplicate characters
+			☐ Add glow to characters that can be upgraded
 		Battle:
 			☐ Add battle UI
 			☐ Change target health on animation hit
@@ -121,6 +125,8 @@ Client:
 
 Misc:
 	☐ Intro video
+	☐ Generated art for web container build
+
 
 Hosting:
 	☐ Add preview server
