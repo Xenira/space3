@@ -40,9 +40,9 @@ RUN cd /server && RUSTFLAGS="-C target-feature=-crt-static" cargo build --target
 # Final Image
 ##################################################
 FROM chef as composer
+COPY ./server/static ./static
 COPY --from=builder-server /server/target/x86_64-unknown-linux-musl/release/rog-server .
 COPY --from=builder-client /client/dist ./static
-COPY ./server/static ./static
 
 FROM alpine as server
 WORKDIR /usr/local/bin
