@@ -1,0 +1,3 @@
+[[hooks]]
+stage = "post_build"
+command = "./cleanup_assets.sh"

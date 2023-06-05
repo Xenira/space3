@@ -23,9 +23,9 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM trunk AS builder-client
 COPY --from=planner-client /client/recipe.json /client/recipe.json
 COPY ./protocol /protocol
-RUN cargo chef cook --target wasm32-unknown-unknown --recipe-path recipe.json
+RUN cargo chef cook --target wasm32-unknown-unknown --recipe-path recipe.json --release
 COPY ./client /client
-RUN trunk build
+RUN trunk build --release
 
 ##################################################
 # Server
@@ -39,13 +39,15 @@ RUN cd /server && RUSTFLAGS="-C target-feature=-crt-static" cargo build --target
 ##################################################
 # Final Image
 ##################################################
-FROM chef as server
-WORKDIR /usr/local/bin
-RUN apk add libgcc && addgroup -S serveruser && adduser -S serveruser -G serveruser
+FROM chef as composer
 COPY --from=builder-server /server/target/x86_64-unknown-linux-musl/release/rog-server .
 COPY --from=builder-client /client/dist ./static
-COPY --from=builder-client /client/assets ./static/assets
 COPY ./server/static ./static
+
+FROM alpine as server
+WORKDIR /usr/local/bin
+RUN apk update && apk add libgcc libpq-dev && addgroup -S serveruser && adduser -S serveruser -G serveruser
+COPY --from=composer /app/ .
 USER root
 EXPOSE 8000/tcp
 CMD ["rog-server"]
