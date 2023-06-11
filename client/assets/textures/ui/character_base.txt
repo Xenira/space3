@@ -1,0 +1,3 @@
+pedestal, stone, runes, glowing, from above, hexagon
+Negative prompt: characters
+Steps: 70, Sampler: DPM++ SDE Karras, CFG scale: 7, Seed: 2081295314, Size: 512x512, Model hash: b76cc78ad9, Model: dreamshaper_6BakedVae, Version: v1.2.1

@@ -4,7 +4,7 @@ use protocol::{characters::get_characters, protocol::CharacterInstance};
 use crate::{
     components::{
         animation::{
-            AnimationIndices, AnimationRepeatType, AnimationState, AnimationTimer,
+            Animation, AnimationIndices, AnimationRepeatType, AnimationState, AnimationTimer,
             AnimationTransition, AnimationTransitionType,
         },
         dragndrop::{DragEvent, Dragged},
@@ -12,7 +12,10 @@ use crate::{
         tooltip::SetTooltipEvent,
     },
     prefabs::animation,
-    states::startup::{CharacterAssets, UiAssets},
+    states::{
+        game_shop::CharacterCount,
+        startup::{CharacterAssets, UiAssets},
+    },
     util::text::break_text,
     Cleanup,
 };
@@ -46,9 +49,9 @@ fn on_spawn(
     mut commands: Commands,
     character_assets: Res<CharacterAssets>,
     ui_assets: Res<UiAssets>,
-    q_added: Query<(&Character, Entity), Added<Character>>,
+    q_added: Query<(&Character, Option<&CharacterCount>, Entity), Added<Character>>,
 ) {
-    for (character, entity) in q_added.iter() {
+    for (character, cnt, entity) in q_added.iter() {
         commands
             .entity(entity)
             .insert(Cleanup)
@@ -59,6 +62,7 @@ fn on_spawn(
                     &character_assets,
                     &ui_assets,
                     false,
+                    cnt,
                 );
             });
     }
@@ -70,6 +74,7 @@ fn spawn_character_portrait(
     character_assets: &CharacterAssets,
     ui_assets: &UiAssets,
     full_info: bool,
+    count: Option<&CharacterCount>,
 ) {
     let character_animation = animation::simple(0, 0)
         .with_state(
@@ -107,6 +112,51 @@ fn spawn_character_portrait(
                     AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
                 ))
                 .with_children(|parent| {
+                    if character.upgraded {
+                        parent.spawn((
+                            SpriteSheetBundle {
+                                texture_atlas: character_assets.upgrded.clone(),
+                                sprite: TextureAtlasSprite::new(0),
+                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
+                                    .with_scale(Vec3::splat(1.5)),
+
+                                ..Default::default()
+                            },
+                            animation::simple(0, 29),
+                            AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                        ));
+                    } else if let Some(count) = count {
+                        if count.0 == 1 {
+                            parent.spawn((
+                                SpriteSheetBundle {
+                                    texture_atlas: character_assets.duplicate.clone(),
+                                    sprite: TextureAtlasSprite::new(0),
+                                    transform: Transform::from_translation(Vec3::new(
+                                        0.0, 0.0, 1.0,
+                                    ))
+                                    .with_scale(Vec3::splat(1.5)),
+                                    ..Default::default()
+                                },
+                                animation::simple(0, 29),
+                                AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                            ));
+                        } else if count.0 > 1 {
+                            parent.spawn((
+                                SpriteSheetBundle {
+                                    texture_atlas: character_assets.upgradable.clone(),
+                                    sprite: TextureAtlasSprite::new(0),
+                                    transform: Transform::from_translation(Vec3::new(
+                                        0.0, 0.0, 1.0,
+                                    ))
+                                    .with_scale(Vec3::splat(1.5)),
+                                    ..Default::default()
+                                },
+                                animation::simple(0, 29),
+                                AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                            ));
+                        }
+                    }
+
                     parent
                         .spawn(SpatialBundle {
                             transform: Transform::from_scale(Vec3::splat(6.0))
@@ -263,12 +313,12 @@ fn on_character_hover(
     mut commands: Commands,
     mut ev_hover: EventReader<HoverEvent>,
     mut ev_tooltip: EventWriter<SetTooltipEvent>,
-    q_character: Query<&Character, Without<Dragged>>,
+    q_character: Query<(&Character, Option<&CharacterCount>), Without<Dragged>>,
     character_assets: Res<CharacterAssets>,
     ui_assets: Res<UiAssets>,
 ) {
     for HoverEvent(entity, is_hovered) in ev_hover.iter() {
-        if let Ok(character) = q_character.get(*entity).map(|c| &c.0) {
+        if let Ok((character, count)) = q_character.get(*entity).map(|(c, cnt)| (&c.0, cnt)) {
             if *is_hovered {
                 let tooltip = commands
                     .spawn((
@@ -286,6 +336,7 @@ fn on_character_hover(
                             &character_assets,
                             &ui_assets,
                             true,
+                            count,
                         );
                     })
                     .id();
