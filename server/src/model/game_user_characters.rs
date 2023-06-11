@@ -1,4 +1,7 @@
+use std::time::SystemTime;
+
 use super::game::GameGuard;
+use crate::fairings::perf_log::StartTime;
 use crate::model::game_users::GameUser;
 use crate::model::users::User;
 use crate::schema::game_user_characters;
@@ -116,7 +119,8 @@ pub async fn move_character(
     let mut game = game.0.lock().await;
     if let Some(game_user) = game.get_user_mut(user.id) {
         if game_user.move_character(character_idx, target_idx).is_ok() {
-            Json(Protocol::BoardResponse(game_user.board.to_vec()))
+            let board = game_user.board.to_vec();
+            Json(Protocol::BoardResponse(board))
         } else {
             Json(Error::new_protocol_response(
                 Status::NotFound.code,

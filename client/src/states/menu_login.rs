@@ -1,10 +1,6 @@
 use crate::{
     cleanup_system,
-    components::{
-        anchors::{AnchorType, Anchors},
-        dragndrop::{Dragable, DropTagret},
-        hover::{BoundingBox, Clickable, Hoverable},
-    },
+    components::anchors::{AnchorType, Anchors},
     networking::{
         networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
         polling::PollingStatus,
@@ -39,18 +35,11 @@ fn logout(
     mut commands: Commands,
     mut ev_polling_status: EventWriter<PollingStatus>,
     asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     res_anchors: Res<Anchors>,
 ) {
     debug!("Logout start");
     commands.remove_resource::<User>();
     ev_polling_status.send(PollingStatus::Stop);
-
-    // commands.spawn(TimerBundle::new(
-    //     Timer::from_seconds(30.0, TimerMode::Once),
-    //     &asset_server,
-    //     texture_atlases.as_mut(),
-    // ));
 
     commands
         .entity(res_anchors.get(AnchorType::TOP_RIGHT).unwrap())
@@ -59,58 +48,6 @@ fn logout(
                 &asset_server,
                 Transform::from_translation(Vec3::new(-30.0, -15.0, 100.0)),
             ),));
-        });
-
-    let shop_frame = asset_server.load("textures/ui/user_frame.png");
-    let shop_frame_atlas =
-        TextureAtlas::from_grid(shop_frame, Vec2::new(64.0, 64.0), 2, 1, None, None);
-    let shop_frame_atlas_handle = texture_atlases.add(shop_frame_atlas);
-
-    let pedestal = asset_server.load("textures/ui/character_base.png");
-    let pedestal_atlas = TextureAtlas::from_grid(pedestal, Vec2::new(64.0, 64.0), 2, 1, None, None);
-    let pedestal_atlas_handle = texture_atlases.add(pedestal_atlas);
-
-    commands
-        .spawn((
-            SpatialBundle {
-                transform: Transform::from_translation(Vec3::new(-64.0 * 4.0, 0.0, 0.0)),
-                ..Default::default()
-            },
-            Cleanup,
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                SpriteSheetBundle {
-                    texture_atlas: pedestal_atlas_handle.clone(),
-                    sprite: TextureAtlasSprite::new(0),
-                    transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
-                        68.0 * 3.0_f32,
-                        0.0,
-                        1.0,
-                    )),
-                    ..Default::default()
-                },
-                Hoverable("hover".to_string(), "leave".to_string()),
-                BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                DropTagret,
-            ));
-
-            parent.spawn((
-                SpriteSheetBundle {
-                    texture_atlas: shop_frame_atlas_handle.clone(),
-                    sprite: TextureAtlasSprite::new(0),
-                    transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
-                        68.0 * 1.0_f32,
-                        200.0,
-                        1.0,
-                    )),
-                    ..Default::default()
-                },
-                Hoverable("hover".to_string(), "leave".to_string()),
-                BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                Dragable,
-                Clickable,
-            ));
         });
 
     debug!("Logout end")

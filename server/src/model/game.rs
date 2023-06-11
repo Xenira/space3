@@ -8,7 +8,7 @@ use rocket::{
     tokio::sync::Mutex,
     Request, State,
 };
-use std::sync::Arc;
+use std::{sync::Arc, time::SystemTime};
 
 #[derive(Identifiable, Queryable, Clone, Debug)]
 pub struct Game {
@@ -59,19 +59,17 @@ pub struct GameGuard(pub Arc<Mutex<GameInstance>>);
 impl<'r> FromRequest<'r> for GameGuard {
     type Error = GameError;
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        let start = SystemTime::now();
         if let Outcome::Success(user) = req.guard::<&User>().await {
             let user = user.clone();
-            let games = req
-                .guard::<&State<RunningGames>>()
-                .await
-                .unwrap()
-                .games
-                .clone()
-                .lock_owned()
-                .await;
-
+            debug!("Getting user took {:?}", start.elapsed());
+            let games = req.guard::<&State<RunningGames>>().await.unwrap();
+            debug!("Getting running games took {:?}", start.elapsed());
+            let games = games.games.lock().await;
+            debug!("Getting games lock took {:?}", start.elapsed());
             for game in games.values() {
                 if game.lock().await.has_user(user.id) {
+                    debug!("Getting users game took {:?}", start.elapsed());
                     return Outcome::Success(GameGuard(game.clone()));
                 }
             }

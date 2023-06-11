@@ -136,12 +136,16 @@ pub async fn calculate_combat(
         .iter()
         .filter_map(|c| c.as_ref())
         .any(|c| (*c).borrow().get_total_attack() > 0)
-        && battle
+        || battle
             .op_board
             .iter()
             .filter_map(|c| c.as_ref())
             .any(|c| c.borrow().get_total_attack() > 0)
     {
+        if !battle.op_board.iter().any(|c| c.is_some()) {
+            break;
+        }
+
         debug!("Calculating turn for {:?}", battle.current_player);
 
         execute_turn(
@@ -152,9 +156,17 @@ pub async fn calculate_combat(
         );
 
         // Change current player
-        swap(&mut battle.board, &mut battle.op_board);
+        if battle
+            .op_board
+            .iter()
+            .filter_map(|c| c.as_ref())
+            .any(|c| c.borrow().get_total_attack() > 0)
+        {
+            debug!("Swapping boards");
+            swap(&mut battle.board, &mut battle.op_board);
 
-        *battle.current_player = !*battle.current_player;
+            *battle.current_player = !*battle.current_player;
+        }
     }
 
     debug!("Calculating game result for {:?}", players);
@@ -198,14 +210,23 @@ fn execute_turn(
         player_b_index
     };
 
+    debug!("Getting attacker");
     // Get attacking creature
-    while battle.board[*index].is_none() {
-        if *index < 5 {
+    while battle.board[*index].is_none()
+        || battle.board[*index]
+            .as_ref()
+            .unwrap()
+            .borrow()
+            .get_total_attack()
+            <= 0
+    {
+        if *index < 6 {
             *index += 1;
         } else {
             *index = 0;
         }
     }
+    debug!("Attacking with {:?}", battle.board[*index]);
     let attacker = battle.board[*index].clone().unwrap();
 
     // Get defending character
@@ -229,8 +250,6 @@ fn execute_turn(
             .choose(&mut rand::thread_rng())
             .unwrap()
     };
-
-    // Trigger on attack effects
 
     // Calculate damage
     perform_attack(attacker.clone(), oponent.clone());
@@ -257,8 +276,10 @@ fn execute_turn(
             result_own: battle.clone_player_a_board(),
             result_opponent: battle.clone_player_b_board(),
         });
-    } else {
+    } else if *index < 6 {
         *index += 1;
+    } else {
+        *index = 0;
     }
 
     if oponent.1.borrow().get_total_health() <= 0 {

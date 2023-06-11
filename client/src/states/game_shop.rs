@@ -110,11 +110,6 @@ fn setup(
 
     // spawn character pedestals
     let pedestal = asset_server.load("textures/ui/character_base.png");
-    let pedestal_atlas = TextureAtlas::from_grid(pedestal, Vec2::new(64.0, 64.0), 2, 1, None, None);
-    let pedestal_atlas_handle = texture_atlases.add(pedestal_atlas);
-
-    let mut pedestal_animation = animation::simple(0, 0);
-    animation::add_hover_state(&mut pedestal_animation, 0, 1);
 
     commands
         .spawn((
@@ -129,17 +124,14 @@ fn setup(
             // front row
             for i in 0..4 {
                 parent.spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: pedestal_atlas_handle.clone(),
-                        sprite: TextureAtlasSprite::new(0),
-                        transform: Transform::from_scale(Vec3::splat(2.0))
+                    SpriteBundle {
+                        texture: pedestal.clone(),
+                        transform: Transform::from_scale(Vec3::splat(0.25))
                             .with_translation(Vec3::new(68.0 * 2.0 * i as f32, 0.0, 1.0)),
                         ..Default::default()
                     },
                     Hoverable("hover".to_string(), "leave".to_string()),
-                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                    pedestal_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    BoundingBox(Vec3::new(512.0, 512.0, 0.0), Quat::from_rotation_z(0.0)),
                     DropTagret,
                     Pedestal(i),
                 ));
@@ -147,17 +139,14 @@ fn setup(
             // back row
             for i in 0..3 {
                 parent.spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: pedestal_atlas_handle.clone(),
-                        sprite: TextureAtlasSprite::new(0),
-                        transform: Transform::from_scale(Vec3::splat(2.0))
+                    SpriteBundle {
+                        texture: pedestal.clone(),
+                        transform: Transform::from_scale(Vec3::splat(0.25))
                             .with_translation(Vec3::new(68.0 + 68.0 * 2.0 * i as f32, -136.0, 1.0)),
                         ..Default::default()
                     },
                     Hoverable("hover".to_string(), "leave".to_string()),
-                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                    pedestal_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    BoundingBox(Vec3::new(512.0, 512.0, 0.0), Quat::from_rotation_z(0.0)),
                     DropTagret,
                     Pedestal(4 + i),
                 ));
@@ -166,18 +155,15 @@ fn setup(
             // Bench
             for i in 0..5 {
                 parent.spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: pedestal_atlas_handle.clone(),
-                        sprite: TextureAtlasSprite::new(0),
-                        transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(
+                    SpriteBundle {
+                        texture: pedestal.clone(),
+                        transform: Transform::from_scale(Vec3::splat(0.25)).with_translation(
                             Vec3::new(-34.0 + 68.0 * 2.0 * i as f32, -136.0 * 2.0, 1.0),
                         ),
                         ..Default::default()
                     },
                     Hoverable("hover".to_string(), "leave".to_string()),
-                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                    pedestal_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    BoundingBox(Vec3::new(512.0, 512.0, 0.0), Quat::from_rotation_z(0.0)),
                     DropTagret,
                     Pedestal(7 + i),
                 ));
@@ -538,7 +524,7 @@ fn generate_board(
                         SpriteSheetBundle {
                             texture_atlas: shop_frame_atlas_handle.clone(),
                             sprite: TextureAtlasSprite::new(0),
-                            transform: Transform::from_translation(Vec3::ZERO),
+                            transform: Transform::from_scale(Vec3::splat(8.0)),
                             ..Default::default()
                         },
                         Hoverable("hover".to_string(), "leave".to_string()),
