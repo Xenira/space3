@@ -240,7 +240,7 @@ pub fn close_lobby(con: &mut PgConnection, lobby: &Lobby) -> Result<(), String> 
 
 pub async fn notify_lobby_users(db: &Database, lobby: i32) -> Result<(), String> {
     debug!("Sending change notification for lobby {:?}", lobby);
-    if let Ok((lobby, users)) = db
+    match db
         .run(move |con| {
             lobbies::table
                 .filter(lobbies::id.eq(lobby))
@@ -254,13 +254,17 @@ pub async fn notify_lobby_users(db: &Database, lobby: i32) -> Result<(), String>
         })
         .await
     {
-        ActivePolls::notify_channel(
-            &Channel::Lobby(lobby.id),
-            Protocol::LobbyStatusResponse(lobby.into_lobby_info(&users)),
-        )
-        .await;
-        Ok(())
-    } else {
-        Err("Failed to notify lobby users".to_string())
+        Ok((lobby, users)) => {
+            ActivePolls::notify_channel(
+                &Channel::Lobby(lobby.id),
+                Protocol::LobbyStatusResponse(lobby.into_lobby_info(&users)),
+            )
+            .await;
+            Ok(())
+        }
+        Err(e) => {
+            warn!("Failed to notify lobby users: {}", e);
+            Err("Failed to notify lobby users".to_string())
+        }
     }
 }

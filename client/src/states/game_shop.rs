@@ -26,7 +26,8 @@ pub(crate) struct GameShopPlugin;
 
 impl Plugin for GameShopPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ShopChangedEvent>()
+        app.init_resource::<PlayerBoard>()
+            .add_event::<ShopChangedEvent>()
             .add_event::<BoardChangedEvent>()
             .add_event::<GameUsersChangedEvent>()
             .add_system(setup.in_schedule(OnEnter(STATE)))
@@ -87,6 +88,12 @@ pub struct BoardChangedEvent(pub Vec<Option<CharacterInstance>>);
 #[derive(Debug)]
 pub struct GameUsersChangedEvent(pub Vec<GameOpponentInfo>);
 
+#[derive(Resource, Debug, Default)]
+pub struct PlayerBoard(pub Vec<Option<CharacterInstance>>);
+
+#[derive(Component, Debug)]
+pub struct CharacterCount(pub u8);
+
 fn setup(
     mut commands: Commands,
     mut networking: ResMut<NetworkingRessource>,
@@ -110,11 +117,6 @@ fn setup(
 
     // spawn character pedestals
     let pedestal = asset_server.load("textures/ui/character_base.png");
-    let pedestal_atlas = TextureAtlas::from_grid(pedestal, Vec2::new(64.0, 64.0), 2, 1, None, None);
-    let pedestal_atlas_handle = texture_atlases.add(pedestal_atlas);
-
-    let mut pedestal_animation = animation::simple(0, 0);
-    animation::add_hover_state(&mut pedestal_animation, 0, 1);
 
     commands
         .spawn((
@@ -129,17 +131,14 @@ fn setup(
             // front row
             for i in 0..4 {
                 parent.spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: pedestal_atlas_handle.clone(),
-                        sprite: TextureAtlasSprite::new(0),
-                        transform: Transform::from_scale(Vec3::splat(2.0))
+                    SpriteBundle {
+                        texture: pedestal.clone(),
+                        transform: Transform::from_scale(Vec3::splat(0.25))
                             .with_translation(Vec3::new(68.0 * 2.0 * i as f32, 0.0, 1.0)),
                         ..Default::default()
                     },
                     Hoverable("hover".to_string(), "leave".to_string()),
-                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                    pedestal_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    BoundingBox(Vec3::new(512.0, 512.0, 0.0), Quat::from_rotation_z(0.0)),
                     DropTagret,
                     Pedestal(i),
                 ));
@@ -147,17 +146,14 @@ fn setup(
             // back row
             for i in 0..3 {
                 parent.spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: pedestal_atlas_handle.clone(),
-                        sprite: TextureAtlasSprite::new(0),
-                        transform: Transform::from_scale(Vec3::splat(2.0))
+                    SpriteBundle {
+                        texture: pedestal.clone(),
+                        transform: Transform::from_scale(Vec3::splat(0.25))
                             .with_translation(Vec3::new(68.0 + 68.0 * 2.0 * i as f32, -136.0, 1.0)),
                         ..Default::default()
                     },
                     Hoverable("hover".to_string(), "leave".to_string()),
-                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                    pedestal_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    BoundingBox(Vec3::new(512.0, 512.0, 0.0), Quat::from_rotation_z(0.0)),
                     DropTagret,
                     Pedestal(4 + i),
                 ));
@@ -166,18 +162,15 @@ fn setup(
             // Bench
             for i in 0..5 {
                 parent.spawn((
-                    SpriteSheetBundle {
-                        texture_atlas: pedestal_atlas_handle.clone(),
-                        sprite: TextureAtlasSprite::new(0),
-                        transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(
+                    SpriteBundle {
+                        texture: pedestal.clone(),
+                        transform: Transform::from_scale(Vec3::splat(0.25)).with_translation(
                             Vec3::new(-34.0 + 68.0 * 2.0 * i as f32, -136.0 * 2.0, 1.0),
                         ),
                         ..Default::default()
                     },
                     Hoverable("hover".to_string(), "leave".to_string()),
-                    BoundingBox(Vec3::new(64.0, 64.0, 0.0), Quat::from_rotation_z(0.0)),
-                    pedestal_animation.clone(),
-                    AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
+                    BoundingBox(Vec3::new(512.0, 512.0, 0.0), Quat::from_rotation_z(0.0)),
                     DropTagret,
                     Pedestal(7 + i),
                 ));
@@ -426,6 +419,7 @@ fn generate_shop(
     ui_assets: Res<UiAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
+    res_board: Res<PlayerBoard>,
 ) {
     for ev in ev_shop_change.iter() {
         let shop_frame = asset_server.load("textures/ui/user_frame.png");
@@ -443,6 +437,13 @@ fn generate_shop(
         commands.entity(shop).with_children(|parent| {
             for (i, character) in ev.0.iter().enumerate() {
                 if let Some(character) = character {
+                    let count = res_board
+                        .0
+                        .iter()
+                        .filter_map(|c| c.as_ref())
+                        .filter(|c| !c.upgraded && c.character_id == character.character_id)
+                        .count() as u8;
+
                     parent
                         .spawn((
                             SpriteSheetBundle {
@@ -463,6 +464,7 @@ fn generate_shop(
                             },
                             Dragable,
                             Character(character.clone()),
+                            CharacterCount(count),
                         ))
                         .with_children(|parent| {
                             parent
@@ -504,8 +506,11 @@ fn generate_board(
     q_pedestal: Query<(Entity, &Pedestal)>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
+    mut res_board: ResMut<PlayerBoard>,
 ) {
     for ev in ev_board_change.iter() {
+        res_board.0 = ev.0.clone();
+
         let shop_frame = asset_server.load("textures/ui/user_frame.png");
         let shop_frame_atlas =
             TextureAtlas::from_grid(shop_frame, Vec2::new(64.0, 64.0), 2, 1, None, None);
@@ -538,7 +543,7 @@ fn generate_board(
                         SpriteSheetBundle {
                             texture_atlas: shop_frame_atlas_handle.clone(),
                             sprite: TextureAtlasSprite::new(0),
-                            transform: Transform::from_translation(Vec3::ZERO),
+                            transform: Transform::from_scale(Vec3::splat(8.0)),
                             ..Default::default()
                         },
                         Hoverable("hover".to_string(), "leave".to_string()),

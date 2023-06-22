@@ -5,8 +5,13 @@ pub mod polling;
 pub mod util;
 
 pub mod networking_plugin {
-    use bevy::prelude::{debug, App, Plugin, Resource};
+    use bevy::{
+        prelude::{debug, App, Plugin, Resource},
+        time::Timer,
+    };
     use reqwest::Url;
+
+    use crate::networking::polling::RateLimitTimer;
 
     use super::{
         networking_events::NetworkingEvent,
@@ -36,6 +41,10 @@ pub mod networking_plugin {
                 .enable_all()
                 .build()
                 .unwrap();
+
+            let mut rate_limit_timer = Timer::from_seconds(1.0, bevy::time::TimerMode::Once);
+            rate_limit_timer.pause();
+
             app.add_event::<NetworkingEvent>()
                 .insert_resource(ServerUrl(
                     Url::parse(self.0.as_str())
@@ -44,6 +53,7 @@ pub mod networking_plugin {
                         .unwrap(),
                 ))
                 .insert_resource(Runtime(runtime))
+                .insert_resource(RateLimitTimer(rate_limit_timer))
                 .init_resource::<NetworkingRessource>()
                 .add_event::<PollingStatus>()
                 .add_system(request_dispatcher)

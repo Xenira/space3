@@ -27,6 +27,9 @@ use rocket::{
 };
 use rocket_sync_db_pools::database;
 
+use crate::fairings::{cache::CacheFairing, perf_log::PerfLogFairing};
+
+mod fairings;
 pub mod game;
 pub mod model;
 pub mod models;
@@ -76,6 +79,8 @@ async fn main() -> Result<(), rocket::Error> {
             "Database Migrations",
             run_db_migrations,
         ))
+        .attach(CacheFairing)
+        .attach(PerfLogFairing)
         .manage(RunningGames {
             games: games.clone(),
         })

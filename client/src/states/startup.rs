@@ -45,6 +45,9 @@ pub struct CharacterAssets {
     pub health_orb: Handle<Image>,
     pub attack_orb: Handle<Image>,
     pub price_orb: Handle<Image>,
+    pub upgrded: Handle<TextureAtlas>,
+    pub upgradable: Handle<TextureAtlas>,
+    pub duplicate: Handle<TextureAtlas>,
 }
 
 #[derive(Resource, Default)]
@@ -99,6 +102,20 @@ fn load_character_assets(
     character_assets.health_orb = asset_server.load("textures/ui/health_orb.png");
     character_assets.attack_orb = asset_server.load("textures/ui/attack_orb.png");
     character_assets.price_orb = asset_server.load("textures/ui/price_orb.png");
+
+    let upgrded = asset_server.load("textures/ui/Effect_EldenRing_1_421x425.png");
+    let upgrded_atlas = TextureAtlas::from_grid(upgrded, Vec2::new(421.0, 425.0), 6, 5, None, None);
+    character_assets.upgrded = texture_atlases.add(upgrded_atlas);
+
+    let upgradable = asset_server.load("textures/ui/Effect_Wheel_1_273x273.png");
+    let upgradable_atlas =
+        TextureAtlas::from_grid(upgradable, Vec2::new(273.0, 273.0), 6, 5, None, None);
+    character_assets.upgradable = texture_atlases.add(upgradable_atlas);
+
+    let duplicate = asset_server.load("textures/ui/Effect_ElectricShield_1_265x265.png");
+    let duplicate_atlas =
+        TextureAtlas::from_grid(duplicate, Vec2::new(265.0, 265.0), 6, 5, None, None);
+    character_assets.duplicate = texture_atlases.add(duplicate_atlas);
 }
 
 fn load_background_assets(

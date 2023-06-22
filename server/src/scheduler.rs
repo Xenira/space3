@@ -42,20 +42,32 @@ pub async fn long_running_task(db: Database, games: &Arc<Mutex<GameMap>>) {
             warn!("Failed to load lobbies to start")
         }
 
-        for game in games.lock().await.values_mut() {
-            if !(game.lock().await).turn.is_next() {
-                continue;
+        // This is needed to avoid locking the games mutex for too long
+        {
+            let mut games = games.lock().await;
+            let mut ended_games = vec![];
+            for game in games.values_mut() {
+                if !(game.lock().await).turn.is_next() {
+                    continue;
+                }
+
+                let game_id = game.lock().await.game_id;
+                debug!("Next turn for game {:?}", game_id);
+
+                let game_ended = game_service::next_turn(game.lock().await.borrow_mut()).await;
+                if game_ended {
+                    ended_games.push(game_id);
+                }
+                debug!("Done processing game {:?}", game_id);
             }
 
-            debug!("Next turn for game {:?}", game.lock().await.game_id);
-            if game_service::next_turn(game.lock().await.borrow_mut()).await {
+            for game_id in ended_games {
                 debug!(
                     "Game {:?} is over, removing from active games list",
-                    game.lock().await.game_id
+                    game_id
                 );
-                games.lock().await.remove(&game.lock().await.game_id);
+                games.remove(&game_id);
             }
-            trace!("Done processing game {:?}", game.lock().await.game_id);
         }
 
         tokio::time::sleep(Duration::from_secs(1)).await;

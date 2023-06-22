@@ -12,8 +12,10 @@ use rocket::{
     serde::json::Json,
     Request, State,
 };
+use serde::Deserialize;
 use std::fmt;
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Identifiable, Queryable, Clone)]
 pub struct User {
@@ -263,24 +265,35 @@ pub fn me(user: &User, lobby: Option<LobbyWithUsers>) -> Json<Protocol> {
     }))
 }
 
+#[derive(Validate, Deserialize)]
+pub struct SetDisplayNameForm {
+    #[validate(length(min = 4, max = 32))]
+    display_name: String,
+}
+
 #[put("/users/display_name", data = "<display_name>")]
 pub async fn set_display_name(
     db: Database,
     user: &User,
     display_name: Json<String>,
 ) -> Json<Protocol> {
+    let display_name = SetDisplayNameForm {
+        display_name: display_name.0.trim().to_string(),
+    };
+    display_name.validate().unwrap();
+
     let user_id = user.id;
     if let Ok(display_name) = db
         .run(move |con| {
             diesel::update(users::table.filter(users::id.eq(user_id)))
-                .set(users::display_name.eq(&display_name.0))
+                .set(users::display_name.eq(&display_name.display_name))
                 .execute(con)?;
 
             QueryResult::Ok(display_name)
         })
         .await
     {
-        Json(Protocol::DisplaynameResponse(display_name.0))
+        Json(Protocol::DisplaynameResponse(display_name.display_name))
     } else {
         Json(Error::new_protocol(
             Status::InternalServerError.code,

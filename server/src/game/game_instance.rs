@@ -184,5 +184,9 @@ impl GameInstance {
             .filter(|player| player.health > 0)
             .count()
             <= 1
+            || !self
+                .players
+                .iter()
+                .any(|player| player.health > 0 && player.user_id.is_some())
     }
 }
