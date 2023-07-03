@@ -23,4 +23,4 @@ serde = {version="1.0", features=["derive"]}
 image = "0.24"
 quote = "1.0.28"
 prettyplease = "0.2.6"
-syn = "2.0.18"
+syn = "2.0.23"
