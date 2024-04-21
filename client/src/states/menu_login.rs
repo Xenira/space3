@@ -1,6 +1,10 @@
 use crate::{
     cleanup_system,
     components::anchors::{AnchorType, Anchors},
+    modules::ui::{
+        button::{ButtonClickEvent, ButtonProperties, ButtonRole},
+        dialog::Dialog,
+    },
     networking::{
         networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
         polling::PollingStatus,
@@ -10,6 +14,7 @@ use crate::{
 };
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{egui, EguiContexts};
+use bevy_not_so_simple_text_input::{TextInputBundle, TextInputSettings, TextInputValue};
 use protocol::protocol::{Credentials, Protocol, UserData};
 use reqwest::{header::HeaderValue, Method};
 
@@ -18,18 +23,20 @@ pub(crate) struct MenuLoginPlugin;
 
 impl Plugin for MenuLoginPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<LoginCredentials>()
-            .add_systems(OnEnter(STATE), logout)
-            .add_systems(Update, (ui_login, on_login).run_if(in_state(STATE)))
+        app.add_systems(OnEnter(STATE), logout)
+            .add_systems(Update, (on_login, on_button_click).run_if(in_state(STATE)))
             .add_systems(OnExit(STATE), cleanup_system::<Cleanup>);
     }
 }
 
-#[derive(Resource, Default)]
-struct LoginCredentials(Credentials);
-
 #[derive(Resource)]
 pub struct User(pub UserData);
+
+#[derive(Resource)]
+pub struct LoginForm {
+    pub username: Entity,
+    pub password: Entity,
+}
 
 fn logout(
     mut commands: Commands,
@@ -41,6 +48,76 @@ fn logout(
     commands.remove_resource::<User>();
     ev_polling_status.send(PollingStatus::Stop);
 
+    let username_input = commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Px(200.0),
+                    // height: Val::Px(50.0),
+                    border: UiRect::all(Val::Px(1.0)),
+                    padding: UiRect::all(Val::Px(5.0)),
+                    ..default()
+                },
+                ..default()
+            },
+            TextInputBundle::default()
+                .with_text_style(TextStyle {
+                    font_size: 22.0,
+                    color: Color::BLACK,
+                    ..default()
+                })
+                .with_placeholder("Username", None)
+                .with_active(true),
+        ))
+        .id();
+
+    let password_input = commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Px(200.0),
+                    // height: Val::Px(50.0),
+                    border: UiRect::all(Val::Px(1.0)),
+                    padding: UiRect::all(Val::Px(5.0)),
+                    ..default()
+                },
+                ..default()
+            },
+            TextInputBundle::default()
+                .with_text_style(TextStyle {
+                    font_size: 22.0,
+                    color: Color::BLACK,
+                    ..default()
+                })
+                .with_placeholder("Password", None)
+                .with_settings(TextInputSettings {
+                    mask_character: Some('*'),
+                    ..default()
+                }),
+        ))
+        .id();
+
+    let inputs = commands
+        .spawn((NodeBundle {
+            style: Style {
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(8.0),
+                ..default()
+            },
+            ..default()
+        },))
+        .id();
+
+    commands.insert_resource(LoginForm {
+        username: username_input,
+        password: password_input,
+    });
+
+    commands
+        .entity(inputs)
+        .add_child(username_input)
+        .add_child(password_input);
+
     commands
         .entity(res_anchors.get(AnchorType::TOP_RIGHT).unwrap())
         .with_children(|parent| {
@@ -48,42 +125,53 @@ fn logout(
                 &asset_server,
                 Transform::from_translation(Vec3::new(-30.0, -15.0, 100.0)),
             ),));
+            parent.spawn((
+                Dialog {
+                    title: Some("Welcome".to_string()),
+                    buttons: vec![
+                        ButtonProperties {
+                            text: "Register".to_string(),
+                            role: ButtonRole::Secondary,
+                            id: Some("register".to_string()),
+                        },
+                        ButtonProperties {
+                            text: "Login".to_string(),
+                            role: ButtonRole::Primary,
+                            id: Some("login".to_string()),
+                        },
+                    ],
+                    content: Some(inputs),
+                    ..default()
+                },
+                Cleanup,
+            ));
         });
 
     debug!("Logout end")
 }
 
-fn ui_login(
-    mut contexts: EguiContexts,
+fn on_button_click(
     mut network: ResMut<NetworkingRessource>,
-    mut credentials: ResMut<LoginCredentials>,
-    mut ev_exit: EventWriter<AppExit>,
+    mut ev_button_click: EventReader<ButtonClickEvent>,
+    res_form: Res<LoginForm>,
+    q_text_input: Query<&TextInputValue>,
 ) {
-    let ctx = contexts.ctx_mut();
-    egui::CentralPanel::default().show(ctx, |ui| {
-        ui.heading("Login");
-        ui.separator();
-        ui.horizontal(|ui| {
-            ui.label("Username:");
-            ui.text_edit_singleline(&mut credentials.0.username);
-        });
-        ui.horizontal(|ui| {
-            ui.label("Password:");
-            ui.add(egui::TextEdit::singleline(&mut credentials.0.password).password(true));
-        });
-        ui.separator();
-        ui.horizontal(|ui| {
-            if ui.button("Login").clicked() {
-                network.request_data(Method::POST, "users", &credentials.0);
+    for ev in ev_button_click.read() {
+        if let Some(id) = ev.button.id.as_deref() {
+            let username = q_text_input.get(res_form.username).unwrap().0.clone();
+            let password = q_text_input.get(res_form.password).unwrap().0.clone();
+            let credentials = Credentials { username, password };
+            match id {
+                "login" => {
+                    network.request_data(Method::POST, "users", &credentials);
+                }
+                "register" => {
+                    network.request_data(Method::PUT, "users", &credentials);
+                }
+                _ => {}
             }
-            if ui.button("Register").clicked() {
-                network.request_data(Method::PUT, "users", &credentials.0);
-            }
-        });
-        if ui.button("Exit").clicked() {
-            ev_exit.send(AppExit);
         }
-    });
+    }
 }
 
 fn on_login(

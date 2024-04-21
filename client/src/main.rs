@@ -14,6 +14,7 @@ use bevy::{
     diagnostic::EntityCountDiagnosticsPlugin,
     log::{Level, LogPlugin},
     prelude::*,
+    render::view::RenderLayers,
     window::Cursor,
 };
 use bevy_egui::{
@@ -38,6 +39,9 @@ mod networking;
 mod prefabs;
 mod states;
 mod util;
+
+pub(crate) const UI_LAYER: u8 = 20;
+pub(crate) const CURSOR_LAYER: u8 = 21;
 
 #[derive(States, Default, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
@@ -121,20 +125,39 @@ fn main() {
 #[derive(Component)]
 struct MainCamera;
 
+#[derive(Component)]
+struct UiCamera;
+
 pub fn setup(
     mut commands: Commands,
     mut contexts: EguiContexts,
     mut networking: ResMut<NetworkingRessource>,
 ) {
     commands
-        // light
-        .spawn(PointLightBundle {
-            transform: Transform::from_translation(Vec3::new(4.0, 5.0, 4.0)),
-            ..Default::default()
-        });
-    commands
         // camera
         .spawn((Camera2dBundle::default(), MainCamera));
+
+    commands.spawn((
+        Camera2dBundle {
+            camera: Camera {
+                order: UI_LAYER as isize,
+                ..default()
+            },
+            ..default()
+        },
+        UiCamera,
+        RenderLayers::from_layers(&[UI_LAYER]),
+    ));
+    commands.spawn((
+        Camera2dBundle {
+            camera: Camera {
+                order: CURSOR_LAYER as isize,
+                ..default()
+            },
+            ..default()
+        },
+        RenderLayers::from_layers(&[CURSOR_LAYER]),
+    ));
 
     contexts.ctx_mut().set_visuals(egui::Visuals {
         panel_fill: Color32::TRANSPARENT,

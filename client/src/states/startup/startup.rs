@@ -1,4 +1,9 @@
-use crate::{components::background::Background, AppState, StateChangeEvent};
+use std::collections::HashMap;
+
+use crate::{
+    components::background::Background, modules::ui::button::ButtonState, AppState,
+    StateChangeEvent,
+};
 use bevy::prelude::*;
 
 const STATE: AppState = AppState::Startup;
@@ -20,6 +25,10 @@ impl Plugin for StartupPlugin {
 pub struct UiAssets {
     pub font: Handle<Font>,
     pub cursor: Handle<Image>,
+    pub dialog_border: Handle<Image>,
+    pub primary_button: HashMap<ButtonState, Handle<Image>>,
+    pub secondary_button: HashMap<ButtonState, Handle<Image>>,
+    pub cancel_button: HashMap<ButtonState, Handle<Image>>,
 }
 
 #[derive(Resource, Default)]
@@ -30,6 +39,30 @@ pub struct BackgroundAssets {
 fn load_ui_assets(asset_server: Res<AssetServer>, mut ui_assets: ResMut<UiAssets>) {
     ui_assets.font = asset_server.load("fonts/monogram-extended.ttf");
     ui_assets.cursor = asset_server.load("textures/ui/cursor.png");
+    ui_assets.dialog_border = asset_server.load("textures/ui/windows/dialog.png");
+    ui_assets.primary_button = load_button_assets("btn_primary", &asset_server);
+    ui_assets.secondary_button = load_button_assets("btn_secondary", &asset_server);
+    ui_assets.cancel_button = load_button_assets("btn_cancel", &asset_server);
+}
+
+fn load_button_assets(
+    name: &str,
+    asset_server: &Res<AssetServer>,
+) -> HashMap<ButtonState, Handle<Image>> {
+    let mut button = HashMap::new();
+    button.insert(
+        ButtonState::None,
+        asset_server.load(format!("textures/ui/windows/{}.png", name)),
+    );
+    button.insert(
+        ButtonState::Hovered,
+        asset_server.load(format!("textures/ui/windows/{}_hover.png", name)),
+    );
+    button.insert(
+        ButtonState::Pressed,
+        asset_server.load(format!("textures/ui/windows/{}_click.png", name)),
+    );
+    button
 }
 
 fn load_background_assets(

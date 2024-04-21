@@ -7,7 +7,7 @@ use crate::{
         hover::HoverEvent,
         tooltip::SetTooltipEvent,
     },
-    states::startup::{startup::UiAssets, loading::SpellAssets},
+    states::startup::{loading::SpellAssets, startup::UiAssets},
     util::text::break_text,
     Cleanup,
 };

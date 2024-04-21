@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::RenderLayers};
 
-use crate::{states::startup::startup::UiAssets, AppState, MainCamera};
+use crate::{states::startup::startup::UiAssets, AppState, MainCamera, CURSOR_LAYER};
 
 pub(crate) struct CursorPlugin;
 
@@ -16,10 +16,13 @@ pub struct Cursor;
 
 fn setup(mut commands: Commands, ui_assets: Res<UiAssets>) {
     commands
-        .spawn(SpatialBundle {
-            transform: Transform::from_translation(Vec3::new(5.0, -10.0, 900.0)),
-            ..Default::default()
-        })
+        .spawn((
+            SpatialBundle {
+                transform: Transform::from_translation(Vec3::new(5.0, -10.0, 900.0)),
+                ..Default::default()
+            },
+            RenderLayers::layer(CURSOR_LAYER),
+        ))
         .with_children(|parent| {
             parent.spawn((
                 SpriteBundle {
@@ -28,6 +31,7 @@ fn setup(mut commands: Commands, ui_assets: Res<UiAssets>) {
                     ..Default::default()
                 },
                 Cursor,
+            RenderLayers::layer(CURSOR_LAYER),
             ));
         });
 }
