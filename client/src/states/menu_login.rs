@@ -3,7 +3,7 @@ use crate::{
     components::anchors::{AnchorType, Anchors},
     modules::ui::{
         button::{ButtonClickEvent, ButtonProperties, ButtonRole},
-        dialog::Dialog,
+        dialog::{ButtonGroup, Dialog},
     },
     networking::{
         networking_events::NetworkingEvent, networking_ressource::NetworkingRessource,
@@ -128,18 +128,21 @@ fn logout(
             parent.spawn((
                 Dialog {
                     title: Some("Welcome".to_string()),
-                    buttons: vec![
-                        ButtonProperties {
-                            text: "Register".to_string(),
-                            role: ButtonRole::Secondary,
-                            id: Some("register".to_string()),
-                        },
-                        ButtonProperties {
-                            text: "Login".to_string(),
-                            role: ButtonRole::Primary,
-                            id: Some("login".to_string()),
-                        },
-                    ],
+                    buttons: ButtonGroup {
+                        buttons: vec![
+                            ButtonProperties {
+                                text: "Register".to_string(),
+                                role: ButtonRole::Secondary,
+                                id: Some("register".to_string()),
+                            },
+                            ButtonProperties {
+                                text: "Login".to_string(),
+                                role: ButtonRole::Primary,
+                                id: Some("login".to_string()),
+                            },
+                        ],
+                        ..default()
+                    },
                     content: Some(inputs),
                     ..default()
                 },

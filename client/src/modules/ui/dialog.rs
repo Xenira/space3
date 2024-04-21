@@ -29,9 +29,15 @@ impl Plugin for DialogPlugin {
 pub struct Dialog {
     pub title: Option<String>,
     pub text: Option<String>,
-    pub buttons: Vec<ButtonProperties>,
+    pub buttons: ButtonGroup,
     pub content: Option<Entity>,
     pub backdrop: bool,
+}
+
+#[derive(Debug, Default)]
+pub struct ButtonGroup {
+    pub buttons: Vec<ButtonProperties>,
+    pub direction: FlexDirection,
 }
 
 fn on_spawn(
@@ -133,18 +139,19 @@ fn spawn_dialog(
     let buttons = commands
         .spawn(NodeBundle {
             style: Style {
-                flex_direction: FlexDirection::Row,
+                flex_direction: dialog.buttons.direction,
+                align_self: AlignSelf::Stretch,
+                align_items: AlignItems::Stretch,
                 column_gap: Val::Px(22.0),
+                row_gap: Val::Px(22.0),
+                padding: UiRect::all(Val::Px(8.0)),
                 ..default()
             },
             ..default()
         })
         .with_children(|parent| {
-            for button in &dialog.buttons {
-                parent.spawn((
-                    // NodeBundle::default(),
-                    ButtonComponent(button.clone()),
-                ));
+            for button in &dialog.buttons.buttons {
+                parent.spawn((NodeBundle::default(), ButtonComponent(button.clone())));
             }
         })
         .id();

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{states::startup::startup::UiAssets, UiCamera, UI_LAYER};
+use crate::states::startup::startup::UiAssets;
 
 const PRIMAY_FONT_SIZE: f32 = 18.0;
 
@@ -60,10 +60,10 @@ pub struct ButtonClickEvent {
 fn on_spawn(
     mut commands: Commands,
     ui_assets: Res<UiAssets>,
-    q_added: Query<(&ButtonComponent, &Parent), Added<ButtonComponent>>,
+    q_added: Query<(&ButtonComponent, Entity), Added<ButtonComponent>>,
 ) {
-    for (button, parent) in q_added.iter() {
-        spawn_button(&mut commands, &ui_assets, &button, parent.get());
+    for (button, entity) in q_added.iter() {
+        spawn_button(&mut commands, &ui_assets, &button, entity);
     }
 }
 
@@ -73,9 +73,6 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     q_button: Query<&ButtonComponent>,
-    q_children: Query<&Children>,
-    // mut q_image: Query<&mut UiImage>,
-    // q_role: Query<&ButtonRoleComponent>,
     res_assets: Res<UiAssets>,
     mut ev_button_click: EventWriter<ButtonClickEvent>,
 ) {
@@ -108,15 +105,10 @@ fn button_system(
         }
 
         if *interaction == Interaction::Pressed {
-            q_children
-                .get(parent.get())
-                .iter()
-                .flat_map(|children| children.iter().filter_map(|c| q_button.get(*c).ok()))
-                .for_each(|button| {
-                    ev_button_click.send(ButtonClickEvent {
-                        button: button.0.clone(),
-                    });
-                });
+            let button = q_button.get(parent.get()).unwrap();
+            ev_button_click.send(ButtonClickEvent {
+                button: button.0.clone(),
+            });
         }
     }
 }
@@ -128,7 +120,7 @@ fn spawn_button(
     entity: Entity,
 ) {
     let slicer = TextureSlicer {
-        border: BorderRect::square(22.0),
+        border: BorderRect::square(28.0),
         center_scale_mode: SliceScaleMode::Stretch,
         sides_scale_mode: SliceScaleMode::Stretch,
         max_corner_scale: 1.0,
@@ -139,7 +131,8 @@ fn spawn_button(
             .spawn((
                 ButtonBundle {
                     style: Style {
-                        align_items: AlignItems::Center,
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
                         justify_content: JustifyContent::Center,
                         padding: UiRect::all(Val::Px(12.0)),
                         ..default()
