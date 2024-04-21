@@ -142,8 +142,9 @@ fn spawn_dialog(
                 flex_direction: dialog.buttons.direction,
                 align_self: AlignSelf::Stretch,
                 align_items: AlignItems::Stretch,
-                column_gap: Val::Px(22.0),
-                row_gap: Val::Px(22.0),
+                justify_content: JustifyContent::Center,
+                column_gap: Val::Px(16.0),
+                row_gap: Val::Px(16.0),
                 padding: UiRect::all(Val::Px(8.0)),
                 ..default()
             },

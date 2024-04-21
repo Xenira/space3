@@ -32,6 +32,16 @@ fn setup(mut commands: Commands) {
                     id: Some("play".to_string()),
                 },
                 ButtonProperties {
+                    text: "Lobby".to_string(),
+                    role: ButtonRole::Secondary,
+                    id: Some("lobby".to_string()),
+                },
+                ButtonProperties {
+                    text: "Settings".to_string(),
+                    role: ButtonRole::Secondary,
+                    id: Some("settings".to_string()),
+                },
+                ButtonProperties {
                     text: "Sign Out".to_string(),
                     role: ButtonRole::Cancel,
                     id: Some("sign_out".to_string()),
@@ -55,8 +65,11 @@ fn on_button_click(
 ) {
     for event in ev_button_click.read() {
         match event.button.id.as_deref() {
-            Some("play") => {
+            Some("play") | Some("lobby") => {
                 ev_state_change.send(StateChangeEvent(AppState::DialogLobbyJoin));
+            }
+            Some("settings") => {
+                ev_state_change.send(StateChangeEvent(AppState::MenuSettings));
             }
             Some("sign_out") => {
                 ev_state_change.send(StateChangeEvent(AppState::MenuLogin));

@@ -49,6 +49,7 @@ enum AppState {
     Startup,
     Loading,
     MenuLogin,
+    MenuSettings,
     MenuSetDisplayName,
     MenuMain,
     DialogLobbyJoin,
