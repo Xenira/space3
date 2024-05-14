@@ -2,9 +2,14 @@ use std::collections::HashMap;
 
 use crate::{
     components::background::Background, modules::ui::button::ButtonState, AppState,
-    StateChangeEvent,
+    StateChangeEvent, UiCamera,
 };
 use bevy::prelude::*;
+use bevy_ecss::StyleSheet;
+use bevy_ui_forms::{
+    form_element::FormElementStyle,
+    form_elements::button::{ButtonRole, FormInteraction},
+};
 
 const STATE: AppState = AppState::Startup;
 pub(crate) struct StartupPlugin;
@@ -15,7 +20,7 @@ impl Plugin for StartupPlugin {
             .init_resource::<BackgroundAssets>()
             .add_systems(
                 OnEnter(STATE),
-                (load_ui_assets, load_background_assets).before(setup),
+                (load_ui_assets, load_background_assets, setup_ui_root).before(setup),
             )
             .add_systems(OnEnter(STATE), setup);
     }
@@ -36,6 +41,9 @@ pub struct BackgroundAssets {
     pub(crate) background: Handle<Image>,
 }
 
+#[derive(Component)]
+pub struct UiRoot;
+
 fn load_ui_assets(asset_server: Res<AssetServer>, mut ui_assets: ResMut<UiAssets>) {
     ui_assets.font = asset_server.load("fonts/monogram-extended.ttf");
     ui_assets.cursor = asset_server.load("textures/ui/cursor.png");
@@ -43,6 +51,31 @@ fn load_ui_assets(asset_server: Res<AssetServer>, mut ui_assets: ResMut<UiAssets
     ui_assets.primary_button = load_button_assets("btn_primary", &asset_server);
     ui_assets.secondary_button = load_button_assets("btn_secondary", &asset_server);
     ui_assets.cancel_button = load_button_assets("btn_cancel", &asset_server);
+}
+
+fn setup_ui_root(
+    mut commands: Commands,
+    q_ui_camera: Query<Entity, With<UiCamera>>,
+    res_asset_server: Res<AssetServer>,
+) {
+    commands
+        .spawn((
+            TargetCamera(q_ui_camera.single()),
+            NodeBundle {
+                style: Style {
+                    top: Val::Px(0.0),
+                    left: Val::Px(0.0),
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+                ..default()
+            },
+            UiRoot,
+        ))
+        .insert(StyleSheet::new(res_asset_server.load("style/form.css")));
 }
 
 fn load_button_assets(

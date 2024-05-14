@@ -27,5 +27,7 @@
       "effect": "Flying",
       "target": "SelfTarget"
     }
-  ]
+  ],
+  "alignment": "Neutral",
+  "archetypes": []
 }

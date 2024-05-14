@@ -1,7 +1,10 @@
 use bevy::prelude::*;
-use bevy_not_so_simple_text_input::{clipboard::ClipboardPlugin, TextInputBundle, TextInputPlugin};
+use bevy_ecss::StyleSheet;
 
-use crate::{states::startup::startup::UiAssets, Cleanup, UiCamera};
+use crate::{
+    states::startup::startup::{UiAssets, UiRoot},
+    Cleanup, UiCamera,
+};
 
 use super::button::{ButtonComponent, ButtonProperties};
 
@@ -19,9 +22,7 @@ pub(crate) struct DialogPlugin;
 
 impl Plugin for DialogPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, on_spawn)
-            .add_plugins(TextInputPlugin)
-            .add_plugins(ClipboardPlugin);
+        app.add_systems(Update, on_spawn);
     }
 }
 
@@ -43,24 +44,24 @@ pub struct ButtonGroup {
 fn on_spawn(
     mut commands: Commands,
     ui_assets: Res<UiAssets>,
-    q_ui_camera: Query<Entity, With<UiCamera>>,
     q_added: Query<&Dialog, Added<Dialog>>,
+    q_ui_root: Query<Entity, With<UiRoot>>,
 ) {
     for dialog in q_added.iter() {
         spawn_dialog(
             &mut commands,
-            q_ui_camera.single(),
             ui_assets.dialog_border.clone(),
             dialog,
+            q_ui_root.single(),
         );
     }
 }
 
 fn spawn_dialog(
     commands: &mut Commands,
-    ui_camera: Entity,
     background: Handle<Image>,
     dialog: &Dialog,
+    ui_root: Entity,
 ) {
     let slicer = TextureSlicer {
         border: BorderRect::square(22.0),
@@ -71,7 +72,6 @@ fn spawn_dialog(
 
     let dialog_parent = commands
         .spawn((
-            TargetCamera(ui_camera),
             NodeBundle {
                 style: Style {
                     top: Val::Px(0.0),
@@ -94,16 +94,15 @@ fn spawn_dialog(
                 style: Style {
                     min_height: Val::Px(MIN_HEIGHT),
                     min_width: Val::Px(MIN_WIDTH),
+                    max_width: Val::Px(500.0),
+                    max_height: Val::Px(500.0),
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Column,
-                    flex_grow: 1.0,
                     justify_content: JustifyContent::Center,
-                    position_type: PositionType::Absolute,
                     padding: UiRect::all(Val::Px(22.0)),
                     ..default()
                 },
                 image: UiImage::new(background),
-                // background_color: Color::rgba(1.0, 1.0, 1.0, 0.05).into(),
                 ..default()
             },
             ImageScaleMode::Sliced(slicer.clone()),
@@ -172,4 +171,5 @@ fn spawn_dialog(
     }
 
     commands.entity(dialog_parent).add_child(dialog_body);
+    commands.entity(ui_root).add_child(dialog_parent);
 }

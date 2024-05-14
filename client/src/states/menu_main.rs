@@ -1,13 +1,9 @@
 use bevy::{app::AppExit, prelude::*};
-use bevy_egui::{egui, EguiContexts};
+use bevy_ecss::Class;
 
 use crate::{
-    cleanup_system,
-    modules::ui::{
-        button::{ButtonClickEvent, ButtonProperties, ButtonRole},
-        dialog::{ButtonGroup, Dialog},
-    },
-    AppState, Cleanup, StateChangeEvent,
+    cleanup_system, forms::main_menu_form::MainMenuActions, modules::ui::dialog::Dialog, AppState,
+    Cleanup, StateChangeEvent,
 };
 
 const STATE: AppState = AppState::MenuMain;
@@ -22,59 +18,47 @@ impl Plugin for MenuMainPlugin {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Dialog {
-        title: Some("Main Menu".to_string()),
-        buttons: ButtonGroup {
-            buttons: vec![
-                ButtonProperties {
-                    text: "Play".to_string(),
-                    role: ButtonRole::Primary,
-                    id: Some("play".to_string()),
+    let form = commands
+        .spawn((
+            crate::forms::main_menu_form::MainMenuForm,
+            NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Column,
+                    ..default()
                 },
-                ButtonProperties {
-                    text: "Lobby".to_string(),
-                    role: ButtonRole::Secondary,
-                    id: Some("lobby".to_string()),
-                },
-                ButtonProperties {
-                    text: "Settings".to_string(),
-                    role: ButtonRole::Secondary,
-                    id: Some("settings".to_string()),
-                },
-                ButtonProperties {
-                    text: "Sign Out".to_string(),
-                    role: ButtonRole::Cancel,
-                    id: Some("sign_out".to_string()),
-                },
-                ButtonProperties {
-                    text: "Exit".to_string(),
-                    role: ButtonRole::Cancel,
-                    id: Some("exit".to_string()),
-                },
-            ],
-            direction: FlexDirection::Column,
+                ..default()
+            },
+            Cleanup,
+        ))
+        .id();
+
+    commands.spawn((
+        Dialog {
+            title: Some("Main Menu".to_string()),
+            content: Some(form),
+            ..default()
         },
-        ..default()
-    });
+        Class::new("main-menu"),
+    ));
 }
 
 fn on_button_click(
     mut ev_state_change: EventWriter<StateChangeEvent>,
     mut ev_exit: EventWriter<AppExit>,
-    mut ev_button_click: EventReader<ButtonClickEvent>,
+    mut ev_button_click: EventReader<MainMenuActions>,
 ) {
     for event in ev_button_click.read() {
-        match event.button.id.as_deref() {
-            Some("play") | Some("lobby") => {
+        match event {
+            MainMenuActions::StartGame => {
                 ev_state_change.send(StateChangeEvent(AppState::DialogLobbyJoin));
             }
-            Some("settings") => {
+            MainMenuActions::Settings => {
                 ev_state_change.send(StateChangeEvent(AppState::MenuSettings));
             }
-            Some("sign_out") => {
+            MainMenuActions::SignOut => {
                 ev_state_change.send(StateChangeEvent(AppState::MenuLogin));
             }
-            Some("exit") => {
+            MainMenuActions::Exit => {
                 ev_exit.send(AppExit);
             }
             _ => {}

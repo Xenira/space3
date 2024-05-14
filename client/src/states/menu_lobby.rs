@@ -23,6 +23,8 @@ impl Plugin for LobbyPlugin {
 #[derive(Resource)]
 pub struct CurrentLobby(pub LobbyInfo);
 
+fn setup(mut commands: Commands) {}
+
 fn ui_lobby(
     mut contexts: EguiContexts,
     mut network: ResMut<NetworkingRessource>,

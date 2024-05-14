@@ -1,5 +1,5 @@
 use protocol_types::{
-    character::CharacterUpgrade,
+    character::{Alignment, Archetype, CharacterUpgrade},
     heros::Pantheon,
     prelude::{Ability, AbilityEffect, AbilityValue},
 };
@@ -59,6 +59,8 @@ pub struct CharacterJson {
     pub cost: u8,
     pub upgrade: Option<CharacterUpgrade>,
     pub abilities: Vec<Ability>,
+    pub alignment: Alignment,
+    pub archetypes: Vec<Archetype>,
 }
 
 impl ToTokens for CharacterJson {
@@ -80,6 +82,13 @@ impl ToTokens for CharacterJson {
         } else {
             quote! { None }
         };
+        let alignment = format_ident!("{}", format!("{:?}", self.alignment));
+        let archetypes = self
+            .archetypes
+            .iter()
+            .map(|archetype| format_ident!("{}", format!("{:?}", archetype)))
+            .map(|archetype| quote! { Archetype::#archetype })
+            .collect::<Vec<_>>();
         tokens.append_all(quote! {
             Character {
                 id: #id,
@@ -90,6 +99,8 @@ impl ToTokens for CharacterJson {
                 cost: #cost,
                 upgrade: #upgrade,
                 abilities: vec![#(#abilities),*],
+                alignment: Alignment::#alignment,
+                archetypes: vec![#(#archetypes),*],
             }
         });
     }

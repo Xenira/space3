@@ -10,6 +10,8 @@ pub struct Character {
     pub cost: u8,
     pub upgrade: Option<CharacterUpgrade>,
     pub abilities: Vec<Ability>,
+    pub alignment: Alignment,
+    pub archetypes: Vec<Archetype>,
 }
 
 impl PartialEq for Character {
@@ -45,6 +47,25 @@ pub enum AbilityTrigger {
     OnBuy,
     OnBattleStart,
     OnBattleEnd,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Alignment {
+    Good,
+    Evil,
+    Neutral,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Archetype {
+    Human,
+    Beast,
+    Undead,
+    Demon,
+    Elemental,
+    Demigod,
+    Dragon,
+    All,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]

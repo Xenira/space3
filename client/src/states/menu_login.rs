@@ -1,6 +1,7 @@
 use crate::{
     cleanup_system,
     components::anchors::{AnchorType, Anchors},
+    forms::login_form::LoginDataFormEvent,
     modules::ui::{
         button::{ButtonClickEvent, ButtonProperties, ButtonRole},
         dialog::{ButtonGroup, Dialog},
@@ -13,8 +14,7 @@ use crate::{
     AppState, Cleanup, StateChangeEvent,
 };
 use bevy::{app::AppExit, prelude::*};
-use bevy_egui::{egui, EguiContexts};
-use bevy_not_so_simple_text_input::{TextInputBundle, TextInputSettings, TextInputValue};
+use bevy_ui_forms::prelude::*;
 use protocol::protocol::{Credentials, Protocol, UserData};
 use reqwest::{header::HeaderValue, Method};
 
@@ -24,7 +24,10 @@ pub(crate) struct MenuLoginPlugin;
 impl Plugin for MenuLoginPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(STATE), logout)
-            .add_systems(Update, (on_login, on_button_click).run_if(in_state(STATE)))
+            .add_systems(
+                Update,
+                (on_login, on_button_click, on_form_submit).run_if(in_state(STATE)),
+            )
             .add_systems(OnExit(STATE), cleanup_system::<Cleanup>);
     }
 }
@@ -48,76 +51,6 @@ fn logout(
     commands.remove_resource::<User>();
     ev_polling_status.send(PollingStatus::Stop);
 
-    let username_input = commands
-        .spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Px(200.0),
-                    // height: Val::Px(50.0),
-                    border: UiRect::all(Val::Px(1.0)),
-                    padding: UiRect::all(Val::Px(5.0)),
-                    ..default()
-                },
-                ..default()
-            },
-            TextInputBundle::default()
-                .with_text_style(TextStyle {
-                    font_size: 22.0,
-                    color: Color::BLACK,
-                    ..default()
-                })
-                .with_placeholder("Username", None)
-                .with_active(true),
-        ))
-        .id();
-
-    let password_input = commands
-        .spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Px(200.0),
-                    // height: Val::Px(50.0),
-                    border: UiRect::all(Val::Px(1.0)),
-                    padding: UiRect::all(Val::Px(5.0)),
-                    ..default()
-                },
-                ..default()
-            },
-            TextInputBundle::default()
-                .with_text_style(TextStyle {
-                    font_size: 22.0,
-                    color: Color::BLACK,
-                    ..default()
-                })
-                .with_placeholder("Password", None)
-                .with_settings(TextInputSettings {
-                    mask_character: Some('*'),
-                    ..default()
-                }),
-        ))
-        .id();
-
-    let inputs = commands
-        .spawn((NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(8.0),
-                ..default()
-            },
-            ..default()
-        },))
-        .id();
-
-    commands.insert_resource(LoginForm {
-        username: username_input,
-        password: password_input,
-    });
-
-    commands
-        .entity(inputs)
-        .add_child(username_input)
-        .add_child(password_input);
-
     commands
         .entity(res_anchors.get(AnchorType::TOP_RIGHT).unwrap())
         .with_children(|parent| {
@@ -125,45 +58,69 @@ fn logout(
                 &asset_server,
                 Transform::from_translation(Vec3::new(-30.0, -15.0, 100.0)),
             ),));
-            parent.spawn((
-                Dialog {
-                    title: Some("Welcome".to_string()),
-                    buttons: ButtonGroup {
-                        buttons: vec![
-                            ButtonProperties {
-                                text: "Register".to_string(),
-                                role: ButtonRole::Secondary,
-                                id: Some("register".to_string()),
-                            },
-                            ButtonProperties {
-                                text: "Login".to_string(),
-                                role: ButtonRole::Primary,
-                                id: Some("login".to_string()),
-                            },
-                        ],
-                        ..default()
-                    },
-                    content: Some(inputs),
-                    ..default()
-                },
-                Cleanup,
-            ));
         });
 
+    commands.insert_resource(bevy_ui_forms::form::FormInputTextStyle(TextStyle {
+        font_size: 22.0,
+        color: Color::BLACK,
+        ..default()
+    }));
+
+    let inputs = commands
+        .spawn((
+            crate::forms::login_form::LoginDataForm,
+            NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(8.0),
+                    align_self: AlignSelf::Stretch,
+                    align_items: AlignItems::Stretch,
+                    ..default()
+                },
+                ..default()
+            },
+            Cleanup,
+        ))
+        .id();
+
+    commands.spawn((Dialog {
+        title: Some("Welcome".to_string()),
+        content: Some(inputs),
+        ..default()
+    },));
+
     debug!("Logout end")
+}
+
+fn on_form_submit(
+    mut ev_login_form: EventReader<LoginDataFormEvent>,
+    mut network: ResMut<NetworkingRessource>,
+) {
+    for ev in ev_login_form.read() {
+        match &ev.event {
+            FormEvent::Submit(data) => {
+                network.request_data::<Credentials>(Method::POST, "users", &data.clone().into())
+            }
+            _ => {}
+        }
+    }
 }
 
 fn on_button_click(
     mut network: ResMut<NetworkingRessource>,
     mut ev_button_click: EventReader<ButtonClickEvent>,
-    res_form: Res<LoginForm>,
+    // res_form: Res<LoginForm>,
     q_text_input: Query<&TextInputValue>,
 ) {
     for ev in ev_button_click.read() {
         if let Some(id) = ev.button.id.as_deref() {
-            let username = q_text_input.get(res_form.username).unwrap().0.clone();
-            let password = q_text_input.get(res_form.password).unwrap().0.clone();
-            let credentials = Credentials { username, password };
+            // let username = q_text_input.get(res_form.username).unwrap().0.clone();
+            // let password = q_text_input.get(res_form.password).unwrap().0.clone();
+            // let credentials = Credentials { username, password };
+            let credentials = Credentials {
+                username: "foo".to_string(),
+                password: "bar".to_string(),
+            };
             match id {
                 "login" => {
                     network.request_data(Method::POST, "users", &credentials);

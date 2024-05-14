@@ -11,5 +11,7 @@
     "health": 10,
     "abilities": []
   },
-  "abilities": []
+  "abilities": [],
+  "alignment": "Evil",
+  "archetypes": []
 }

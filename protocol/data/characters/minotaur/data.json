@@ -10,5 +10,7 @@
     "health": 6,
     "abilities": []
   },
-  "abilities": []
+  "abilities": [],
+  "alignment": "Neutral",
+  "archetypes": []
 }

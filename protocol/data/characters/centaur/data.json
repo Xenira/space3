@@ -10,5 +10,7 @@
     "health": 4,
     "abilities": []
   },
-  "abilities": []
+  "abilities": [],
+  "alignment": "Good",
+  "archetypes": []
 }

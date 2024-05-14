@@ -42,5 +42,7 @@
         "target": "SelfTarget"
       }
     ]
-  }
+  },
+  "alignment": "Evil",
+  "archetypes": []
 }

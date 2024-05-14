@@ -1,0 +1,35 @@
+button {
+  image-path: "textures/ui/windows/btn_cancel.png";
+  padding: 12px;
+  margin: 4px;
+  justify-content: center;
+  image-rendering: sliced stretch 28;
+}
+
+button:hover {
+  image-path: "textures/ui/windows/btn_cancel_hover.png";
+}
+
+button:active {
+  image-path: "textures/ui/windows/btn_cancel_click.png";
+}
+
+button text {
+  font-size: 22px;
+  color: #000000;
+}
+
+#form {
+  flex-direction: column;
+  align-items: center;
+}
+
+#form #action-row {
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-around;
+}
+
+main-menu#form #action-row {
+  flex-direction: column;
+}

@@ -5,16 +5,16 @@ use crate::{
         dialog::{ButtonGroup, Dialog},
     },
     networking::{networking_events::NetworkingEvent, networking_ressource::NetworkingRessource},
-    states::lobby::CurrentLobby,
+    states::menu_lobby::CurrentLobby,
     AppState, Cleanup, StateChangeEvent,
 };
 use bevy::prelude::*;
-use bevy_not_so_simple_text_input::{TextInputBundle, TextInputSettings, TextInputValue};
+use bevy_ui_forms::prelude::*;
 use protocol::protocol::{LobbyJoinRequest, Protocol};
 use reqwest::Method;
 
 const STATE: AppState = AppState::DialogLobbyJoin;
-pub(crate) struct DialogLobbyJoinPlugin;
+pub struct DialogLobbyJoinPlugin;
 
 impl Plugin for DialogLobbyJoinPlugin {
     fn build(&self, app: &mut App) {

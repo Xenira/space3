@@ -1,13 +1,10 @@
 #[cfg(not(target_family = "wasm"))]
 extern crate dotenv;
 use crate::{
-    components::{timer::TimerUi, ComponentsPlugin},
-    modules::game_user_info::GameUserRes,
-    networking::networking_plugin::NetworkingPlugin,
-    states::{
+    components::{timer::TimerUi, ComponentsPlugin}, forms::main_menu_form::MainMenuForm, modules::game_user_info::GameUserRes, networking::networking_plugin::NetworkingPlugin, states::{
         game_combat::BattleRes, game_commander_selection::GameCommanderSelection,
         game_result::GameResultRes, game_states,
-    },
+    }
 };
 use bevy::{
     asset::AssetMetaCheck,
@@ -17,10 +14,12 @@ use bevy::{
     render::view::RenderLayers,
     window::Cursor,
 };
+use bevy_ecss::{EcssPlugin, RegisterComponentSelector, StyleSheet};
 use bevy_egui::{
     egui::{self, Color32},
     EguiContexts, EguiPlugin, EguiStartupSet,
 };
+use bevy_ui_forms::BevyUiFormsPlugins;
 use chrono::{DateTime, Utc};
 use components::on_screen_log::{LogEntry, LogLevel};
 #[cfg(not(target_family = "wasm"))]
@@ -31,9 +30,11 @@ use protocol::{
     protocol::{Credentials, Protocol, Turn},
 };
 use reqwest::Method;
+use states::startup::startup::UiRoot;
 use std::env;
 
 mod components;
+mod forms;
 mod modules;
 mod networking;
 mod prefabs;
@@ -103,24 +104,46 @@ fn main() {
                 ..Default::default()
             }),
             ..Default::default()
+        })
+        .set(AssetPlugin {
+            watch_for_changes_override: Some(true),
+            ..default()
         });
 
     app.init_state::<AppState>()
         .insert_resource(AssetMetaCheck::Never)
         .add_plugins(default_plugins) // .set(ImagePlugin::default_nearest()),
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugins(EntityCountDiagnosticsPlugin::default())
+        .add_plugins(EntityCountDiagnosticsPlugin)
         .add_plugins(EguiPlugin)
         .add_event::<StateChangeEvent>()
         .add_plugins(NetworkingPlugin(base_url))
         .add_systems(Startup, setup.after(EguiStartupSet::InitContexts))
-        .add_systems(Update, (state_change_handler, networking_handler))
+        .add_systems(
+            Update,
+            (state_change_handler, networking_handler, refresh_css),
+        )
         .add_plugins(ComponentsPlugin)
         .add_plugins(modules::ModulesPlugin)
-        .add_plugins(game_states::GameStatesPluginGroup);
+        .add_plugins(game_states::GameStatesPluginGroup)
+        .add_plugins(EcssPlugin::with_hot_reload())
+        .register_component_selector::<MainMenuForm>("main-menu")
+        .add_plugins(BevyUiFormsPlugins)
+        .add_plugins(forms::FormsPluginGroup);
 
     debug!("Starting app");
     app.run();
+}
+
+fn refresh_css(
+    q_node_added: Query<Entity, Added<Style>>,
+    mut q_ui_root: Query<&mut StyleSheet, With<UiRoot>>,
+) {
+    for _ in q_node_added.iter() {
+        for mut style in &mut q_ui_root {
+            style.refresh();
+        }
+    }
 }
 
 #[derive(Component)]
